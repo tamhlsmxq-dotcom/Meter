@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ພິມບິນເບີກເຄື່ອງ - ສາງໝໍ້ແທກນ້ຳ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body, input, select, button, table { font-family: 'Times New Roman', 'Phetsarath OT', 'Noto Sans Lao', serif !important; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background-color: white; margin: 0; padding: 0; }
+            .print-container { width: 100%; border: none; box-shadow: none; padding: 0; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { border: 1px solid #000 !important; padding: 8px !important; color: #000 !important; }
+            th { background-color: #f3f4f6 !important; -webkit-print-color-adjust: exact; }
+        }
+        .print-only { display: none; }
+    </style>
+</head>
+<body class="text-gray-800 bg-gray-100 flex h-[100dvh] overflow-hidden m-0 p-0">
+
+    <div id="sidebar-placeholder" class="contents no-print"></div>
+
+    <div class="flex-1 flex flex-col h-full w-full min-w-0">
+        <header class="md:hidden bg-blue-800 text-white p-4 flex justify-between items-center shadow-md z-30 shrink-0 no-print">
+            <div class="font-bold text-lg flex items-center"><i class="fas fa-tint mr-2 text-blue-300"></i> ສາງໝໍ້ແທກນ້ຳ</div>
+            <button onclick="toggleSidebar()" class="text-white p-2 focus:outline-none"><i class="fas fa-bars text-2xl"></i></button>
+        </header>
+
+        <main class="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6 w-full pb-20 bg-gray-100 no-print">
+            <div class="max-w-5xl mx-auto">
+                <h2 class="text-2xl font-bold text-blue-800 mb-6 flex items-center border-b pb-4"><i class="fas fa-upload mr-3"></i> ເບີກເຄື່ອງອອກສາງ (Issue Out)</h2>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-bold mb-1 text-gray-700">ເລືອກອຸປະກອນ</label>
+                            <input list="items-list" id="itemCode" oninput="fillDetails()" placeholder="ພິມລະຫັດ ຫຼື ເລືອກເຄື່ອງ..." class="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 font-bold bg-white text-lg">
+                            <datalist id="items-list"></datalist>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold mb-1 text-gray-700">ຈຳນວນເບີກ</label>
+                            <input type="number" id="itemQty" placeholder="0" class="w-full p-3 border-2 border-blue-400 rounded-lg outline-none focus:ring-2 focus:ring-blue-600 font-bold text-center text-lg">
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="addToCart()" class="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg font-bold shadow-md transition-colors h-[52px]">
+                                <i class="fas fa-plus mr-1"></i> ເພີ່ມລົງບິນ
+                            </button>
+                        </div>
+                    </div>
+                    <div class="text-sm text-gray-500" id="stockInfoDisplay">ເລືອກອຸປະກອນເພື່ອເບິ່ງຈຳນວນໃນສາງ...</div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-gray-800"><i class="fas fa-clipboard-list mr-2 text-blue-600"></i> ລາຍການທີ່ຈະເບີກ</h3>
+                    </div>
+                    
+                    <div class="overflow-x-auto mb-6 border rounded-lg">
+                        <table class="w-full border-collapse text-sm text-left">
+                            <thead class="bg-blue-50 text-blue-800 border-b">
+                                <tr>
+                                    <th class="p-3 border-r w-12 text-center">ລ/ດ</th>
+                                    <th class="p-3 border-r">ລະຫັດອຸປະກອນ</th>
+                                    <th class="p-3 border-r">ຊື່ອຸປະກອນ</th>
+                                    <th class="p-3 border-r text-center">ຈຳນວນເບີກ</th>
+                                    <th class="p-3 text-center">ລຶບ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cartTableBody" class="divide-y divide-gray-100">
+                                <tr><td colspan="5" class="p-8 text-center text-gray-400 italic">ຍັງບໍ່ມີລາຍການ. ກະລຸນາເລືອກເຄື່ອງແລ້ວກົດ "ເພີ່ມລົງບິນ"</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 pt-4 border-t border-dashed">
+                        <div>
+                            <label class="block text-sm font-bold mb-1 text-gray-700">ຊື່ໜ່ວຍງານເບີກ *</label>
+                            <input list="dept-list" id="departmentName" placeholder="ເລືອກ ຫຼື ພິມໜ່ວຍງານ..." class="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 font-bold">
+                            <datalist id="dept-list">
+                                <option value="ໜ່ວຍງານຕິດຕັ້ງ"></option>
+                                <option value="ໜ່ວຍງານສ້ອມແປງ"></option>
+                                <option value="ໜ່ວຍງານສຳຫຼວດ"></option>
+                                <option value="ພະແນກເຕັກນິກ"></option>
+                                <option value="ພະແນກບໍລິຫານ"></option>
+                            </datalist>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold mb-1 text-gray-700">ຊື່ຜູ້ຮັບເຄື່ອງ *</label>
+                            <input type="text" id="receiverName" placeholder="ຊື່ພະນັກງານທີ່ມາເບີກ..." class="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold mb-1 text-gray-700">ເຫດຜົນນຳໃຊ້ *</label>
+                            <input list="reason-list" id="issueRemark" placeholder="ກົດເພື່ອເລືອກເຫດຜົນ..." class="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 font-bold text-blue-800">
+                            <datalist id="reason-list">
+                                <option value="ປ່ຽນຖ່າຍ/ເປີດນ້ຳ"></option>
+                                <option value="ເບີກອຸປະກອນສ້ອມແປງໝໍ້ແທກນ້ຳ"></option>
+                            </datalist>
+                        </div>
+                    </div>
+
+                    <button onclick="confirmAndPrint()" class="w-full bg-green-600 hover:bg-green-700 text-white p-4 rounded-xl font-bold text-xl shadow-lg transition-transform transform hover:-translate-y-0.5">
+                        <i class="fas fa-print mr-2"></i> ຢືນຢັນການເບີກ ແລະ ພິມບິນ
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <div id="printArea" class="print-only print-container p-8 bg-white absolute top-0 left-0 w-full h-full z-50"></div>
+
+    </div>
+
+    <script type="module">
+        import { renderSidebar } from './sidebar.js';
+        if(typeof renderSidebar === 'function') renderSidebar('issue');
+    </script>
+    <script type="module" src="./auth-guard.js"></script>
+    <script type="module" src="./js/pages/issue-items.js"></script>
+
+</body>
+</html>

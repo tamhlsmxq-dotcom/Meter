@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <title>ບັນທຶກເບີກຈ່າຍອຸປະກອນ - ສາງໝໍ້ແທກນ້ຳ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body, input, select, button, textarea { font-family: 'Times New Roman', 'Phetsarath OT', 'Noto Sans Lao', serif !important; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .swal2-popup { font-family: 'Times New Roman', 'Phetsarath OT', serif !important; }
+    </style>
+</head>
+<body class="text-gray-800 bg-gray-100 flex h-[100dvh] overflow-hidden m-0 p-0">
+
+    <div id="sidebar-placeholder" class="contents"></div>
+
+    <div class="flex-1 flex flex-col h-full w-full min-w-0">
+        
+        <header class="md:hidden bg-blue-800 text-white p-4 flex justify-between items-center shadow-md z-30 shrink-0">
+            <div class="font-bold text-lg flex items-center"><i class="fas fa-tint mr-2 text-blue-300"></i> ສາງໝໍ້ແທກນ້ຳ</div>
+            <button onclick="toggleSidebar()" class="text-white p-2 focus:outline-none"><i class="fas fa-bars text-2xl"></i></button>
+        </header>
+
+        <main class="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-8 w-full relative pb-20">
+            <div class="max-w-5xl mx-auto bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100">
+                <div class="flex justify-between items-center mb-6 border-b pb-4">
+                    <h2 class="text-2xl font-bold text-blue-800" id="recordFormTitle"><i class="fas fa-file-signature mr-2 text-blue-600"></i>ບັນທຶກເບີກຈ່າຍອຸປະກອນ</h2>
+                    <button id="cancelEditBtn" onclick="cancelEdit()" class="hidden bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors shadow-sm"><i class="fas fa-times mr-1"></i> ຍົກເລີກການແກ້ໄຂ</button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-5 mb-8">
+                    <div>
+                        <label class="block text-sm font-bold mb-1 text-gray-700">ປະເພດການບັນທຶກ</label>
+                        <select id="recordType" class="w-full p-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50">
+                            <option value="warehouse">📦 ເບີກອອກຈາກສາງ</option>
+                            <option value="replaced">🔧 ປ່ຽນຖ່າຍໜ້າວຽກຕົວຈິງ</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold mb-1 text-gray-700">ເລກທີລາຍງານ</label>
+                        <input type="text" id="reportNo" class="w-full p-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 font-bold" placeholder="0059/ນຊທ">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold mb-1 text-gray-700">ວັນທີ</label>
+                        <input type="text" id="recordDate" class="w-full p-3 border border-gray-300 rounded-xl outline-none datepicker focus:ring-2 focus:ring-blue-500 bg-gray-50 font-bold">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold mb-1 text-gray-700">ພະນັກງານ</label>
+                        <select id="employeeName" class="w-full p-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50">
+                            <option value="ສຸກສາຄອນ">ສຸກສາຄອນ</option>
+                            <option value="ທະນົງສັກ">ທະນົງສັກ</option>
+                            <option value="ວິລະກອນ">ວິລະກອນ</option>
+                            <option value="ວິມົນ">ວິມົນ</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-4 flex justify-between items-end">
+                    <h3 class="font-bold text-gray-800 text-lg">ລາຍການເຄື່ອງ (Items)</h3>
+                    <button onclick="addRow()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition-colors"><i class="fas fa-plus mr-1"></i> ເພີ່ມລາຍການ</button>
+                </div>
+
+                <div class="overflow-x-auto mb-8 border border-gray-200 rounded-xl">
+                    <table class="w-full border-collapse" id="itemsTable">
+                        <thead class="bg-gray-50 text-gray-700 text-sm border-b border-gray-200">
+                            <tr>
+                                <th class="p-3 text-left w-2/5">ເລືອກ/ພິມ ລະຫັດອຸປະກອນ</th>
+                                <th class="p-3 text-left">ຊື່ອຸປະກອນ</th>
+                                <th class="p-3 text-center w-24">ຈຳນວນ</th>
+                                <th class="p-3 text-center w-24">ຫົວໜ່ວຍ</th>
+                                <th class="p-3 text-center w-12">ລຶບ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemsBody" class="divide-y divide-gray-100"></tbody>
+                    </table>
+                </div>
+
+                <div class="text-right border-b pb-8 mb-8">
+                    <button id="saveBtn" onclick="saveRecord()" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-bold shadow-lg transition-all transform hover:-translate-y-0.5"><i class="fas fa-save mr-2"></i> ບັນທຶກຂໍ້ມູນ</button>
+                </div>
+
+                <div class="bg-blue-50/50 p-5 md:p-6 rounded-2xl border border-blue-100">
+                    <div class="flex flex-col md:flex-row justify-between items-center mb-5 gap-3">
+                        <h3 class="font-bold text-blue-900 text-lg"><i class="fas fa-history mr-2"></i>ປະຫວັດການບັນທຶກ</h3>
+                        <div class="flex items-center space-x-3 bg-white p-2 rounded-lg border border-gray-200 shadow-sm">
+                            <label class="text-sm font-bold text-gray-700 ml-2">ເລືອກເດືອນ:</label>
+                            <input type="month" id="historyMonthPicker" class="border-none p-1 rounded outline-none font-bold text-blue-700 bg-transparent cursor-pointer" onchange="loadHistoryRecords()">
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto bg-white rounded-xl border border-gray-200 shadow-sm">
+                        <table class="w-full border-collapse text-sm">
+                            <thead class="bg-gray-100/80 text-gray-700">
+                                <tr>
+                                    <th class="p-3 border-b text-center">ວັນທີ</th>
+                                    <th class="p-3 border-b text-center">ປະເພດ</th>
+                                    <th class="p-3 border-b text-center">ພະນັກງານ</th>
+                                    <th class="p-3 border-b text-center">ເລກທີລາຍງານ</th>
+                                    <th class="p-3 border-b text-center">ລາຍການ</th>
+                                    <th class="p-3 border-b text-center w-28">ຈັດການ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyRecordsBody" class="divide-y divide-gray-100">
+                                <tr><td colspan="6" class="text-center p-6 text-gray-500">ກຳລັງໂຫຼດຂໍ້ມູນ...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { renderSidebar } from './sidebar.js';
+        if(typeof renderSidebar === 'function') renderSidebar('record'); 
+    </script>
+    <script type="module" src="./auth-guard.js"></script>
+    
+    <script type="module" src="./js/pages/record.js"></script>
+
+</body>
+</html>

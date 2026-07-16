@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ຮັບອຸປະກອນເຂົ້າສາງ - ສາງໝໍ້ແທກນ້ຳ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body, input, select, button, table { font-family: 'Times New Roman', 'Phetsarath OT', 'Noto Sans Lao', serif !important; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body class="text-gray-800 bg-gray-100 flex h-[100dvh] overflow-hidden m-0 p-0">
+
+    <div id="sidebar-placeholder" class="contents"></div>
+
+    <div class="flex-1 flex flex-col h-full w-full min-w-0">
+        <header class="md:hidden bg-blue-800 text-white p-4 flex justify-between items-center shadow-md z-30 shrink-0">
+            <div class="font-bold text-lg flex items-center"><i class="fas fa-tint mr-2 text-blue-300"></i> ສາງໝໍ້ແທກນ້ຳ</div>
+            <button onclick="toggleSidebar()" class="text-white p-2 focus:outline-none"><i class="fas fa-bars text-2xl"></i></button>
+        </header>
+
+        <main class="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6 w-full pb-20 bg-gray-100">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-2xl font-bold text-blue-800 mb-6 flex items-center border-b pb-4"><i class="fas fa-download mr-3"></i> ຮັບອຸປະກອນເຂົ້າສາງ (Receive In)</h2>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    
+                    <div class="lg:col-span-5 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">ຟອມບັນທຶກຮັບເຄື່ອງເຂົ້າ</h3>
+                        
+                        <form id="receive-form" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-bold mb-1 text-gray-700">ພິມລະຫັດ ຫຼື ເລືອກອຸປະກອນ *</label>
+                                <input type="search" id="itemCode" list="receive-items-list" autocomplete="off" oninput="fillDetails()" placeholder="ພິມລະຫັດ ຫຼື ຊື່ອຸປະກອນ..." class="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 font-bold bg-white text-lg" required>
+                                <datalist id="receive-items-list"></datalist>
+                                <div class="text-sm mt-2" id="stockInfoDisplay"></div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold mb-1 text-gray-700">ຈຳນວນຮັບເຂົ້າ *</label>
+                                <input type="number" id="receiveQty" placeholder="0" class="w-full p-3 border-2 border-blue-400 rounded-lg outline-none focus:ring-2 focus:ring-blue-600 font-bold text-lg" min="1" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold mb-1 text-gray-700">ໝາຍເຫດ / ແຫຼ່ງທີ່ມາ *</label>
+                                <input type="text" id="receiveRemark" placeholder="ເຊັ່ນ: ຊື້ເຂົ້າໃໝ່..." class="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <button type="submit" id="submit-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white p-3.5 rounded-xl font-bold text-lg shadow-md transition-colors mt-2">
+                                ຢືນຢັນບັນທຶກຮັບເຂົ້າສາງ
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="lg:col-span-7 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                        <div class="flex flex-col sm:flex-row justify-between items-center mb-4 border-b pb-2 gap-3">
+                            <h3 class="text-lg font-bold text-gray-800">ປະຫວັດການຮັບເຄື່ອງເຂົ້າ</h3>
+                            <input type="month" id="month-filter" onchange="filterMonthHistory()" class="p-2 bg-gray-50 border border-gray-300 rounded-lg text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+                        </div>
+                        <div class="overflow-x-auto border rounded-lg max-h-[500px] overflow-y-auto">
+                            <table class="w-full border-collapse text-sm text-left">
+                                <thead class="bg-blue-50 text-blue-800 sticky top-0 border-b">
+                                    <tr>
+                                        <th class="p-3 border-r w-12 text-center">ລ/ດ</th>
+                                        <th class="p-3 border-r">ຂໍ້ມູນອຸປະກອນ</th>
+                                        <th class="p-3 border-r text-center w-24">ຈຳນວນ</th>
+                                        <th class="p-3">ໝາຍເຫດ/ເວລາ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-table-body" class="divide-y divide-gray-100">
+                                    <tr><td colspan="4" class="p-8 text-center text-gray-400 italic">ກຳລັງໂຫຼດປະຫວັດ...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { renderSidebar } from './sidebar.js';
+        if(typeof renderSidebar === 'function') renderSidebar('receive');
+    </script>
+    <script type="module" src="./auth-guard.js"></script>
+    <script type="module" src="./receive-items.js"></script>
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <title>ບົດສະຫຼຸບ - ສາງໝໍ້ແທກນ້ຳ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body, input, select, button, textarea { font-family: 'Times New Roman', 'Phetsarath OT', 'Noto Sans Lao', serif !important; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .swal2-popup { font-family: 'Times New Roman', 'Phetsarath OT', serif !important; }
+        @media print {
+            body { background-color: white; margin: 0; padding: 0; }
+            .print-hidden { display: none !important; }
+            #official-report-container { border: none; box-shadow: none; padding: 0; width: 100%; }
+        }
+    </style>
+</head>
+<body class="text-gray-800 bg-gray-100 flex h-[100dvh] overflow-hidden m-0 p-0">
+
+    <div id="sidebar-placeholder" class="contents print-hidden"></div>
+
+    <div class="flex-1 flex flex-col h-full w-full min-w-0">
+        
+        <header class="md:hidden bg-blue-800 text-white p-4 flex justify-between items-center shadow-md z-30 shrink-0 print-hidden">
+            <div class="font-bold text-lg flex items-center"><i class="fas fa-tint mr-2 text-blue-300"></i> ສາງໝໍ້ແທກນ້ຳ</div>
+            <button onclick="toggleSidebar()" class="text-white p-2 focus:outline-none"><i class="fas fa-bars text-2xl"></i></button>
+        </header>
+
+        <div class="flex-1 flex overflow-hidden w-full relative">
+            
+            <main class="flex-[7] overflow-x-hidden overflow-y-auto p-4 md:p-8 w-full relative pb-20">
+                <div class="max-w-5xl mx-auto pb-10">
+                    <h2 class="text-2xl font-bold text-blue-800 mb-6 flex items-center print-hidden"><i class="fas fa-chart-pie mr-3"></i>ບົດສະຫຼຸບການເຄື່ອນໄຫວອຸປະກອນ</h2>
+                    
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8 print-hidden relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
+                        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">ເລືອກໄວ (ດ່ວນ)</label>
+                                <select id="datePreset" onchange="applyDatePreset()" class="border border-gray-300 p-2.5 rounded-lg w-full outline-none focus:border-blue-500 bg-gray-50 font-bold">
+                                    <option value="thisMonth" selected>ເດືອນນີ້</option>
+                                    <option value="lastMonth">ເດືອນກ່ອນ</option>
+                                    <option value="m3">3 ເດືອນຕົ້ນປີ</option>
+                                    <option value="m6">6 ເດືອນຕົ້ນປີ</option>
+                                    <option value="year">ປະຈຳປີນີ້</option>
+                                    <option value="all">ຂໍ້ມູນທັງໝົດ</option>
+                                    <option value="custom">ກຳນົດເອງ</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-blue-600 uppercase mb-1">ເລືອກເດືອນ</label>
+                                <input type="month" id="summaryMonthPicker" onchange="applySummaryMonth()" class="border border-blue-300 bg-blue-50 text-blue-800 font-bold p-2.5 rounded-lg w-full outline-none cursor-pointer">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">ເລີ່ມວັນທີ</label>
+                                <input type="text" id="summaryStartDate" class="border border-gray-300 p-2.5 rounded-lg w-full outline-none datepicker bg-gray-50 font-bold text-center">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">ຫາວັນທີ</label>
+                                <input type="text" id="summaryEndDate" class="border border-gray-300 p-2.5 rounded-lg w-full outline-none datepicker bg-gray-50 font-bold text-center">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">ພະນັກງານ</label>
+                                <select id="summaryEmployee" class="border border-gray-300 p-2.5 rounded-lg w-full outline-none bg-gray-50 font-bold">
+                                    <option value="all">-- ທັງໝົດທຸກຄົນ --</option>
+                                    <option value="ສຸກສາຄອນ">ສຸກສາຄອນ</option>
+                                    <option value="ທະນົງສັກ">ທະນົງສັກ</option>
+                                    <option value="ວິລະກອນ">ວິລະກອນ</option>
+                                    <option value="ວິມົນ">ວິມົນ</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mt-6 flex flex-wrap gap-3">
+                            <button onclick="generateSummary()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-bold shadow-md"><i class="fas fa-search mr-2"></i> ສະແດງຂໍ້ມູນ</button>
+                            <button onclick="exportExcel()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-lg font-bold shadow-md"><i class="fas fa-file-excel mr-2"></i> ສົ່ງອອກ Excel</button>
+                            <button onclick="window.print()" class="bg-gray-800 hover:bg-gray-900 text-white px-6 py-2.5 rounded-lg font-bold shadow-md"><i class="fas fa-print mr-2"></i> ພິມ PDF</button>
+                        </div>
+                    </div>
+
+                    <div id="official-report-container" class="bg-white p-10 rounded-2xl shadow-md border border-gray-200" style="background-color: white;">
+                        <div class="text-center font-bold text-sm mb-6 text-black">
+                            <p>ສາທາລະນະລັດ ປະຊາທິປະໄຕ ປະຊາຊົນລາວ</p>
+                            <p>ສັນຕິພາບ ເອກະລາດ ປະຊາທິປະໄຕ ເອກະພາບ ວັດທະນາຖາວອນ</p>
+                            <p class="mt-1">======000======</p>
+                        </div>
+                        
+                        <div class="flex justify-between text-sm mb-6 text-black">
+                            <div>
+                                <p>ລັດວິສາຫະກິດ ນ້ຳປະປານະຄອນຫຼວງວຽງຈັນ</p>
+                                <p>ພະແນກ ຄຸ້ມຄອງໝໍ້ແທກນ້ຳ ແລະ ຫຼຸດຜ່ອນນ້ຳສູນເສຍ</p>
+                                <p>ໂທ: 021 560665</p>
+                            </div>
+                            <div class="text-right">
+                                <p>ເລກທີ........... /ຄໝຫຼສ/<span id="doc-year-text" class="font-bold"></span></p>
+                                <p>ວຽງຈັນ, ວັນທີ........................</p>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center font-bold text-lg mb-6 text-black">
+                            <p id="doc-title-period">ໃບສັງລວມວັດຖຸ - ອຸປະກອນ ຍົກຍ້າຍ - ປ່ຽນຖ່າຍ ປະຈຳເດືອນ ...</p>
+                        </div>
+                        
+                        <div class="text-sm mb-4 flex flex-col gap-1 text-black">
+                            <p>ໄດ້ເບີກເຄື່ອງໃຫ້:<span id="doc-employee-name" class="ml-4 font-bold border-b border-dotted border-gray-500 min-w-[200px] inline-block text-center">.......................................</span></p>
+                            <p>ປະຈຳພະແນກ:<span class="ml-4 font-bold">ສາງຄຸ້ມຄອງໝໍ້ແທກນ້ຳ</span></p>
+                        </div>
+
+                        <table class="w-full border-collapse border border-black text-sm mb-12 text-black" id="official-summary-table">
+                            <thead>
+                                <tr class="bg-gray-100 font-bold text-center">
+                                    <th class="border border-black p-2 w-12">ລ/ດ</th>
+                                    <th class="border border-black p-2 w-32">ເລກລະຫັດ</th>
+                                    <th class="border border-black p-2">ລາຍການເຄື່ອງ</th>
+                                    <th class="border border-black p-2 w-20">ຈຳນວນ</th>
+                                    <th class="border border-black p-2 w-24">ຫົວໜ່ວຍ</th>
+                                    <th class="border border-black p-2 w-40">ເລກທີລາຍງານ</th>
+                                    <th class="border border-black p-2 w-32">ປະເພດ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="summaryTableBodyOfficial">
+                                <tr><td colspan="7" class="border border-black p-6 text-center text-gray-500">ກະລຸນາກົດປຸ່ມ "ສະແດງຂໍ້ມູນ" ເພື່ອເບິ່ງລາຍງານ</td></tr>
+                            </tbody>
+                        </table>
+                        
+                        <div class="flex justify-between text-sm font-bold text-center text-black">
+                            <div><p class="mb-16">ຫົວໜ້າພະແນກ</p><p>.......................................</p></div>
+                            <div><p class="mb-16">ຜູ້ສັງລວມ</p><p>.......................................</p></div>
+                            <div><p class="mb-16">ຜູ້ຮັບເຄື່ອງ</p><p id="sign-employee-name">.......................................</p></div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <aside class="flex-[3] bg-white border-l border-gray-200 flex flex-col h-full print-hidden min-w-[320px]">
+                <div class="p-4 bg-blue-800 text-white font-bold flex justify-between items-center shadow-sm z-10">
+                    <span><i class="fas fa-comments mr-2"></i> ສົນທະນາ & ໝາຍເຫດທົ່ວໄປ</span>
+                </div>
+                <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+                </div>
+                <div class="p-3 bg-white border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+                    <div class="flex relative">
+                        <input type="text" id="chat-input" class="w-full pl-4 pr-12 py-3 border border-gray-300 rounded-full outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-bold" placeholder="ພິມຂໍ້ຄວາມແຈ້ງເຕືອນທີມງານ...">
+                        <button id="send-chat-btn" class="absolute right-1 top-1 bottom-1 px-4 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </aside>
+            
+        </div>
+    </div>
+
+    <script type="module">
+        import { renderSidebar } from './sidebar.js';
+        if(typeof renderSidebar === 'function') renderSidebar('summary'); 
+    </script>
+    <script type="module" src="./auth-guard.js"></script>
+
+    <script type="module" src="./js/pages/summary.js"></script>
+
+</body>
+</html>
