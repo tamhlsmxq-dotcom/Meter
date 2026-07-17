@@ -1,82 +1,103 @@
-export function renderSidebar(activePage) {
-    const sidebarHTML = `
-    <style>
-      .admin-only {
-        display: none !important;
-      }
-    </style>
+document.addEventListener("DOMContentLoaded", () => {
+    const sidebarContainer = document.getElementById("sidebar-container");
+    if (!sidebarContainer) return;
 
-    <div id="sidebarOverlay" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden transition-opacity" onclick="toggleSidebar()"></div>
-    
-    <aside id="sidebar-container" class="bg-gradient-to-b from-blue-900 to-blue-800 text-white w-64 flex-shrink-0 flex flex-col absolute md:relative z-50 h-full transition-transform transform -translate-x-full md:translate-x-0 shadow-2xl">
-        
-        <div class="p-6 flex items-center justify-between border-b border-blue-700/50">
-            <div class="flex items-center gap-3">
-                <div class="bg-white p-2 rounded-lg shadow-sm">
-                    <i class="fas fa-tint text-blue-600 text-xl"></i>
+    // 1. ກວດສອບວ່າຕອນນີ້ຢູ່ໜ້າໃດ ເພື່ອເຮັດໃຫ້ເມນູນັ້ນ Active (ເປັນສີໄຮໄລ້) ອັດຕະໂນມັດ
+    const currentPath = window.location.pathname;
+
+    // 2. ໂຄງສ້າງ HTML ຂອງ Sidebar ແບບອົງກອນໃຫຍ່ (Enterprise Layout)
+    sidebarContainer.innerHTML = `
+        <div class="w-68 bg-slate-900 text-slate-300 flex flex-col justify-between min-h-screen shadow-2xl border-r border-slate-800 font-sans select-none">
+            
+            <!-- ສ່ວນເທິງ: Logo ແລະ ຊື່ອົງກອນ -->
+            <div>
+                <div class="p-5 border-b border-slate-800 bg-slate-950/40 flex items-center space-x-3">
+                    <div class="bg-blue-600 p-2.5 rounded-xl text-white font-bold shadow-lg shadow-blue-500/20 text-xl animate-pulse">
+                        💧
+                    </div>
+                    <div>
+                        <h1 class="text-md font-extrabold text-white tracking-wide">ສາງໝໍ້ແທກນ້ຳ</h1>
+                        <p class="text-[10px] text-slate-500 uppercase font-semibold tracking-wider">Enterprise Asset Mgt</p>
+                    </div>
                 </div>
-                <span class="text-xl font-bold tracking-wide">ສາງໝໍ້ແທກນ້ຳ</span>
+
+                <!-- ສ່ວນກາງ: ຂໍ້ມູນຜູ້ໃຊ້ (User Profile Card) -->
+                <div class="p-4 mx-3 my-4 bg-slate-800/40 border border-slate-800/60 rounded-xl flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white font-bold shadow-md">
+                        AD
+                    </div>
+                    <div class="flex-1 overflow-hidden">
+                        <h2 class="text-xs font-bold text-white truncate">admin@meter.com</h2>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mt-1">
+                            ● ຜູ້ເບິ່ງແຍງລະບົບ (Admin)
+                        </span>
+                    </div>
+                </div>
+
+                <!-- ສ່ວນເມນູ: ຈັດໝວດໝູ່ລະດັບມືອາຊີບ (Navigation Categories) -->
+                <nav class="px-3 space-y-6">
+                    
+                    <!-- ໝວດໝູ່ທີ 1: ບໍລິຫານຄັງສິນຄ້າ -->
+                    <div>
+                        <p class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Warehouse Core</p>
+                        <div class="space-y-1">
+                            <a href="manage-items.html" id="menu-manage" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 hover:bg-slate-800 hover:text-white group">
+                                <span class="text-slate-500 group-hover:text-blue-400 transition-colors">📊</span>
+                                <span>ຈັດການສະຕັອກ</span>
+                            </a>
+                            <a href="receive-items.html" id="menu-receive" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 hover:bg-slate-800 hover:text-white group">
+                                <span class="text-slate-500 group-hover:text-blue-400 transition-colors">📥</span>
+                                <span>ຮັບເຄື່ອງເຂົ້າສາງ</span>
+                            </a>
+                            <a href="issue-items.html" id="menu-issue" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 hover:bg-slate-800 hover:text-white group">
+                                <span class="text-slate-500 group-hover:text-blue-400 transition-colors">📤</span>
+                                <span>ພິມບິນເບີກເຄື່ອງ</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- ໝວດໝູ່ທີ 2: ຂໍ້ມູນ ແລະ ວິເຄາະ -->
+                    <div>
+                        <p class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Analytics & Docs</p>
+                        <div class="space-y-1">
+                            <a href="report-monthly.html" id="menu-report" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 hover:bg-slate-800 hover:text-white group">
+                                <span class="text-slate-500 group-hover:text-blue-400 transition-colors">📄</span>
+                                <span>ລາຍງານປະຈຳເດືອນ</span>
+                            </a>
+                        </div>
+                    </div>
+
+                </nav>
             </div>
-            <button onclick="toggleSidebar()" class="md:hidden text-blue-200 hover:text-white transition-colors">
-                <i class="fas fa-times text-2xl"></i>
-            </button>
-        </div>
 
-        <!-- 🌟 ພາກສ່ວນສະແດງສະຖານະຜູ້ໃຊ້ອອນໄລນ໌ 🌟 -->
-        <div class="p-4 bg-blue-900/50 border-b border-blue-700/50">
-            <div class="flex flex-col">
-                <span class="text-xs text-blue-300 mb-1">ເຂົ້າສູ່ລະບົບໂດຍ:</span>
-                <span id="user-email-display" class="font-bold text-sm truncate">ກຳລັງໂຫຼດ...</span>
-                <span id="user-role-display" class="text-xs mt-2 px-2 py-1 bg-gray-500 rounded-full w-max shadow-sm">ກຳລັງກວດສອບ...</span>
+            <!-- ສ່ວນລຸ່ມສຸດ: ປຸ່ມອອກຈາກລະບົບ -->
+            <div class="p-3 border-t border-slate-800 bg-slate-950/20">
+                <button class="flex items-center justify-center space-x-2 bg-rose-600/10 hover:bg-rose-600 border border-rose-500/20 hover:border-rose-600 text-rose-400 hover:text-white p-2.5 rounded-xl transition-all duration-200 w-full text-xs font-bold shadow-sm">
+                    <span>🚪</span> <span>ອອກຈາກລະບົບ</span>
+                </button>
             </div>
         </div>
-        
-        <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-2">
-            
-            <a href="manage-items.html" class="admin-only items-center px-4 py-3 rounded-xl transition-all duration-300 ${activePage === 'manage' ? 'bg-white/20 text-white font-bold shadow-sm' : 'text-blue-100 hover:bg-white/10 hover:text-white'}">
-                <i class="fas fa-boxes w-6"></i>
-                <span>ຈັດການສະຕັອກ</span>
-            </a>
-
-            <a href="receive-items.html" class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 ${activePage === 'receive' ? 'bg-white/20 text-white font-bold shadow-sm' : 'text-blue-100 hover:bg-white/10 hover:text-white'}">
-                <i class="fas fa-download w-6"></i>
-                <span>ຮັບເຄື່ອງເຂົ້າສາງ</span>
-            </a>
-
-            <a href="issue-items.html" class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 ${activePage === 'issue' ? 'bg-white/20 text-white font-bold shadow-sm' : 'text-blue-100 hover:bg-white/10 hover:text-white'}">
-                <i class="fas fa-upload w-6"></i>
-                <span>ພິມບິນເບີກເຄື່ອງ</span>
-            </a>
-
-            <a href="report-monthly.html" class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 ${activePage === 'report' ? 'bg-white/20 text-white font-bold shadow-sm' : 'text-blue-100 hover:bg-white/10 hover:text-white'}">
-                <i class="fas fa-file-invoice w-6"></i>
-                <span>ລາຍງານປະຈຳເດືອນ</span>
-            </a>
-            
-        </nav>
-
-        <div class="p-4 border-t border-blue-700/50">
-            <button id="logoutBtn" class="w-full flex items-center justify-center gap-2 bg-red-500/80 hover:bg-red-500 text-white px-4 py-3 rounded-xl transition-all duration-300 shadow-sm hover:shadow">
-                <i class="fas fa-sign-out-alt"></i>
-                <span class="font-bold">ອອກຈາກລະບົບ</span>
-            </button>
-        </div>
-    </aside>
     `;
 
-    document.getElementById('sidebar-placeholder').innerHTML = sidebarHTML;
-
-    // ລະບົບກົດອອກຈາກລະບົບ (Logout)
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', () => {
-            import('./firebase-config.js').then(module => {
-                module.auth.signOut().then(() => {
-                    window.location.href = 'index.html'; 
-                }).catch((error) => {
-                    console.error("ເກີດຂໍ້ຜິດພາດໃນການອອກຈາກລະບົບ:", error);
-                });
-            });
-        });
+    // 3. ຟັງຊັນການເຮັດໃຫ້ເມນູ Active ປ່ຽນເປັນສີເດັ່ນອັດຕະໂນມັດ ໂດຍອີງຕາມ URL ຂອງໜ້ານັ້ນໆ
+    if (currentPath.includes("manage-items.html")) {
+        setActiveMenu("menu-manage");
+    } else if (currentPath.includes("receive-items.html")) {
+        setActiveMenu("menu-receive");
+    } else if (currentPath.includes("issue-items.html")) {
+        setActiveMenu("menu-issue");
+    } else if (currentPath.includes("report-monthly.html")) {
+        setActiveMenu("menu-report");
     }
-}
+
+    function setActiveMenu(id) {
+        const activeEl = document.getElementById(id);
+        if (activeEl) {
+            activeEl.classList.remove("text-slate-300", "hover:bg-slate-800");
+            activeEl.classList.add("bg-blue-600", "text-white", "shadow-lg", "shadow-blue-600/10");
+            // ປ່ຽນສີໄອຄອນໃຫ້ເດັ່ນຂຶ້ນ
+            const icon = activeEl.querySelector('span');
+            if (icon) icon.classList.remove("text-slate-500");
+        }
+    }
+});
