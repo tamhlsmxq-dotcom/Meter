@@ -2,36 +2,106 @@
 <html lang="lo">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ຈັດການສະຕັອກ - Water Meter</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <title>ຈັດການສະຕັອກ</title>
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans Lao', sans-serif; }
+    </style>
 </head>
-<body class="bg-gray-100 p-6">
+<body class="bg-slate-50 flex min-h-screen">
 
-    <!-- 1. ຊ່ອງຄົ້ນຫາ (Search Section) -->
-    <div class="relative w-full max-w-lg mb-6">
-        <label class="block text-sm font-bold text-gray-700 mb-2">ຄົ້ນຫາອຸປະກອນ</label>
-        <input type="text" id="itemSearch" 
-               placeholder="🔍 ພິມລະຫັດ ຫຼື ຊື່ອຸປະກອນ..." 
-               class="w-full p-4 border-2 border-blue-300 rounded-xl focus:border-blue-600 outline-none shadow-sm text-lg">
-        
-        <!-- Dropdown Box -->
-        <div id="dropdownList" class="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-2xl hidden max-h-80 overflow-y-auto"></div>
-    </div>
+    <!-- 1. ກ່ອງສຳລັບດຶງ Sidebar ແບບອົງກອນມາສະແດງ (ເອີ້ນມາຈາກ sidebar.js) -->
+    <div id="sidebar-container"></div>
 
-    <!-- 2. ຕາຕະລາງ (Table Section) -->
-    <table class="w-full bg-white rounded-xl shadow-sm overflow-hidden">
-        <thead class="bg-blue-900 text-white">
-            <tr>
-                <th class="p-4 text-left">ລະຫັດ</th>
-                <th class="p-4 text-left">ຊື່ອຸປະກອນ</th>
-                <th class="p-4 text-center">ຈຳນວນເຫຼືອ</th>
-            </tr>
-        </thead>
-        <tbody id="inventory-table-body">
-            <!-- ຂໍ້ມູນຈະຖືກ Render ຜ່ານ JS -->
-        </tbody>
-    </table>
+    <!-- 2. ພື້ນທີ່ເນື້ອຫາຫຼັກດ້ານຂວາ (Main Content) -->
+    <main class="flex-1 p-8 overflow-y-auto w-full">
+        <!-- ຫົວຂໍ້ໜ້າ -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-slate-800 flex items-center">
+                <span class="mr-3 text-3xl">📦</span> ຈັດການສະຕັອກອຸປະກອນ (Manage Items)
+            </h2>
+        </div>
 
-    <script type="module" src="manage-items.js"></script>
+        <!-- ກ່ອງແບ່ງຊ້າຍ-ຂວາ (ຟອມ ແລະ ຕາຕະລາງ) -->
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+
+            <!-- ຝັ່ງຊ້າຍ: ຟອມເພີ່ມອຸປະກອນໃໝ່ (ກິນພື້ນທີ່ 1 ສ່ວນ 3) -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 xl:col-span-1 h-fit">
+                <h3 class="text-lg font-bold text-slate-800 mb-6 border-b border-slate-100 pb-3">ເພີ່ມອຸປະກອນໃໝ່</h3>
+                
+                <form id="addItemForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">ລະຫັດອຸປະກອນ (ID) *</label>
+                        <input type="text" id="itemId" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all text-sm uppercase" placeholder="ເຊັ່ນ: WM-001" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">ຊື່ອຸປະກອນ *</label>
+                        <input type="text" id="itemName" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all text-sm" placeholder="ເຊັ່ນ: ໝໍ້ແທກນ້ຳ 15mm" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">ຫົວໜ່ວຍ (Unit) *</label>
+                        <input type="text" id="itemUnit" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all text-sm" placeholder="ເຊັ່ນ: ໜ່ວຍ, ຊຸດ, ແມັດ" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">ຈຳນວນເລີ່ມຕົ້ນ</label>
+                        <input type="number" id="itemStock" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all text-sm bg-slate-50" placeholder="0" value="0" min="0">
+                    </div>
+
+                    <button type="submit" class="w-full mt-4 bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl shadow-md transition-all active:scale-[0.98]">
+                        + ບັນທຶກອຸປະກອນໃໝ່
+                    </button>
+                </form>
+            </div>
+
+            <!-- ຝັ່ງຂວາ: ຕາຕະລາງສະຕັອກ (ກິນພື້ນທີ່ 2 ສ່ວນ 3) -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 xl:col-span-2">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                    <h3 class="text-lg font-bold text-slate-800">ລາຍການອຸປະກອນທັງໝົດ</h3>
+                    
+                    <!-- ຊ່ອງຄົ້ນຫາໃນຕາຕະລາງ -->
+                    <div class="relative w-full sm:w-64">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">🔍</span>
+                        <input type="text" id="searchInput" class="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all text-sm" placeholder="ຄົ້ນຫາອຸປະກອນ...">
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
+                            <tr>
+                                <th class="px-4 py-3 font-semibold">ລະຫັດ</th>
+                                <th class="px-4 py-3 font-semibold">ຊື່ອຸປະກອນ</th>
+                                <th class="px-4 py-3 font-semibold text-center">ຈຳນວນໃນສາງ</th>
+                                <th class="px-4 py-3 font-semibold text-center">ຫົວໜ່ວຍ</th>
+                                <th class="px-4 py-3 font-semibold text-center">ຈັດການ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemsTableBody" class="divide-y divide-slate-100">
+                            <!-- ຂໍ້ມູນຈາກ Firebase ຈະແລ່ນມາສະແດງຢູ່ນີ້ -->
+                            <tr>
+                                <td colspan="5" class="px-4 py-8 text-center text-slate-400">ກຳລັງໂຫຼດຂໍ້ມູນ...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- 3. ເອີ້ນໃຊ້ Script -->
+    <!-- ເອີ້ນໃຊ້ໄຟລ໌ Sidebar ຫຼັກ -->
+    <script src="sidebar.js"></script>
+    
+    <!-- ເອີ້ນໃຊ້ໄຟລ໌ JavaScript ສະເພາະຂອງໜ້າຈັດການສະຕັອກ -->
+    <script type="module" src="js/pages/manage-items.js"></script>
+
 </body>
 </html>

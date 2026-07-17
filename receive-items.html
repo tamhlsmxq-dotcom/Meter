@@ -3,119 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ຮັບເຄື່ອງເຂົ້າສາງ - Water Meter</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <title>ຮັບອຸປະກອນເຂົ້າສາງ</title>
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans Lao', sans-serif; }
+    </style>
 </head>
-<body class="bg-slate-100 font-sans flex min-h-screen">
+<body class="bg-slate-50 flex min-h-screen">
 
-    <!-- 1. Left Sidebar -->
-    <div class="w-64 bg-blue-900 text-white flex flex-col justify-between p-4">
-        <div>
-            <div class="flex items-center space-x-2 mb-6 p-2">
-                <div class="bg-white p-2 rounded-full text-blue-900 font-bold">💧</div>
-                <span class="text-xl font-bold">ສາງໝໍ້ແທກນ້ຳ</span>
-            </div>
-            <div class="mb-6 px-2 text-xs text-slate-300">
-                <p>ເຂົ້າສູ່ລະບົບໂດຍ:</p>
-                <p class="font-bold text-white">user1@meter.com</p>
-                <span class="inline-block bg-green-600 text-white px-2 py-0.5 rounded-full text-[10px] mt-1">ຜູ້ໃຊ້ທົ່ວໄປ (User)</span>
-            </div>
-            <nav class="space-y-2">
-                <a href="receive-items.html" class="flex items-center space-x-2 bg-white text-blue-900 p-3 rounded-xl font-bold shadow-sm">
-                    <span>📥</span> <span>ຮັບເຄື່ອງເຂົ້າສາງ</span>
-                </a>
-                <a href="issue-items.html" class="flex items-center space-x-2 text-slate-200 hover:bg-blue-800 p-3 rounded-xl transition-all">
-                    <span>📤</span> <span>ພິມບິນເບີກເຄື່ອງ</span>
-                </a>
-                <a href="report-monthly.html" class="flex items-center space-x-2 text-slate-200 hover:bg-blue-800 p-3 rounded-xl transition-all">
-                    <span>📄</span> <span>ລາຍງານປະຈຳເດືອນ</span>
-                </a>
-            </nav>
+    <!-- 1. ກ່ອງສຳລັບດຶງ Sidebar ແບບອົງກອນມາສະແດງ (ເອີ້ນມາຈາກ sidebar.js) -->
+    <div id="sidebar-container"></div>
+
+    <!-- 2. ພື້ນທີ່ເນື້ອຫາຫຼັກດ້ານຂວາ (Main Content) -->
+    <main class="flex-1 p-8 overflow-y-auto w-full">
+        <!-- ຫົວຂໍ້ໜ້າ -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-slate-800 flex items-center">
+                <span class="mr-3 text-3xl">📥</span> ຮັບອຸປະກອນເຂົ້າສາງ (Receive In)
+            </h2>
         </div>
-        <button class="flex items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 text-white p-3 rounded-xl transition-all w-full font-bold">
-            <span>🚪</span> <span>ອອກຈາກລະບົບ</span>
-        </button>
-    </div>
 
-    <!-- 2. Main Content -->
-    <div class="flex-1 p-8">
-        <h1 class="text-2xl font-bold text-blue-900 flex items-center mb-8">
-            <span class="mr-2">📥</span> ຮັບອຸປະກອນເຂົ້າສາງ (Receive In)
-        </h1>
+        <!-- ກ່ອງແບ່ງຊ້າຍ-ຂວາ (ຟອມ ແລະ ຕາຕະລາງ) -->
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <!-- ຟອມບັນທຶກຮັບເຄື່ອງເຂົ້າ -->
-            <div class="lg:col-span-5 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 h-fit">
+            <!-- ຝັ່ງຊ້າຍ: ຟອມຮັບເຄື່ອງ -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-lg font-bold text-slate-800"><b>ຟອມບັນທຶກຮັບເຄື່ອງເຂົ້າ</b></h2>
-                    <!-- ປຸ່ມລົບໄວ (Clear ຂໍ້ມູນໃນຟອມ) -->
-                    <button type="button" id="clearFormBtn" class="text-xs bg-red-100 hover:bg-red-200 text-red-600 px-3 py-1.5 rounded-lg font-bold transition-all">
-                        ❌ ລ້າງຂໍ້ມູນໄວ
+                    <h3 class="text-lg font-bold text-slate-800">ຟອມບັນທຶກຮັບເຄື່ອງເຂົ້າ</h3>
+                    <!-- ປຸ່ມລ້າງຂໍ້ມູນໄວ -->
+                    <button type="button" id="clearFormBtn" class="px-3 py-1.5 text-xs font-semibold text-rose-500 bg-rose-50 border border-rose-200 rounded-lg hover:bg-rose-100 transition-colors">
+                        × ລ້າງຂໍ້ມູນໄວ
                     </button>
                 </div>
 
-                <form id="receiveForm" class="space-y-4">
-                    <!-- ຊອກຫາອຸປະກອນ (Search Dropdown) -->
-                    <div class="relative">
-                        <label class="block text-sm font-bold text-slate-700 mb-1">ພິມລະຫັດ ຫຼື ເລືອກອຸປະກອນ *</label>
-                        <input type="text" id="itemSearchInput" autocomplete="off"
-                               placeholder="ພິມລະຫັດ ຫຼື ຊື່ອຸປະກອນ..." 
-                               class="w-full p-3 border border-slate-300 rounded-xl focus:border-blue-500 outline-none shadow-sm transition-all">
-                        
-                        <!-- ກ່ອງ Dropdown ສະແດງລາຍການສິນຄ້າ -->
-                        <div id="dropdownList" class="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl hidden max-h-60 overflow-y-auto">
-                            <!-- ຂໍ້ມູນຈະຖືກ Render ຜ່ານ JS -->
+                <form id="receiveForm" class="space-y-5">
+                    <!-- ຊ່ອງຄົ້ນຫາອຸປະກອນ (Dropdown) -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">ພິມລະຫັດ ຫຼື ເລືອກອຸປະກອນ *</label>
+                        <div class="relative">
+                            <input type="text" id="itemSearch" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all text-sm" placeholder="ພິມລະຫັດ ຫຼື ຊື່ອຸປະກອນ..." autocomplete="off" required>
+                            <!-- ລາຍຊື່ອຸປະກອນຈະມາສະແດງໃນກ່ອງນີ້ -->
+                            <div id="dropdownList" class="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-y-auto hidden"></div>
                         </div>
                     </div>
 
-                    <!-- ຈຳນວນຮັບເຂົ້າ -->
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-1">ຈຳນວນຮັບເຂົ້າ *</label>
-                        <input type="number" id="receiveQty" min="1" required placeholder="0"
-                               class="w-full p-3 border border-slate-300 rounded-xl focus:border-blue-500 outline-none shadow-sm transition-all">
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">ຈຳນວນຮັບເຂົ້າ *</label>
+                        <input type="number" id="receiveQty" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all text-sm" placeholder="0" min="1" required>
                     </div>
 
-                    <!-- ໝາຍເຫດ / ແຫຼ່ງທີ່ມາ -->
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-1">ໝາຍເຫດ / ແຫຼ່ງທີ່ມາ *</label>
-                        <input type="text" id="receiveNote" required placeholder="ເຊັ່ນ: ຊື້ເຂົ້າໃໝ່..." 
-                               class="w-full p-3 border border-slate-300 rounded-xl focus:border-blue-500 outline-none shadow-sm transition-all">
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">ໝາຍເຫດ / ແຫຼ່ງທີ່ມາ *</label>
+                        <input type="text" id="receiveNote" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all text-sm" placeholder="ເຊັ່ນ: ຊື້ເຂົ້າໃໝ່..." required>
                     </div>
 
-                    <!-- ປຸ່ມຢືນຢັນ -->
-                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold p-4 rounded-xl shadow-md transition-all mt-4 text-center">
+                    <button type="submit" class="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-md shadow-blue-500/30 transition-all active:scale-[0.98]">
                         ຢືນຢັນບັນທຶກເຂົ້າສາງ
                     </button>
                 </form>
             </div>
 
-            <!-- ຕາຕະລາງປະຫວັດການຮັບເຄື່ອງເຂົ້າ -->
-            <div class="lg:col-span-7 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-lg font-bold text-slate-800"><b>ປະຫວັດການຮັບເຄື່ອງເຂົ້າ</b></h2>
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 text-sm font-bold">
-                                <th class="p-3">ລ/ດ</th>
-                                <th class="p-3">ຂໍ້ມູນອຸປະກອນ</th>
-                                <th class="p-3 text-center">ຈຳນວນ</th>
-                                <th class="p-3">ໝາຍເຫດ/ເວລາ</th>
+            <!-- ຝັ່ງຂວາ: ປະຫວັດການຮັບເຂົ້າ -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col h-full">
+                <h3 class="text-lg font-bold text-slate-800 mb-6">ປະຫວັດການຮັບເຄື່ອງເຂົ້າ</h3>
+                
+                <div class="overflow-x-auto flex-1">
+                    <table class="w-full text-sm text-left">
+                        <thead class="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
+                            <tr>
+                                <th class="px-4 py-3 font-semibold">ລ/ດ</th>
+                                <th class="px-4 py-3 font-semibold text-left">ຊື່ອຸປະກອນ</th>
+                                <th class="px-4 py-3 font-semibold text-center">ຈຳນວນ</th>
+                                <th class="px-4 py-3 font-semibold text-left">ໝາຍເຫດ/ເວລາ</th>
                             </tr>
                         </thead>
-                        <tbody id="historyTableBody" class="text-sm text-slate-700">
+                        <tbody id="receiveHistoryTable" class="divide-y divide-slate-100">
+                            <!-- ຂໍ້ມູນຈາກ Firebase ຈະແລ່ນມາສະແດງຢູ່ນີ້ -->
                             <tr>
-                                <td colspan="4" class="p-8 text-center text-slate-400">ກຳລັງໂຫລດປະຫວັດ...</td>
+                                <td colspan="4" class="px-4 py-8 text-center text-slate-400">ກຳລັງໂຫຼດຂໍ້ມູນ...</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
-        </div>
-    </div>
 
+        </div>
+    </main>
+
+    <!-- 3. ເອີ້ນໃຊ້ໄຟລ໌ Script ຕ່າງໆ -->
+    
+    <!-- ເອີ້ນໃຊ້ໄຟລ໌ Sidebar ຫຼັກ -->
+    <script src="sidebar.js"></script>
+    
+    <!-- ເອີ້ນໃຊ້ໄຟລ໌ JavaScript ສະເພາະຂອງໜ້າຮັບເຄື່ອງ -->
     <script type="module" src="js/pages/receive-items.js"></script>
+
 </body>
 </html>
