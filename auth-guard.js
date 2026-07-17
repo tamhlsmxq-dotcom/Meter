@@ -6,7 +6,7 @@ const ADMIN_EMAILS = ["admin@meter.com", "palamy@gmail.com"];
 
 onAuthStateChanged(auth, (user) => {
     // 2. ຖ້າຍັງບໍ່ລັອກອິນ ໃຫ້ກັບໄປໜ້າ Login (index.html)
-    if (!user) {
+    if (!user) {["user1@MediaStream.com"];
         window.location.href = 'index.html';
         return;
     }
