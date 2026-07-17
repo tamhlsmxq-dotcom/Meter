@@ -3,7 +3,6 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/fi
 
 // 1. ລາຍຊື່ອີເມວຂອງຄົນທີ່ເປັນ Admin ເທົ່ານັ້ນ (ອີເມວນອກເໜືອຈາກນີ້ ຈະເປັນຜູ້ໃຊ້ທົ່ວໄປອັດຕະໂນມັດ)
 const ADMIN_EMAILS = ["admin@meter.com", "palamy@gmail.com"];
-const user_emails = ["user1@MediaStreamTrack.com"];
 
 onAuthStateChanged(auth, (user) => {
     // 2. ຖ້າຍັງບໍ່ລັອກອິນ ໃຫ້ກັບໄປໜ້າ Login (index.html)
@@ -24,8 +23,5 @@ onAuthStateChanged(auth, (user) => {
     } else {
         console.log("ສະຖານະ: ຜູ້ໃຊ້ທົ່ວໄປ (User)");
         // ຖ້າເປັນຜູ້ໃຊ້ທົ່ວໄປ ບໍ່ຕ້ອງເຮັດຫຍັງ ເພາະເມນູຖືກບັງຄັບເຊື່ອງໄວ້ແລ້ວດ້ວຍ style="display: none;" ຢູ່ໄຟລ໌ sidebar.js
-        
-        // 💡 ແຖວລຸ່ມນີ້ (ຖ້າເຈົ້າຢາກໃຫ້ຜູ້ໃຊ້ທົ່ວໄປ ຫ້າມເຂົ້າໜ້ານີ້ເດັດຂາດ ໃຫ້ເອົາ // ອອກ)
-        // window.location.href = 'index.html';
     }
 });
