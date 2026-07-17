@@ -3,6 +3,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/fi
 
 // 1. ລາຍຊື່ອີເມວຂອງຄົນທີ່ເປັນ Admin ເທົ່ານັ້ນ (ອີເມວນອກເໜືອຈາກນີ້ ຈະເປັນຜູ້ໃຊ້ທົ່ວໄປອັດຕະໂນມັດ)
 const ADMIN_EMAILS = ["admin@meter.com", "palamy@gmail.com"];
+const user_emails = ["user1@MediaStreamTrack.com"];
 
 onAuthStateChanged(auth, (user) => {
     // 2. ຖ້າຍັງບໍ່ລັອກອິນ ໃຫ້ກັບໄປໜ້າ Login (index.html)
