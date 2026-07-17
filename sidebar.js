@@ -1,5 +1,11 @@
 export function renderSidebar(activePage) {
     const sidebarHTML = `
+    <style>
+      .admin-only {
+        display: none !important;
+      }
+    </style>
+
     <div id="sidebarOverlay" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden transition-opacity" onclick="toggleSidebar()"></div>
     
     <aside id="sidebar-container" class="bg-gradient-to-b from-blue-900 to-blue-800 text-white w-64 flex-shrink-0 flex flex-col absolute md:relative z-50 h-full transition-transform transform -translate-x-full md:translate-x-0 shadow-2xl">
@@ -15,10 +21,19 @@ export function renderSidebar(activePage) {
                 <i class="fas fa-times text-2xl"></i>
             </button>
         </div>
+
+        <!-- 🌟 ພາກສ່ວນສະແດງສະຖານະຜູ້ໃຊ້ອອນໄລນ໌ 🌟 -->
+        <div class="p-4 bg-blue-900/50 border-b border-blue-700/50">
+            <div class="flex flex-col">
+                <span class="text-xs text-blue-300 mb-1">ເຂົ້າສູ່ລະບົບໂດຍ:</span>
+                <span id="user-email-display" class="font-bold text-sm truncate">ກຳລັງໂຫຼດ...</span>
+                <span id="user-role-display" class="text-xs mt-2 px-2 py-1 bg-gray-500 rounded-full w-max shadow-sm">ກຳລັງກວດສອບ...</span>
+            </div>
+        </div>
         
         <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-2">
             
-            <a href="manage-items.html" class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 ${activePage === 'manage' ? 'bg-white/20 text-white font-bold shadow-sm' : 'text-blue-100 hover:bg-white/10 hover:text-white'}">
+            <a href="manage-items.html" class="admin-only items-center px-4 py-3 rounded-xl transition-all duration-300 ${activePage === 'manage' ? 'bg-white/20 text-white font-bold shadow-sm' : 'text-blue-100 hover:bg-white/10 hover:text-white'}">
                 <i class="fas fa-boxes w-6"></i>
                 <span>ຈັດການສະຕັອກ</span>
             </a>
@@ -57,7 +72,7 @@ export function renderSidebar(activePage) {
         logoutBtn.addEventListener('click', () => {
             import('./firebase-config.js').then(module => {
                 module.auth.signOut().then(() => {
-                    window.location.href = 'index.html'; // ປ່ຽນໜ້າໄປໜ້າລັອກອິນ
+                    window.location.href = 'index.html'; 
                 }).catch((error) => {
                     console.error("ເກີດຂໍ້ຜິດພາດໃນການອອກຈາກລະບົບ:", error);
                 });
