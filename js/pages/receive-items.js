@@ -1,181 +1,173 @@
-// 🌟 ຈຸດທີ່ປ່ຽນແປງ: ໃຊ້ ../../ ເພື່ອຖອຍຫຼັງອອກມາຫາໄຟລ໌ firebase-config.js ແລະ items-data.js ທີ່ຢູ່ທາງນອກ
-import { auth, db, collection, getDocs, doc, updateDoc, increment, addDoc, query, where } from '../../firebase-config.js';
-import { itemsList } from '../../items-data.js'; 
+import { db } from '../../firebase-config.js'; 
+import { collection, getDocs, addDoc, doc, updateDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-window.dbItemsList = []; 
+let allItems = [];
+let selectedItem = null;
 
-window.toggleSidebar = () => { 
-    const sidebar = document.getElementById('sidebar-container');
-    const overlay = document.getElementById('sidebarOverlay');
-    if(sidebar) sidebar.classList.toggle('-translate-x-full'); 
-    if(overlay) overlay.classList.toggle('hidden'); 
-};
-
-const monthFilter = document.getElementById('month-filter');
-const now = new Date();
-const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-if(monthFilter) monthFilter.value = currentMonthStr;
-
-async function loadReceiveItems() {
+// 1. ດຶງຂໍ້ມູນອຸປະກອນທັງໝົດມາໄວ້ເຮັດ Dropdown
+async function fetchItems() {
     try {
-        const datalist = document.getElementById('receive-items-list');
-        window.dbItemsList = [...itemsList]; 
-        
-        window.dbItemsList.sort((a, b) => a.code.localeCompare(b.code));
-        
-        let datalistHTML = '';
-        window.dbItemsList.forEach(item => {
-            datalistHTML += `<option value="${item.code} - ${item.name}"></option>`;
-        });
-        if(datalist) datalist.innerHTML = datalistHTML;
-    } catch(e) {
-        console.error("Error loading items:", e);
+        const querySnapshot = await getDocs(collection(db, "items"));
+        allItems = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+        console.error("Error fetching items: ", error);
     }
 }
 
-window.fillDetails = async function() {
-    let val = document.getElementById('itemCode').value;
-    if (val.includes(' - ')) val = val.split(' - ')[0].trim();
-    
-    const found = window.dbItemsList.find(i => i.code === val);
-    const infoDisplay = document.getElementById('stockInfoDisplay');
-    
-    if (found) {
-        const q = query(collection(db, "equipment_list"), where("code", "==", found.code));
-        const snap = await getDocs(q);
-        let currentStock = 0;
-        let docId = "";
-        
-        if (!snap.empty) {
-            currentStock = snap.docs[0].data().stock || 0;
-            docId = snap.docs[0].id;
-        }
-
-        infoDisplay.innerHTML = `ສະຕັອກປັດຈຸບັນໃນສາງ: <span class="text-green-600 font-bold text-base">${currentStock} ${found.unit}</span>`;
-        document.getElementById('itemCode').setAttribute('data-id', docId); 
-        document.getElementById('itemCode').setAttribute('data-code', found.code);
-        document.getElementById('itemCode').setAttribute('data-name', found.name);
-        document.getElementById('itemCode').setAttribute('data-unit', found.unit);
-    } else {
-        infoDisplay.innerHTML = '';
-        document.getElementById('itemCode').removeAttribute('data-id');
-        document.getElementById('itemCode').removeAttribute('data-code');
-    }
-};
-
-window.filterMonthHistory = async function() {
-    const tbody = document.getElementById('history-table-body');
-    if(!tbody || !monthFilter) return;
-    
-    const selectedMonth = monthFilter.value; 
-    tbody.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-gray-400 italic">ກຳລັງໂຫຼດປະຫວັດ...</td></tr>';
-    
+// 2. ດຶງປະຫວັດການຮັບເຄື່ອງເຂົ້າສາງມາໂຊໃນຕາຕະລາງ
+async function fetchReceiveHistory() {
+    const tbody = document.getElementById('historyTableBody');
     try {
-        const snap = await getDocs(query(collection(db, "inventory_logs"), where("type", "==", "IN")));
-        let logsArray = [];
+        const q = query(collection(db, "receive_history"), orderBy("timestamp", "desc"));
+        const querySnapshot = await getDocs(q);
         
-        snap.forEach(doc => {
-            const data = doc.data();
-            const dateObj = data.date ? data.date.toDate() : new Date();
-            const docMonthStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}`;
-            
-            if (docMonthStr === selectedMonth) logsArray.push(data);
-        });
-        
-        if (logsArray.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-gray-400 font-bold">ບໍ່ມີປະຫວັດການຮັບເຂົ້າໃນເດືອນນີ້</td></tr>`;
+        if (querySnapshot.empty) {
+            tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-slate-400">ບໍ່ມີປະຫວັດການຮັບເຂົ້າສາງ</td></tr>`;
             return;
         }
 
-        logsArray.sort((a, b) => b.date.toDate() - a.date.toDate());
-        
-        let html = '';
-        logsArray.forEach((data, index) => {
-            const dateObj = data.date ? data.date.toDate() : new Date();
-            const dateStr = `${String(dateObj.getDate()).padStart(2, '0')}/${String(dateObj.getMonth() + 1).padStart(2, '0')}/${dateObj.getFullYear()}`;
-            const timeStr = `${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}`;
-            const shortUser = (data.user || 'Admin').split('@')[0];
-
-            html += `
-                <tr class="hover:bg-gray-50 border-b">
-                    <td class="p-3 text-center border-r">${index + 1}</td>
-                    <td class="p-3 border-r">
-                        <div class="font-bold text-gray-800">${data.code}</div>
-                        <div class="text-xs text-gray-500">${data.name}</div>
-                    </td>
-                    <td class="p-3 text-center border-r font-bold text-green-600 text-base">+${data.qty}</td>
+        let index = 1;
+        tbody.innerHTML = querySnapshot.docs.map(docData => {
+            const data = docData.data();
+            const dateStr = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString('lo-LA') : 'ກຳລັງບັນທຶກ...';
+            return `
+                <tr class="border-b hover:bg-slate-50 transition-colors">
+                    <td class="p-3 font-medium text-slate-500">${index++}</td>
                     <td class="p-3">
-                        <div class="font-bold text-gray-700 text-xs">${data.remark || ''}</div>
-                        <div class="text-[10px] text-gray-400 mt-1">${dateStr} ${timeStr} | 👤 ${shortUser}</div>
+                        <span class="block font-bold text-slate-800">${data.itemCode}</span>
+                        <span class="text-xs text-slate-500">${data.itemName}</span>
+                    </td>
+                    <td class="p-3 text-center text-green-600 font-bold bg-green-50/50">+ ${data.quantity} ${data.itemUnit || ''}</td>
+                    <td class="p-3 text-xs">
+                        <p class="font-medium text-slate-700">${data.note}</p>
+                        <p class="text-slate-400 mt-0.5">${dateStr}</p>
                     </td>
                 </tr>
             `;
-        });
-        tbody.innerHTML = html;
+        }).join('');
     } catch (error) {
-        tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-red-500">🚨 ຜິດພາດ: ${error.message}</td></tr>`;
+        console.error("Error fetching history: ", error);
+        tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-red-500">ເກີດຂໍ້ຜິດພາດໃນການໂຫລດຂໍ້ມູນ</td></tr>`;
     }
-};
-
-const receiveForm = document.getElementById('receive-form');
-if(receiveForm) {
-    receiveForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        
-        const codeInput = document.getElementById('itemCode');
-        const itemCode = codeInput.getAttribute('data-code');
-        const docId = codeInput.getAttribute('data-id');
-        const name = codeInput.getAttribute('data-name');
-        const unit = codeInput.getAttribute('data-unit');
-        const qty = parseInt(document.getElementById('receiveQty').value);
-        const remark = document.getElementById('receiveRemark').value;
-
-        if (!itemCode) return Swal.fire('ແຈ້ງເຕືອນ', 'ກະລຸນາເລືອກອຸປະກອນທີ່ຖືກຕ້ອງ', 'warning');
-
-        const submitBtn = document.getElementById('submit-btn');
-        
-        Swal.fire({
-            title: 'ຢືນຢັນການຮັບເຂົ້າ?',
-            html: `ຮັບ <b>${name}</b> ຈຳນວນ <b class="text-green-600">+${qty}</b> ${unit || ''}?`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'ຢືນຢັນ',
-            cancelButtonText: 'ຍົກເລີກ'
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                try {
-                    submitBtn.disabled = true;
-                    Swal.fire({ title: 'ກຳລັງບັນທຶກ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-
-                    if (docId) {
-                        await updateDoc(doc(db, "equipment_list", docId), { stock: increment(qty) });
-                    } else {
-                        await addDoc(collection(db, "equipment_list"), {
-                            code: itemCode, name: name, unit: unit, stock: qty
-                        });
-                    }
-
-                    await addDoc(collection(db, "inventory_logs"), {
-                        type: "IN", code: itemCode, name: name, qty: qty, remark: remark,
-                        date: new Date(), user: auth.currentUser?.email || 'Admin'
-                    });
-
-                    Swal.fire({ title: 'ສຳເລັດ!', text: 'ອັບເດດສະຕັອກຮຽບຮ້ອຍ', icon: 'success', timer: 1500, showConfirmButton: false });
-                    
-                    receiveForm.reset();
-                    document.getElementById('stockInfoDisplay').innerHTML = '';
-                    codeInput.removeAttribute('data-id');
-                    codeInput.removeAttribute('data-code');
-                    window.filterMonthHistory(); 
-                } catch (error) {
-                    Swal.fire('ຜິດພາດ', error.message, 'error');
-                } finally {
-                    submitBtn.disabled = false;
-                }
-            }
-        });
-    });
 }
 
-loadReceiveItems();
-window.filterMonthHistory();
+// 3. ຈັດການລະບົບຄົ້ນຫາ ແລະ Dropdown
+const searchInput = document.getElementById('itemSearchInput');
+const dropdown = document.getElementById('dropdownList');
+
+searchInput.addEventListener('input', (e) => {
+    const val = e.target.value.toLowerCase();
+    if (!val) {
+        dropdown.classList.add('hidden');
+        return;
+    }
+
+    const filtered = allItems.filter(i => 
+        (i.name && i.name.toLowerCase().includes(val)) || 
+        (i.code && i.code.toLowerCase().includes(val))
+    );
+
+    if (filtered.length === 0) {
+        dropdown.innerHTML = `<div class="p-3 text-slate-400 text-center text-sm">ບໍ່ພົບອຸປະກອນນີ້...</div>`;
+    } else {
+        dropdown.innerHTML = filtered.map(item => `
+            <div class="p-3 border-b border-slate-100 hover:bg-blue-50 cursor-pointer flex justify-between items-center transition-colors" 
+                 data-id="${item.id}" data-code="${item.code}" data-name="${item.name}" data-unit="${item.unit}" data-stock="${item.stock}">
+                <div>
+                    <span class="block text-sm font-bold text-slate-800">${item.code}</span>
+                    <span class="text-xs text-slate-500">${item.name}</span>
+                </div>
+                <span class="text-xs bg-slate-100 px-2 py-1 rounded-full font-bold text-slate-600">ຄັງເຫຼືອ: ${item.stock}</span>
+            </div>
+        `).join('');
+
+        // ຜູກເຫດການຄລິກເລືອກອຸປະກອນ
+        dropdown.querySelectorAll('div[data-id]').forEach(el => {
+            el.addEventListener('click', () => {
+                selectedItem = {
+                    id: el.dataset.id,
+                    code: el.dataset.code,
+                    name: el.dataset.name,
+                    unit: el.dataset.unit,
+                    stock: Number(el.dataset.stock)
+                };
+                searchInput.value = `${selectedItem.code} - ${selectedItem.name}`;
+                dropdown.classList.add('hidden');
+            });
+        });
+    }
+    dropdown.classList.remove('hidden');
+});
+
+// ປິດ Dropdown ເມື່ອກົດບ່ອນອື່ນ
+document.addEventListener('click', (e) => {
+    if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+        dropdown.classList.add('hidden');
+    }
+});
+
+// 4. ຟັງຊັນປຸ່ມລົບໄວ / ລ້າງຂໍ້ມູນຟອມ (Clear Form)
+document.getElementById('clearFormBtn').addEventListener('click', () => {
+    resetForm();
+});
+
+function resetForm() {
+    searchInput.value = '';
+    document.getElementById('receiveQty').value = '';
+    document.getElementById('receiveNote').value = '';
+    selectedItem = null;
+    dropdown.classList.add('hidden');
+}
+
+// 5. ບັນທຶກຂໍ້ມູນຮັບເຂົ້າສາງ ແລະ ອັບເດດຈຳນວນໃນສະຕັອກ
+document.getElementById('receiveForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    if (!selectedItem) {
+        alert("ກະລຸນາເລືອກອຸປະກອນຈາກລາຍການ Dropdown ກ່ອນ!");
+        return;
+    }
+
+    const qty = parseInt(document.getElementById('receiveQty').value);
+    const note = document.getElementById('receiveNote').value;
+
+    if (isNaN(qty) || qty <= 0) {
+        alert("ກະລຸນາໃສ່ຈຳນວນໃຫ້ຖືກຕ້ອງ!");
+        return;
+    }
+
+    try {
+        // ກ. ບັນທຶກລົງຄໍເລັກຊັນປະຫວັດ receive_history
+        await addDoc(collection(db, "receive_history"), {
+            itemId: selectedItem.id,
+            itemCode: selectedItem.code,
+            itemName: selectedItem.name,
+            itemUnit: selectedItem.unit,
+            quantity: qty,
+            note: note,
+            timestamp: serverTimestamp()
+        });
+
+        // ຂ. ອັບເດດບວກສະຕັອກເພີ່ມເຂົ້າໃນ collection items ໂຕຈິງ
+        const itemRef = doc(db, "items", selectedItem.id);
+        const newStock = selectedItem.stock + qty;
+        await updateDoc(itemRef, {
+            stock: newStock
+        });
+
+        alert("🎉 ບັນທຶກຮັບອຸປະກອນເຂົ້າສາງສຳເລັດແລ້ວ!");
+        resetForm();
+        await fetchItems();          // ໂຫລດຂໍ້ມູນອຸປະກອນຫຼ້າສຸດໃໝ່
+        await fetchReceiveHistory(); // ຣີເຟຣຊຕາຕະລາງປະຫວັດ
+    } catch (error) {
+        console.error("Error saving transaction: ", error);
+        alert("ເກີດຂໍ້ຜິດພາດ ບໍ່ສາມາດບັນທຶກຂໍ້ມູນໄດ້!");
+    }
+});
+
+// ເລີ່ມຕົ້ນໂຫລດຂໍ້ມູນທັງໝົດ
+async function init() {
+    await fetchItems();
+    await fetchReceiveHistory();
+}
+init();

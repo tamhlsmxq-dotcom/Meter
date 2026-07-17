@@ -2,90 +2,36 @@
 <html lang="lo">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>ຈັດການອຸປະກອນ - ສາງໝໍ້ແທກນ້ຳ</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <style>
-        body, input, select, button, textarea { font-family: 'Times New Roman', 'Phetsarath OT', 'Noto Sans Lao', serif !important; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .swal2-popup { font-family: 'Times New Roman', 'Phetsarath OT', serif !important; }
-        input[type="search"]::-webkit-search-cancel-button { cursor: pointer; transform: scale(1.2); margin-left: 5px; }
-    </style>
+    <title>ຈັດການສະຕັອກ</title>
 </head>
-<body class="text-gray-800 bg-gray-100 flex h-[100dvh] overflow-hidden m-0 p-0">
+<body class="bg-gray-100 p-6">
 
-    <div id="sidebar-placeholder" class="contents"></div>
-
-    <div class="flex-1 flex flex-col h-full w-full min-w-0">
-        <header class="md:hidden bg-blue-800 text-white p-4 flex justify-between items-center shadow-md z-30 shrink-0">
-            <div class="font-bold text-lg flex items-center"><i class="fas fa-tint mr-2 text-blue-300"></i> ສາງໝໍ້ແທກນ້ຳ</div>
-            <button onclick="toggleSidebar()" class="text-white p-2 focus:outline-none"><i class="fas fa-bars text-2xl"></i></button>
-        </header>
-
-        <main class="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6 w-full pb-20">
-            <div class="max-w-5xl mx-auto">
-                
-                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 border-b pb-4">
-                    <h2 class="text-2xl font-bold text-blue-800 flex items-center w-full md:w-auto"><i class="fas fa-boxes mr-3"></i>ຈັດການອຸປະກອນ & ສະຕັອກ</h2>
-                    
-                    <div class="flex flex-wrap gap-2 w-full md:w-auto justify-end">
-                        <button onclick="clearAllEquipment()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-bold shadow-md transition-colors text-sm"><i class="fas fa-trash-alt mr-2"></i> ລ້າງຖານຂໍ້ມູນ (Clear)</button>
-                        <button onclick="syncDefaultItems()" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-bold shadow-md transition-colors text-sm"><i class="fas fa-cloud-upload-alt mr-2"></i> Sync Excel</button>
-                        <button onclick="openAddItemModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold shadow-md transition-colors text-sm"><i class="fas fa-plus mr-2"></i> ເພີ່ມເອງ</button>
-                    </div>
-                </div>
-
-                <div id="lowStockAlertContainer" class="hidden mb-6"></div>
-
-                <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
-                    <div class="p-4 border-b bg-gray-50 flex flex-col md:flex-row items-center gap-3">
-                        <div class="flex-1 w-full flex items-center bg-white border rounded-lg px-3 py-2.5 focus-within:ring-2 focus-within:ring-blue-500 shadow-sm">
-                            <i class="fas fa-search text-gray-400 mr-2"></i>
-                            <input type="search" id="searchInput" list="search-datalist" onclick="this.select()" oninput="filterTable()" placeholder="ພິມລະຫັດ ຫຼື ຊື່ອຸປະກອນເພື່ອຄົ້ນຫາ..." class="w-full bg-transparent outline-none font-bold text-lg text-blue-900">
-                            <datalist id="search-datalist"></datalist>
-                        </div>
-                        <div class="flex gap-2 w-full md:w-auto">
-                            <button onclick="filterHistoryOnly()" class="flex-1 md:flex-none whitespace-nowrap bg-purple-100 text-purple-700 hover:bg-purple-200 px-4 py-2.5 rounded-lg font-bold shadow-sm transition-colors border border-purple-200">
-                                <i class="fas fa-filter mr-1"></i> ເຄື່ອງທີ່ເຄີຍແປງ
-                            </button>
-                            <button onclick="resetFilter()" class="flex-1 md:flex-none whitespace-nowrap bg-gray-100 text-gray-700 hover:bg-gray-200 px-4 py-2.5 rounded-lg font-bold shadow-sm transition-colors border border-gray-200">
-                                <i class="fas fa-list mr-1"></i> ທັງໝົດ
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="overflow-x-auto h-[65vh]">
-                        <table class="w-full border-collapse text-sm text-left min-w-[800px]">
-                            <thead class="bg-blue-50 text-blue-800 sticky top-0 z-10 shadow-sm border-b">
-                                <tr>
-                                    <th class="p-3 border-b text-center w-16">ລ/ດ</th>
-                                    <th class="p-3 border-b">ລະຫັດ</th>
-                                    <th class="p-3 border-b w-1/3">ຊື່ອຸປະກອນ</th>
-                                    <th class="p-3 border-b text-center">ຫົວໜ່ວຍ</th>
-                                    <th class="p-3 border-b text-center text-green-700">ຈຳນວນໃນສາງ</th>
-                                    <th class="p-3 border-b text-center">ຈັດການ</th>
-                                </tr>
-                            </thead>
-                            <tbody id="itemsTableBody" class="divide-y divide-gray-100">
-                                <tr><td colspan="6" class="p-10 text-center text-gray-500 font-bold text-lg"><i class="fas fa-spinner fa-spin mr-2"></i>ກຳລັງໂຫຼດຂໍ້ມູນ...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </main>
+    <!-- 1. ຊ່ອງຄົ້ນຫາ (Search Section) -->
+    <div class="relative w-full max-w-lg mb-6">
+        <label class="block text-sm font-bold text-gray-700 mb-2">ຄົ້ນຫາອຸປະກອນ</label>
+        <input type="text" id="itemSearch" 
+               placeholder="🔍 ພິມລະຫັດ ຫຼື ຊື່ອຸປະກອນ..." 
+               class="w-full p-4 border-2 border-blue-300 rounded-xl focus:border-blue-600 outline-none shadow-sm text-lg">
+        
+        <!-- Dropdown Box -->
+        <div id="dropdownList" class="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-2xl hidden max-h-80 overflow-y-auto"></div>
     </div>
 
-    <script type="module">
-        import { renderSidebar } from './sidebar.js';
-        if(typeof renderSidebar === 'function') renderSidebar('manage');
-    </script>
-    <script type="module" src="./auth-guard.js"></script>
-    <script type="module" src="./js/pages/manage-items.js"></script>
+    <!-- 2. ຕາຕະລາງ (Table Section) -->
+    <table class="w-full bg-white rounded-xl shadow-sm overflow-hidden">
+        <thead class="bg-blue-900 text-white">
+            <tr>
+                <th class="p-4 text-left">ລະຫັດ</th>
+                <th class="p-4 text-left">ຊື່ອຸປະກອນ</th>
+                <th class="p-4 text-center">ຈຳນວນເຫຼືອ</th>
+            </tr>
+        </thead>
+        <tbody id="inventory-table-body">
+            <!-- ຂໍ້ມູນຈະຖືກ Render ຜ່ານ JS -->
+        </tbody>
+    </table>
+
+    <script type="module" src="manage-items.js"></script>
 </body>
 </html>
