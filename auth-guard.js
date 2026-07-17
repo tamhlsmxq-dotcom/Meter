@@ -2,7 +2,7 @@ import { auth } from '../config/firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 // ໃສ່ Email ທີ່ເຈົ້າໃຊ້ລັອກອິນເຂົ້າລະບົບຢູ່ບ່ອນນີ້ (ໃສ່ໃຫ້ຄົບທຸກຄົນທີ່ເປັນ Admin)
-const ADMIN_EMAILS = ["admin@meter.com", "palamy@gmail.com"]; 
+const ADMIN_EMAILS = ["admin@meter.com", "້hlsm@gmail.com"]; 
 
 onAuthStateChanged(auth, (user) => {
     // ຖ້າຍັງບໍ່ລັອກອິນ ໃຫ້ກັບໄປໜ້າ Login (index.html)
