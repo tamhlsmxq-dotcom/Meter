@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ສະຕັອກສິນຄ້າ - Water Meter</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 🟢 ລະບົບຊ່ວຍແຄບພາບ (Capture ເປັນຮູບ) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <style> 
+        /* =========================================
+           ຕັ້ງຄ່າຟອນ: ບັງຄັບທຸກຢ່າງໃນໜ້າເວັບ
+           ອັງກິດ/ໂຕເລກ/ສັນຍາລັກ = Times New Roman
+           ພາສາລາວ = Phetsarath OT
+           ========================================= */
+        * {
+            font-family: 'Times New Roman', 'Phetsarath OT', serif; 
+        }
+        
+        body { background-color: #f8fafc; }
+
+        /* ອະນິເມຊັນສຳລັບ Popup ໃຫ້ລຽບນຽນ (Smooth) */
+        .modal-backdrop { animation: fadeInBg 0.3s ease-in-out forwards; }
+        @keyframes fadeInBg { from { opacity: 0; } to { opacity: 1; } }
+        .modal-animate { animation: smoothPop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes smoothPop { 
+            from { opacity: 0; transform: scale(0.9) translateY(20px); } 
+            to { opacity: 1; transform: scale(1) translateY(0); } 
+        }
+        
+        /* ຕາຕະລາງແບບ Excel ສຳລັບໃບລາຍງານ (ປັບເປັນສີດຳທາງການ) */
+        .report-table th, .report-table td {
+            border: 1px solid #000000;
+            padding: 8px;
+            color: #000000;
+        }
+        .report-table th { background-color: #f8fafc; text-align: center; font-weight: bold; }
+    </style>
+</head>
+<body class="flex min-h-screen relative">
+
+    <!-- ດຶງ Sidebar ມາສະແດງ -->
+    <div id="sidebar-container" class="w-64 flex-shrink-0"></div>
+
+    <main class="flex-1 p-8 ml-64 overflow-y-auto space-y-6">
+        
+        <!-- ຫົວຂໍ້ຫຼັກຂອງໜ້າ -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 pb-5">
+            <div class="flex items-start space-x-4">
+                <div class="bg-gradient-to-br from-blue-500 to-indigo-600 p-3 rounded-2xl text-white shadow-lg shadow-blue-500/30">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-800 to-indigo-800 tracking-wide">ສະຕັອກສິນຄ້າ (Inventory)</h2>
+                    <p class="text-slate-500 mt-1 text-sm">ກວດສອບຈຳນວນອຸປະກອນ ແລະ ໝໍ້ແທກນ້ຳຄົງເຫຼືອໃນສາງ</p>
+                </div>
+            </div>
+            
+            <div class="flex space-x-3">
+                <button onclick="document.getElementById('summaryModal').classList.remove('hidden')" class="bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-sm font-bold py-2.5 px-5 rounded-xl shadow-sm transition-all flex items-center group">
+                    <svg class="w-5 h-5 mr-2 text-indigo-500 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    ບົດສະຫຼຸບສາງ (ລາຍງານ)
+                </button>
+                <button class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold py-2.5 px-5 rounded-xl shadow-sm transition-all flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
+                    ເພີ່ມອຸປະກອນໃໝ່
+                </button>
+            </div>
+        </div>
+
+        <!-- ກາດສະຫຼຸບຂໍ້ມູນໜ້າຫຼັກ -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center justify-between">
+                <div><p class="text-slate-500 text-sm font-semibold mb-1">ລາຍການອຸປະກອນທັງໝົດ</p><h3 class="text-3xl font-bold text-slate-800">124 <span class="text-sm font-normal text-slate-500">ລາຍການ</span></h3></div>
+                <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg></div>
+            </div>
+            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center justify-between">
+                <div><p class="text-slate-500 text-sm font-semibold mb-1">ອຸປະກອນໃກ້ໝົດ</p><h3 class="text-3xl font-bold text-amber-500">8 <span class="text-sm font-normal text-slate-500">ລາຍການ</span></h3></div>
+                <div class="w-12 h-12 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg></div>
+            </div>
+            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center justify-between">
+                <div><p class="text-slate-500 text-sm font-semibold mb-1">ອຸປະກອນໝົດສະຕັອກ</p><h3 class="text-3xl font-bold text-rose-500">2 <span class="text-sm font-normal text-slate-500">ລາຍການ</span></h3></div>
+                <div class="w-12 h-12 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
+            </div>
+        </div>
+
+        <!-- ກ່ອງຕາຕະລາງໜ້າຫຼັກ -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mt-6">
+            <div class="p-4 border-b border-slate-200 flex flex-wrap gap-4 justify-between items-center bg-slate-50/50">
+                <div class="relative w-full md:w-80">
+                    <svg class="w-5 h-5 absolute left-3 top-2.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <input type="text" placeholder="ຄົ້ນຫາລະຫັດ, ຊື່ອຸປະກອນ..." class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-all">
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <select class="border border-slate-300 text-slate-600 text-sm rounded-xl py-2 px-4 focus:outline-none focus:border-indigo-500 bg-white shadow-sm cursor-pointer"><option value="">ທຸກສະຖານະ</option><option value="ready">🟢 ພ້ອມໃຊ້ງານ</option><option value="low">🟡 ໃກ້ໝົດ</option><option value="out">🔴 ໝົດສະຕັອກ</option></select>
+                    <select class="border border-slate-300 text-slate-600 text-sm rounded-xl py-2 px-4 focus:outline-none focus:border-indigo-500 bg-white shadow-sm cursor-pointer"><option value="">ທຸກໝວດໝູ່</option><option value="meter">ໝໍ້ແທກນ້ຳ</option><option value="pipe">ທໍ່ນ້ຳ</option><option value="fitting">ຂໍ້ຕໍ່ / ວາວ</option></select>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse whitespace-nowrap">
+                    <thead>
+                        <tr class="bg-slate-100/50 border-b border-slate-200 text-slate-500 text-sm">
+                            <th class="p-4 font-semibold w-24">ລະຫັດ</th>
+                            <th class="p-4 font-semibold">ຊື່ອຸປະກອນ</th>
+                            <th class="p-4 font-semibold">ໝວດໝູ່</th>
+                            <th class="p-4 font-semibold text-center w-32">ຈຳນວນເຫຼືອ</th>
+                            <th class="p-4 font-semibold text-center w-32">ສະຖານະ</th>
+                            <th class="p-4 font-semibold text-center w-24">ຈັດການ</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
+                        <!-- ແກ້ໄຂແລ້ວ: ຂະໜາດໂຕເລກ ແລະ ຫົວໜ່ວຍເທົ່າກັນແລ້ວ (ລຶບ text-lg ອອກ) -->
+                        <tr class="hover:bg-slate-50 transition-colors"><td class="p-4 font-bold text-indigo-600">WM-15M</td><td class="p-4 font-medium text-slate-800">ໝໍ້ແທກນ້ຳ ຂະໜາດ 15mm (Kent)</td><td class="p-4 text-slate-500">ໝໍ້ແທກນ້ຳ</td><td class="p-4 text-center"><span class="font-bold text-slate-800">150</span> <span class="text-slate-600">ໜ່ວຍ</span></td><td class="p-4 text-center"><span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold border border-emerald-200">ພ້ອມໃຊ້ງານ</span></td><td class="p-4 text-center"><button class="text-indigo-600 hover:text-indigo-900 font-medium">ເບິ່ງ</button></td></tr>
+                        <tr class="hover:bg-slate-50 transition-colors"><td class="p-4 font-bold text-indigo-600">PVC-20</td><td class="p-4 font-medium text-slate-800">ທໍ່ນ້ຳ PVC 20mm ຊັ້ນ 8.5</td><td class="p-4 text-slate-500">ທໍ່ນ້ຳ</td><td class="p-4 text-center"><span class="font-bold text-amber-600">12</span> <span class="text-slate-600">ເສັ້ນ</span></td><td class="p-4 text-center"><span class="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-bold border border-amber-200">ໃກ້ໝົດ</span></td><td class="p-4 text-center"><button class="text-indigo-600 hover:text-indigo-900 font-medium">ເບິ່ງ</button></td></tr>
+                        <tr class="hover:bg-slate-50 transition-colors bg-rose-50/20"><td class="p-4 font-bold text-indigo-600">VA-01</td><td class="p-4 font-medium text-slate-800">ວາວປິດ-ເປີດນ້ຳ 15mm</td><td class="p-4 text-slate-500">ຂໍ້ຕໍ່ / ວາວ</td><td class="p-4 text-center"><span class="font-bold text-rose-600">0</span> <span class="text-slate-600">ອັນ</span></td><td class="p-4 text-center"><span class="px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-xs font-bold border border-rose-200">ໝົດສະຕັອກ</span></td><td class="p-4 text-center"><button class="text-indigo-600 hover:text-indigo-900 font-medium">ເບິ່ງ</button></td></tr>
+                        <tr class="hover:bg-slate-50 transition-colors"><td class="p-4 font-bold text-indigo-600">FIT-90</td><td class="p-4 font-medium text-slate-800">ຂ້ອງໍ 90 ອົງສາ PVC 15mm</td><td class="p-4 text-slate-500">ຂໍ້ຕໍ່ / ວາວ</td><td class="p-4 text-center"><span class="font-bold text-slate-800">320</span> <span class="text-slate-600">ອັນ</span></td><td class="p-4 text-center"><span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold border border-emerald-200">ພ້ອມໃຊ້ງານ</span></td><td class="p-4 text-center"><button class="text-indigo-600 hover:text-indigo-900 font-medium">ເບິ່ງ</button></td></tr>
+                        <tr class="hover:bg-slate-50 transition-colors"><td class="p-4 font-bold text-indigo-600">GL-01</td><td class="p-4 font-medium text-slate-800">ກາວທາທໍ່ນ້ຳ PVC (ກະປ໋ອງໃຫຍ່)</td><td class="p-4 text-slate-500">ອຸປະກອນເສີມ</td><td class="p-4 text-center"><span class="font-bold text-amber-600">5</span> <span class="text-slate-600">ກະປ໋ອງ</span></td><td class="p-4 text-center"><span class="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-bold border border-amber-200">ໃກ້ໝົດ</span></td><td class="p-4 text-center"><button class="text-indigo-600 hover:text-indigo-900 font-medium">ເບິ່ງ</button></td></tr>
+                        <tr class="hover:bg-slate-50 transition-colors"><td class="p-4 font-bold text-indigo-600">WM-25M</td><td class="p-4 font-medium text-slate-800">ໝໍ້ແທກນ້ຳ ຂະໜາດ 25mm</td><td class="p-4 text-slate-500">ໝໍ້ແທກນ້ຳ</td><td class="p-4 text-center"><span class="font-bold text-slate-800">45</span> <span class="text-slate-600">ໜ່ວຍ</span></td><td class="p-4 text-center"><span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold border border-emerald-200">ພ້ອມໃຊ້ງານ</span></td><td class="p-4 text-center"><button class="text-indigo-600 hover:text-indigo-900 font-medium">ເບິ່ງ</button></td></tr>
+                        <tr class="hover:bg-slate-50 transition-colors bg-rose-50/20"><td class="p-4 font-bold text-indigo-600">TP-01</td><td class="p-4 font-medium text-slate-800">ສະກັອດພັນກຽວທໍ່ນ້ຳ</td><td class="p-4 text-slate-500">ອຸປະກອນເສີມ</td><td class="p-4 text-center"><span class="font-bold text-rose-600">0</span> <span class="text-slate-600">ມ້ວນ</span></td><td class="p-4 text-center"><span class="px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-xs font-bold border border-rose-200">ໝົດສະຕັອກ</span></td><td class="p-4 text-center"><button class="text-indigo-600 hover:text-indigo-900 font-medium">ເບິ່ງ</button></td></tr>
+                        <tr class="hover:bg-slate-50 transition-colors"><td class="p-4 font-bold text-indigo-600">MB-01</td><td class="p-4 font-medium text-slate-800">ກ່ອງກັນນ້ຳສຳລັບໝໍ້ແທກ</td><td class="p-4 text-slate-500">ອຸປະກອນເສີມ</td><td class="p-4 text-center"><span class="font-bold text-slate-800">80</span> <span class="text-slate-600">ອັນ</span></td><td class="p-4 text-center"><span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold border border-emerald-200">ພ້ອມໃຊ້ງານ</span></td><td class="p-4 text-center"><button class="text-indigo-600 hover:text-indigo-900 font-medium">ເບິ່ງ</button></td></tr>
+                        <tr class="hover:bg-slate-50 transition-colors"><td class="p-4 font-bold text-indigo-600">VA-02</td><td class="p-4 font-medium text-slate-800">ປະຕູນ້ຳ (Gate Valve) 20mm</td><td class="p-4 text-slate-500">ຂໍ້ຕໍ່ / ວາວ</td><td class="p-4 text-center"><span class="font-bold text-amber-600">3</span> <span class="text-slate-600">ອັນ</span></td><td class="p-4 text-center"><span class="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-bold border border-amber-200">ໃກ້ໝົດ</span></td><td class="p-4 text-center"><button class="text-indigo-600 hover:text-indigo-900 font-medium">ເບິ່ງ</button></td></tr>
+                        <tr class="hover:bg-slate-50 transition-colors"><td class="p-4 font-bold text-indigo-600">PVC-15</td><td class="p-4 font-medium text-slate-800">ທໍ່ນ້ຳ PVC 15mm ຊັ້ນ 13.5</td><td class="p-4 text-slate-500">ທໍ່ນ້ຳ</td><td class="p-4 text-center"><span class="font-bold text-slate-800">210</span> <span class="text-slate-600">ເສັ້ນ</span></td><td class="p-4 text-center"><span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold border border-emerald-200">ພ້ອມໃຊ້ງານ</span></td><td class="p-4 text-center"><button class="text-indigo-600 hover:text-indigo-900 font-medium">ເບິ່ງ</button></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="p-4 border-t border-slate-200 bg-slate-50 text-sm text-slate-500 flex justify-between items-center">
+                <span>ສະແດງ 1 ຫາ 10 ຈາກທັງໝົດ 124 ລາຍການ</span>
+                <div class="flex space-x-1"><button class="px-3 py-1.5 border border-slate-300 rounded-lg hover:bg-white transition-colors disabled:opacity-50" disabled>ກ່ອນໜ້າ</button><button class="px-3 py-1.5 bg-indigo-600 text-white rounded-lg font-medium shadow-sm">1</button><button class="px-3 py-1.5 border border-slate-300 rounded-lg bg-white hover:bg-slate-50 transition-colors">2</button><button class="px-3 py-1.5 border border-slate-300 rounded-lg bg-white hover:bg-slate-50 transition-colors">3</button><button class="px-3 py-1.5 border border-slate-300 rounded-lg hover:bg-white transition-colors">ຖັດໄປ</button></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ============================================== -->
+    <!-- 🟢 ປ່ອບອັບ (MODAL): ໃບລາຍງານທາງການ 🟢 -->
+    <!-- ============================================== -->
+    <div id="summaryModal" class="hidden fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-start justify-center p-4 overflow-y-auto modal-backdrop">
+        <div class="bg-slate-200 rounded-xl w-full max-w-5xl my-8 flex flex-col shadow-[0_0_40px_rgba(0,0,0,0.5)] border-[6px] border-slate-400 modal-animate">
+            
+            <!-- Header ຂອງ Modal -->
+            <div class="bg-slate-800 p-4 rounded-t-sm flex justify-between items-center text-white sticky top-0 z-10 shadow-md">
+                <h3 class="font-bold text-base flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    ຕົວຢ່າງເອກະສານລາຍງານ (Print Preview)
+                </h3>
+                <div class="flex items-center space-x-3">
+                    
+                    <!-- 🟢 ປຸ່ມແຄບພາບ (Capture) ທີ່ເພີ່ມມາໃໝ່ 🟢 -->
+                    <button onclick="captureReport()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-bold flex items-center text-xs shadow-sm transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        ແຄບພາບ (Capture)
+                    </button>
+
+                    <button class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded font-bold flex items-center text-xs shadow-sm transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        Export Excel
+                    </button>
+                    <button class="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded font-bold flex items-center text-xs shadow-sm transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                        Print PDF
+                    </button>
+                    <button onclick="document.getElementById('summaryModal').classList.add('hidden')" class="hover:bg-rose-500 p-2 rounded transition-colors bg-slate-700">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ພື້ນທີ່ເຈ້ຍ A4 ທີ່ຈະຖືກແຄບພາບ (ID: printable-area) -->
+            <div class="p-8 pb-16 bg-slate-200">
+                <div id="printable-area" class="bg-white mx-auto shadow-lg p-10 rounded-sm text-black" style="min-height: 297mm; max-width: 210mm;">
+                    
+                    <div class="text-center mb-6">
+                        <h2 class="text-base font-bold">ສາທາລະນະລັດ ປະຊາທິປະໄຕ ປະຊາຊົນລາວ</h2>
+                        <h3 class="text-sm font-bold mt-1">ສັນຕິພາບ ເອກະລາດ ປະຊາທິປະໄຕ ເອກະພາບ ວັດທະນະຖາວອນ</h3>
+                        <p class="mt-1">………........................................</p>
+                    </div>
+
+                    <div class="flex justify-between items-start mb-8 text-xs">
+                        <div class="space-y-1 font-bold">
+                            <p class="text-sm">ລັດວິສາຫະກິດ ນ້ຳປະປາ ນະຄອນຫຼວງ</p>
+                            <p>ພະແນກຄຸ້ມຄອງໝໍ້ແທກນ້ຳ ແລະ ຫລຸດຜ່່ອນນ້ຳສູນເສຍ</p>
+                            <p>ພາກສ່ວນສາງ</p>
+                        </div>
+                        <div class="text-right space-y-1">
+                            <p>ເລກທີ……………./ຄໝນ/2026</p>
+                        </div>
+                    </div>
+
+                    <div class="text-center mb-6">
+                        <h1 class="text-xl font-extrabold">ໃບລາຍງານສະຫຼຸບສະຕັອກສິນຄ້າ (Inventory Report)</h1>
+                        <p class="text-sm mt-2 font-medium">ປະຈຳວັນທີ 18 ກໍລະກົດ 2026</p>
+                    </div>
+
+                    <div class="mb-8">
+                        <table class="w-full text-xs report-table border-collapse">
+                            <thead>
+                                <tr>
+                                    <th class="w-10">ລ/ດ</th>
+                                    <th class="w-24 text-left px-2">ລະຫັດ</th>
+                                    <th class="text-left px-2">ລາຍການວັດຖຸ - ອຸປະກອນ</th>
+                                    <th class="w-24">ໝວດໝູ່</th>
+                                    <th class="w-16">ຈຳນວນ</th>
+                                    <th class="w-16">ຫົວໜ່ວຍ</th>
+                                    <th class="w-20">ສະຖານະ</th>
+                                    <th class="w-32">ໝາຍເຫດ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- ກຸ່ມໝົດສະຕັອກ -->
+                                <tr class="bg-slate-50 font-bold"><td colspan="8" class="text-left px-2">ອຸປະກອນໝົດສະຕັອກ (ຕ້ອງສັ່ງດ່ວນ)</td></tr>
+                                <tr><td class="text-center">1</td><td class="px-2 font-bold">VA-01</td><td class="px-2">ວາວປິດ-ເປີດນ້ຳ 15mm</td><td class="text-center">ຂໍ້ຕໍ່/ວາວ</td><td class="text-center font-bold">0</td><td class="text-center">ອັນ</td><td class="text-center font-bold">ໝົດ</td><td class="text-center text-[10px]">ໝົດເມື່ອ: 15/07/2026</td></tr>
+                                <tr><td class="text-center">2</td><td class="px-2 font-bold">TP-01</td><td class="px-2">ສະກັອດພັນກຽວທໍ່ນ້ຳ</td><td class="text-center">ອຸປະກອນເສີມ</td><td class="text-center font-bold">0</td><td class="text-center">ມ້ວນ</td><td class="text-center font-bold">ໝົດ</td><td class="text-center text-[10px]">ໝົດເມື່ອ: 12/07/2026</td></tr>
+                                
+                                <!-- ກຸ່ມໃກ້ໝົດ -->
+                                <tr class="bg-slate-50 font-bold"><td colspan="8" class="text-left px-2">ອຸປະກອນໃກ້ໝົດສະຕັອກ (ກຽມສັ່ງຊື້)</td></tr>
+                                <tr><td class="text-center">3</td><td class="px-2 font-bold">PVC-20</td><td class="px-2">ທໍ່ນ້ຳ PVC 20mm ຊັ້ນ 8.5</td><td class="text-center">ທໍ່ນ້ຳ</td><td class="text-center font-bold">12</td><td class="text-center">ເສັ້ນ</td><td class="text-center">ໃກ້ໝົດ</td><td class="text-center text-[10px]"></td></tr>
+                                <tr><td class="text-center">4</td><td class="px-2 font-bold">GL-01</td><td class="px-2">ກາວທາທໍ່ນ້ຳ PVC (ກະປ໋ອງໃຫຍ່)</td><td class="text-center">ອຸປະກອນເສີມ</td><td class="text-center font-bold">5</td><td class="text-center">ກະປ໋ອງ</td><td class="text-center">ໃກ້ໝົດ</td><td class="text-center text-[10px]"></td></tr>
+                                <tr><td class="text-center">5</td><td class="px-2 font-bold">VA-02</td><td class="px-2">ປະຕູນ້ຳ (Gate Valve) 20mm</td><td class="text-center">ຂໍ້ຕໍ່/ວາວ</td><td class="text-center font-bold">3</td><td class="text-center">ອັນ</td><td class="text-center">ໃກ້ໝົດ</td><td class="text-center text-[10px]"></td></tr>
+                                
+                                <!-- ກຸ່ມພ້ອມໃຊ້ງານ -->
+                                <tr class="bg-slate-50 font-bold"><td colspan="8" class="text-left px-2">ອຸປະກອນສະຕັອກປົກກະຕິ (ພ້ອມໃຊ້ງານ)</td></tr>
+                                <tr><td class="text-center">6</td><td class="px-2 font-bold">WM-15M</td><td class="px-2">ໝໍ້ແທກນ້ຳ ຂະໜາດ 15mm (Kent)</td><td class="text-center">ໝໍ້ແທກນ້ຳ</td><td class="text-center font-bold">150</td><td class="text-center">ໜ່ວຍ</td><td class="text-center">ປົກກະຕິ</td><td class="text-center text-[10px]"></td></tr>
+                                <tr><td class="text-center">7</td><td class="px-2 font-bold">FIT-90</td><td class="px-2">ຂ້ອງໍ 90 ອົງສາ PVC 15mm</td><td class="text-center">ຂໍ້ຕໍ່/ວາວ</td><td class="text-center font-bold">320</td><td class="text-center">ອັນ</td><td class="text-center">ປົກກະຕິ</td><td class="text-center text-[10px]"></td></tr>
+                                <tr><td class="text-center">8</td><td class="px-2 font-bold">WM-25M</td><td class="px-2">ໝໍ້ແທກນ້ຳ ຂະໜາດ 25mm</td><td class="text-center">ໝໍ້ແທກນ້ຳ</td><td class="text-center font-bold">45</td><td class="text-center">ໜ່ວຍ</td><td class="text-center">ປົກກະຕິ</td><td class="text-center text-[10px]"></td></tr>
+                                <tr><td class="text-center">9</td><td class="px-2 font-bold">MB-01</td><td class="px-2">ກ່ອງກັນນ້ຳສຳລັບໝໍ້ແທກ</td><td class="text-center">ອຸປະກອນເສີມ</td><td class="text-center font-bold">80</td><td class="text-center">ອັນ</td><td class="text-center">ປົກກະຕິ</td><td class="text-center text-[10px]"></td></tr>
+                                <tr><td class="text-center">10</td><td class="px-2 font-bold">PVC-15</td><td class="px-2">ທໍ່ນ້ຳ PVC 15mm ຊັ້ນ 13.5</td><td class="text-center">ທໍ່ນ້ຳ</td><td class="text-center font-bold">210</td><td class="text-center">ເສັ້ນ</td><td class="text-center">ປົກກະຕິ</td><td class="text-center text-[10px]"></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="text-xs text-right mb-6 font-medium">
+                        <p>ວຽງຈັນ, ວັນທີ 18 ກໍລະກົດ 2026</p>
+                    </div>
+                    
+                    <div class="flex justify-between items-start text-xs font-bold text-center px-4">
+                        <div class="space-y-16">
+                            <p>ຫົວໜ້າພະແນກຄຸ້ມຄອງໝໍ້ແທກນ້ຳ</p>
+                            <p>.......................................</p>
+                        </div>
+                        <div class="space-y-16">
+                            <p>ຫົວໜ້າພາກສ່ວນສາງ</p>
+                            <p>.......................................</p>
+                        </div>
+                        <div class="space-y-16">
+                            <p>ຜູ້ລາຍງານ (ສັງລວມ)</p>
+                            <p>.......................................</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ສູດສຳເລັດ: ດຶງໂຄ້ດ Sidebar -->
+    <script src="/js/components/sidebar.js"></script>
+
+    <!-- 🟢 ໂຄ້ດ Javascript ສຳລັບປຸ່ມແຄບພາບ 🟢 -->
+    <script>
+        function captureReport() {
+            // ປ່ຽນຂໍ້ຄວາມໃນປຸ່ມເພື່ອໃຫ້ຮູ້ວ່າກຳລັງປະມວນຜົນ
+            const captureBtn = event.currentTarget;
+            const originalText = captureBtn.innerHTML;
+            captureBtn.innerHTML = "ກຳລັງແຄບພາບ...";
+            
+            // ເລືອກເອົາສະເພາະພື້ນທີ່ເຈ້ຍ A4 ສີຂາວ (id="printable-area")
+            const element = document.getElementById('printable-area');
+            
+            // ໃຊ້ html2canvas ແຄບພາບ
+            html2canvas(element, { scale: 2 }).then(canvas => {
+                // ສ້າງລິ້ງດາວໂຫຼດ
+                const link = document.createElement('a');
+                link.download = 'ລາຍງານສະຕັອກ_18-07-2026.png'; // ຊື່ໄຟລ໌
+                link.href = canvas.toDataURL('image/png');
+                link.click(); // ສັ່ງດາວໂຫຼດອັດຕະໂນມັດ
+                
+                // ກູ້ຄືນຂໍ້ຄວາມປຸ່ມ
+                captureBtn.innerHTML = originalText;
+            });
+        }
+    </script>
+</body>
+</html>

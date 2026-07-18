@@ -21,6 +21,12 @@ document.addEventListener("DOMContentLoaded", function() {
             <div class="pt-4 pb-2">
                 <p class="px-4 text-xs font-bold text-slate-500 uppercase tracking-wider">ລະບົບສາງ (Warehouse)</p>
             </div>
+            <!-- ເມນູໃໝ່: ສະຕັອກສິນຄ້າ -->
+            <a href="/pages/warehouse/inventory.html" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-white transition-all group">
+                <svg class="w-5 h-5 text-slate-400 group-hover:text-indigo-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                <span class="font-medium">ສະຕັອກສິນຄ້າ</span>
+            </a>
+            <!-- ເມນູເກົ່າ: ເບີກຈ່າຍອຸປະກອນ -->
             <a href="/pages/warehouse/issue-items.html" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-white transition-all group">
                 <svg class="w-5 h-5 text-slate-400 group-hover:text-indigo-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
                 <span class="font-medium">ເບີກຈ່າຍອຸປະກອນ</span>
