@@ -25,11 +25,11 @@
 <body class="flex min-h-screen">
 
     <!-- ດຶງ Sidebar ມາສະແດງ -->
-    <div id="sidebar-container"></div>
+    <div id="sidebar-container" class="w-64 flex-shrink-0"></div>
 
-    <main class="flex-1 p-8 overflow-y-auto space-y-6">
+    <main class="flex-1 p-8 ml-64 overflow-y-auto space-y-6">
         
-        <!-- ຫົວຂໍ້ຫຼັກຂອງໜ້າ -->
+        <!-- ຫົວຂໍ້ຫຼັກຂອງໜ້າ + ປຸ່ມກັບໜ້າຫຼັກ -->
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 pb-5">
             <div class="flex items-start space-x-4">
                 <div class="bg-gradient-to-br from-indigo-500 to-blue-600 p-3 rounded-2xl text-white shadow-lg shadow-indigo-500/30">
@@ -42,9 +42,20 @@
                     <p class="text-slate-500 mt-1 text-sm">ອອກໃບຢືມເຄື່ອງ/ເບີກເຄື່ອງ ພະແນກຄຸ້ມຄອງໝໍ້ແທກນ້ຳ</p>
                 </div>
             </div>
-            <div class="bg-indigo-50 text-indigo-700 font-bold px-4 py-2 rounded-xl flex items-center shadow-sm border border-indigo-100">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                ວັນທີ: 18 ກໍລະກົດ 2026
+            
+            <!-- ແຖບວັນທີ ແລະ ປຸ່ມກັບໜ້າຫຼັກ -->
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-50 text-indigo-700 font-bold px-4 py-2.5 rounded-xl flex items-center shadow-sm border border-indigo-100">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    ວັນທີ: 18 ກໍລະກົດ 2026
+                </div>
+                <!-- ປຸ່ມກັບໜ້າຫຼັກ ມາໃໝ່ -->
+                <a href="/index.html" class="flex items-center space-x-2 px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 hover:text-indigo-600 hover:border-indigo-200 text-slate-600 rounded-xl transition-all shadow-sm group">
+                    <svg class="w-5 h-5 text-slate-400 group-hover:text-indigo-500 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    <span class="font-semibold text-sm">ກັບໜ້າຫຼັກ</span>
+                </a>
             </div>
         </div>
 
@@ -55,15 +66,13 @@
             <!-- ========================================== -->
             <div class="xl:col-span-4 space-y-6">
                 
-                <!-- ກາດ 1: ຂໍ້ມູນການເບີກ (ອັບເດດເປັນ Dropdown ທັງໝົດ) -->
+                <!-- ກາດ 1: ຂໍ້ມູນການເບີກ -->
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5 relative overflow-hidden">
                     <div class="absolute top-0 right-0 bg-indigo-50 text-indigo-500 text-[10px] font-bold px-2 py-1 rounded-bl-lg">ດຶງຂໍ້ມູນຈາກ Master Data</div>
                     <h3 class="text-sm font-extrabold text-slate-800 mb-4 flex items-center mt-2">
                         <span class="w-1.5 h-4 bg-indigo-500 rounded-full mr-2"></span> ຂໍ້ມູນຜູ້ຂໍເບີກ / ຢືມ
                     </h3>
                     <div class="space-y-3.5">
-                        
-                        <!-- ປ່ຽນເປັນ Dropdown ເລືອກຊື່ຜູ້ເບີກ -->
                         <div>
                             <label class="block text-xs font-bold text-slate-600 mb-1">ຊື່ຜູ້ເບີກເຄື່ອງ <span class="text-red-500">*</span></label>
                             <select class="form-input bg-slate-50 cursor-pointer">
@@ -73,8 +82,6 @@
                                 <option value="3">ນາງ ນາລີ ຄຸ້ມສາງ</option>
                             </select>
                         </div>
-                        
-                        <!-- ປ່ຽນເປັນ Dropdown ເລືອກເປົ້າໝາຍນຳໃຊ້ -->
                         <div>
                             <label class="block text-xs font-bold text-slate-600 mb-1">ເປົ້າໝາຍນຳໃຊ້ <span class="text-red-500">*</span></label>
                             <select class="form-input bg-slate-50 cursor-pointer">
@@ -85,8 +92,6 @@
                                 <option value="4">ສຳຮອງໄວ້ໃນລົດຊ່າງ</option>
                             </select>
                         </div>
-
-                        <!-- Dropdown ພະແນກ (ຄືເກົ່າ) -->
                         <div>
                             <label class="block text-xs font-bold text-slate-600 mb-1">ພະແນກ - ສາຂາ <span class="text-red-500">*</span></label>
                             <select class="form-input bg-slate-50 cursor-pointer">
@@ -130,7 +135,6 @@
                             <input type="text" class="form-input" placeholder="ປ້ອນເລກໃບລາຍງານ...">
                         </div>
                         
-                        <!-- ຂໍ້ມູນໝໍ້ແທກນ້ຳໃໝ່ (ກໍລະນີເປັນໝໍ້ນ້ຳ) -->
                         <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-3">
                             <p class="text-xs font-bold text-indigo-600">✨ ຂໍ້ມູນໝໍ້ແທກນ້ຳໃໝ່ (ຖ້າມີ)</p>
                             <div class="grid grid-cols-2 gap-3">
@@ -172,7 +176,6 @@
                 <!-- ໂຄງສ້າງໃບບິນມາດຕະຖານ -->
                 <div class="receipt-paper rounded-xl p-8 relative overflow-x-auto">
                     
-                    <!-- ຫົວບິນທາງການ -->
                     <div class="text-center mb-6">
                         <h2 class="text-base font-bold text-slate-800">ສາທາລະນະລັດ ປະຊາທິປະໄຕ ປະຊາຊົນລາວ</h2>
                         <h3 class="text-sm font-bold text-slate-700 mt-1">ສັນຕິພາບ ເອກະລາດ ປະຊາທິປະໄຕ ເອກະພາບ ວັດທະນະຖາວອນ</h3>
@@ -279,6 +282,7 @@
         </div>
     </main>
 
-    <script src="/sidebar.js"></script>
+    <!-- ສູດສຳເລັດ: ດຶງໂຄ້ດ Sidebar -->
+    <script src="/js/components/sidebar.js"></script>
 </body>
 </html>
