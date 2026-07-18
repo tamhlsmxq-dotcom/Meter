@@ -3,127 +3,282 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ພິມບິນເບີກເຄື່ອງ - ສາງໝໍ້ແທກນ້ຳ</title>
+    <title>ເບີກຈ່າຍອຸປະກອນ - Water Meter</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <style>
-        body, input, select, button, table { font-family: 'Times New Roman', 'Phetsarath OT', 'Noto Sans Lao', serif !important; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        
-        @media print {
-            .no-print { display: none !important; }
-            .print-only { display: block !important; }
-            body { background-color: white; margin: 0; padding: 0; }
-            .print-container { width: 100%; border: none; box-shadow: none; padding: 0; }
-            table { width: 100%; border-collapse: collapse; }
-            th, td { border: 1px solid #000 !important; padding: 8px !important; color: #000 !important; }
-            th { background-color: #f3f4f6 !important; -webkit-print-color-adjust: exact; }
+    <style> 
+        body { font-family: 'Noto Sans Lao', sans-serif; background-color: #f8fafc; }
+        .receipt-paper {
+            background-color: white;
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.08), 0 10px 15px -5px rgba(0, 0, 0, 0.03);
+            border-top: 8px solid #4f46e5;
         }
-        .print-only { display: none; }
+        .form-input {
+            width: 100%; padding: 0.625rem 1rem; border-radius: 0.75rem; border: 1px solid #cbd5e1;
+            outline: none; transition: all 0.2s; font-size: 0.875rem; color: #334155;
+        }
+        .form-input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15); }
+        .table-header th { border: 1px solid #cbd5e1; padding: 0.5rem; text-align: center; }
+        .table-body td { border: 1px solid #e2e8f0; padding: 0.5rem; text-align: center; color: #475569; }
     </style>
 </head>
-<body class="text-gray-800 bg-gray-100 flex h-[100dvh] overflow-hidden m-0 p-0">
+<body class="flex min-h-screen">
 
-    <div id="sidebar-placeholder" class="contents no-print"></div>
+    <!-- ດຶງ Sidebar ມາສະແດງ -->
+    <div id="sidebar-container"></div>
 
-    <div class="flex-1 flex flex-col h-full w-full min-w-0">
-        <header class="md:hidden bg-blue-800 text-white p-4 flex justify-between items-center shadow-md z-30 shrink-0 no-print">
-            <div class="font-bold text-lg flex items-center"><i class="fas fa-tint mr-2 text-blue-300"></i> ສາງໝໍ້ແທກນ້ຳ</div>
-            <button onclick="toggleSidebar()" class="text-white p-2 focus:outline-none"><i class="fas fa-bars text-2xl"></i></button>
-        </header>
+    <main class="flex-1 p-8 overflow-y-auto space-y-6">
+        
+        <!-- ຫົວຂໍ້ຫຼັກຂອງໜ້າ -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 pb-5">
+            <div class="flex items-start space-x-4">
+                <div class="bg-gradient-to-br from-indigo-500 to-blue-600 p-3 rounded-2xl text-white shadow-lg shadow-indigo-500/30">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-800 to-indigo-800 tracking-wide">ເບີກຈ່າຍອຸປະກອນ (Issue Items)</h2>
+                    <p class="text-slate-500 mt-1 text-sm">ອອກໃບຢືມເຄື່ອງ/ເບີກເຄື່ອງ ພະແນກຄຸ້ມຄອງໝໍ້ແທກນ້ຳ</p>
+                </div>
+            </div>
+            <div class="bg-indigo-50 text-indigo-700 font-bold px-4 py-2 rounded-xl flex items-center shadow-sm border border-indigo-100">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                ວັນທີ: 18 ກໍລະກົດ 2026
+            </div>
+        </div>
 
-        <main class="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6 w-full pb-20 bg-gray-100 no-print">
-            <div class="max-w-5xl mx-auto">
-                <h2 class="text-2xl font-bold text-blue-800 mb-6 flex items-center border-b pb-4"><i class="fas fa-upload mr-3"></i> ເບີກເຄື່ອງອອກສາງ (Issue Out)</h2>
-
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-6">
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-bold mb-1 text-gray-700">ເລືອກອຸປະກອນ</label>
-                            <input list="items-list" id="itemCode" oninput="fillDetails()" placeholder="ພິມລະຫັດ ຫຼື ເລືອກເຄື່ອງ..." class="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 font-bold bg-white text-lg">
-                            <datalist id="items-list"></datalist>
-                        </div>
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+            
+            <!-- ========================================== -->
+            <!-- ຝັ່ງຊ້າຍ: ຟອມປ້ອນຂໍ້ມູນເບີກ (Col-span 4) -->
+            <!-- ========================================== -->
+            <div class="xl:col-span-4 space-y-6">
+                
+                <!-- ກາດ 1: ຂໍ້ມູນການເບີກ (ອັບເດດເປັນ Dropdown ທັງໝົດ) -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-indigo-50 text-indigo-500 text-[10px] font-bold px-2 py-1 rounded-bl-lg">ດຶງຂໍ້ມູນຈາກ Master Data</div>
+                    <h3 class="text-sm font-extrabold text-slate-800 mb-4 flex items-center mt-2">
+                        <span class="w-1.5 h-4 bg-indigo-500 rounded-full mr-2"></span> ຂໍ້ມູນຜູ້ຂໍເບີກ / ຢືມ
+                    </h3>
+                    <div class="space-y-3.5">
+                        
+                        <!-- ປ່ຽນເປັນ Dropdown ເລືອກຊື່ຜູ້ເບີກ -->
                         <div>
-                            <label class="block text-sm font-bold mb-1 text-gray-700">ຈຳນວນເບີກ</label>
-                            <input type="number" id="itemQty" placeholder="0" class="w-full p-3 border-2 border-blue-400 rounded-lg outline-none focus:ring-2 focus:ring-blue-600 font-bold text-center text-lg">
+                            <label class="block text-xs font-bold text-slate-600 mb-1">ຊື່ຜູ້ເບີກເຄື່ອງ <span class="text-red-500">*</span></label>
+                            <select class="form-input bg-slate-50 cursor-pointer">
+                                <option value="">-- ເລືອກຊື່ຜູ້ເບີກ --</option>
+                                <option value="1">ທ້າວ ສົມຊາຍ ພາກສະໜາມ</option>
+                                <option value="2">ທ້າວ ບຸນມີ ວິຊາການ</option>
+                                <option value="3">ນາງ ນາລີ ຄຸ້ມສາງ</option>
+                            </select>
                         </div>
-                        <div class="flex items-end">
-                            <button onclick="addToCart()" class="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg font-bold shadow-md transition-colors h-[52px]">
-                                <i class="fas fa-plus mr-1"></i> ເພີ່ມລົງບິນ
-                            </button>
+                        
+                        <!-- ປ່ຽນເປັນ Dropdown ເລືອກເປົ້າໝາຍນຳໃຊ້ -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">ເປົ້າໝາຍນຳໃຊ້ <span class="text-red-500">*</span></label>
+                            <select class="form-input bg-slate-50 cursor-pointer">
+                                <option value="">-- ເລືອກເປົ້າໝາຍນຳໃຊ້ --</option>
+                                <option value="1">ປ່ຽນຖ່າຍໝໍ້ລູກຄ້າ</option>
+                                <option value="2">ຕິດຕັ້ງໝໍ້ແທກນ້ຳໃໝ່</option>
+                                <option value="3">ສ້ອມແປງທໍ່ນ້ຳຮົ່ວພາກສະໜາມ</option>
+                                <option value="4">ສຳຮອງໄວ້ໃນລົດຊ່າງ</option>
+                            </select>
+                        </div>
+
+                        <!-- Dropdown ພະແນກ (ຄືເກົ່າ) -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">ພະແນກ - ສາຂາ <span class="text-red-500">*</span></label>
+                            <select class="form-input bg-slate-50 cursor-pointer">
+                                <option value="">-- ເລືອກພະແນກ/ສາຂາ --</option>
+                                <option value="1">ພາກສ່ວນ ປ່ຽນຖ່າຍໝໍ້ແທກນ້ຳ</option>
+                                <option value="2">ພາກສ່ວນ ຄຸ້ມຄອງໝໍ້ແທກນ້ຳ</option>
+                                <option value="3">ພາກສ່ວນ ບໍລິຫານ</option>
+                            </select>
                         </div>
                     </div>
-                    <div class="text-sm text-gray-500" id="stockInfoDisplay">ເລືອກອຸປະກອນເພື່ອເບິ່ງຈຳນວນໃນສາງ...</div>
                 </div>
 
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-bold text-gray-800"><i class="fas fa-clipboard-list mr-2 text-blue-600"></i> ລາຍການທີ່ຈະເບີກ</h3>
+                <!-- ກາດ 2: ເລືອກອຸປະກອນເຂົ້າຕາຕະລາງ -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5 border-t-4 border-t-indigo-500 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-indigo-50 text-indigo-500 text-[10px] font-bold px-2 py-1 rounded-bl-lg">ດຶງຂໍ້ມູນຈາກ Master Data</div>
+                    <h3 class="text-sm font-extrabold text-slate-800 mb-4 flex items-center mt-2">
+                        <span class="w-1.5 h-4 bg-indigo-500 rounded-full mr-2"></span> ເພີ່ມລາຍການອຸປະກອນ
+                    </h3>
+                    <div class="space-y-3.5">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">ລາຍການວັດຖຸ - ອຸປະກອນ / ໝໍ້ນ້ຳ <span class="text-red-500">*</span></label>
+                            <select class="form-input bg-slate-50 cursor-pointer">
+                                <option value="">-- ເລືອກອຸປະກອນ --</option>
+                                <option value="m15">ໝໍ້ແທກນ້ຳ ຂະໜາດ 15mm (Kent)</option>
+                                <option value="p1">ຂໍ້ຕໍ່ຊື່ PVC 15mm</option>
+                                <option value="v1">ວາວປິດ-ເປີດນ້ຳ</option>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">ຈຳນວນ <span class="text-red-500">*</span></label>
+                                <input type="number" class="form-input font-bold text-indigo-600" value="1" min="1">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">ຫົວໜ່ວຍ</label>
+                                <input type="text" class="form-input bg-slate-100 text-slate-400 cursor-not-allowed" placeholder="ອັດຕະໂນມັດ" readonly>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">ເລກທີໃບລາຍງານ</label>
+                            <input type="text" class="form-input" placeholder="ປ້ອນເລກໃບລາຍງານ...">
+                        </div>
+                        
+                        <!-- ຂໍ້ມູນໝໍ້ແທກນ້ຳໃໝ່ (ກໍລະນີເປັນໝໍ້ນ້ຳ) -->
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-3">
+                            <p class="text-xs font-bold text-indigo-600">✨ ຂໍ້ມູນໝໍ້ແທກນ້ຳໃໝ່ (ຖ້າມີ)</p>
+                            <div class="grid grid-cols-2 gap-3">
+                                <input type="text" class="form-input text-xs" placeholder="ຂະໜາດ (ເຊັ່ນ: 15mm)">
+                                <input type="text" class="form-input text-xs" placeholder="ຍີ່ຫໍ້ (ເຊັ່ນ: Kent)">
+                            </div>
+                            <input type="text" class="form-input text-xs" placeholder="ເລກໝໍ້ແທກນ້ຳໃໝ່...">
+                        </div>
+
+                        <button class="w-full mt-2 bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold py-3 rounded-xl shadow-md transition-all active:scale-[0.98] flex items-center justify-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                            ເພີ່ມລົງໃນໃບບິນ
+                        </button>
                     </div>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- ຝັ່ງຂວາ: ໃບບິນ (Col-span 8) -->
+            <!-- ========================================== -->
+            <div class="xl:col-span-8">
+                
+                <!-- ປຸ່ມ Action Toolbar ເທິງໃບບິນ -->
+                <div class="flex justify-end space-x-3 mb-4">
+                    <button class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold py-2 px-5 rounded-lg shadow-sm transition-all flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        ສົ່ງອອກ Excel
+                    </button>
+                    <button class="bg-white hover:bg-slate-50 text-slate-700 text-sm font-bold py-2 px-5 rounded-lg shadow-sm border border-slate-200 transition-all flex items-center">
+                        <svg class="w-4 h-4 mr-2 text-rose-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                        ພິມ PDF
+                    </button>
+                    <button class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold py-2 px-5 rounded-lg shadow-sm transition-all flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        ບັນທຶກເບີກອອກ
+                    </button>
+                </div>
+
+                <!-- ໂຄງສ້າງໃບບິນມາດຕະຖານ -->
+                <div class="receipt-paper rounded-xl p-8 relative overflow-x-auto">
                     
-                    <div class="overflow-x-auto mb-6 border rounded-lg">
-                        <table class="w-full border-collapse text-sm text-left">
-                            <thead class="bg-blue-50 text-blue-800 border-b">
+                    <!-- ຫົວບິນທາງການ -->
+                    <div class="text-center mb-6">
+                        <h2 class="text-base font-bold text-slate-800">ສາທາລະນະລັດ ປະຊາທິປະໄຕ ປະຊາຊົນລາວ</h2>
+                        <h3 class="text-sm font-bold text-slate-700 mt-1">ສັນຕິພາບ ເອກະລາດ ປະຊາທິປະໄຕ ເອກະພາບ ວັດທະນະຖາວອນ</h3>
+                        <p class="text-slate-400 mt-1">………........................................</p>
+                    </div>
+
+                    <div class="flex justify-between items-start mb-6">
+                        <div class="text-xs text-slate-700 space-y-1">
+                            <p class="font-extrabold text-sm">ລັດວິສາຫະກິດ ນ້ຳປະປາ ນະຄອນຫຼວງ</p>
+                            <p>ພະແນກຄຸ້ມຄອງໝໍ້ແທກນ້ຳ ແລະ ຫລຸດຜ່່ອນນ້ຳສູນເສຍ</p>
+                            <p>ໂທ : 021 560 665</p>
+                        </div>
+                        <div class="text-xs text-slate-700 text-right space-y-1">
+                            <p>ເລກທີ……………./ຄໝນ/2026</p>
+                        </div>
+                    </div>
+
+                    <div class="text-center mb-6">
+                        <h1 class="text-xl font-extrabold text-slate-800">ໃບຢືມເຄື່ອງອອກສາງ ພະແນກຄຸ້ມຄອງໝໍ້ແທກນ້ຳ</h1>
+                    </div>
+
+                    <div class="text-sm text-slate-800 flex flex-wrap gap-x-8 gap-y-3 mb-6 font-medium">
+                        <p>ຊື່ຜູ້ເບີກເຄື່ອງ: <span class="border-b border-dotted border-slate-400 inline-block min-w-[200px] text-indigo-700 font-bold px-2">ທ້າວ ສົມຊາຍ</span></p>
+                        <p>ເປົ້າໝາຍນຳໃຊ້: <span class="border-b border-dotted border-slate-400 inline-block min-w-[200px] text-indigo-700 font-bold px-2">ປ່ຽນຖ່າຍໝໍ້ລູກຄ້າ</span></p>
+                        <p>ພະແນກ - ສາຂາ: <span class="border-b border-dotted border-slate-400 inline-block min-w-[200px] text-indigo-700 font-bold px-2">ປ່ຽນຖ່າຍໝໍ້ແທກນ້ຳ</span></p>
+                    </div>
+
+                    <!-- ຕາຕະລາງອຸປະກອນ -->
+                    <div class="min-h-[200px] mb-8 overflow-x-auto">
+                        <table class="w-full text-[11px] border-collapse bg-white">
+                            <thead class="bg-slate-100/80 text-slate-700 table-header">
                                 <tr>
-                                    <th class="p-3 border-r w-12 text-center">ລ/ດ</th>
-                                    <th class="p-3 border-r">ລະຫັດອຸປະກອນ</th>
-                                    <th class="p-3 border-r">ຊື່ອຸປະກອນ</th>
-                                    <th class="p-3 border-r text-center">ຈຳນວນເບີກ</th>
-                                    <th class="p-3 text-center">ລຶບ</th>
+                                    <th rowspan="2" class="w-8">ລ/ດ</th>
+                                    <th rowspan="2" class="w-48 text-left px-2">ລາຍການວັດຖຸ - ອຸປະກອນ<br>ແລະ ໝໍ້ແທກນ້ຳ</th>
+                                    <th rowspan="2" class="w-12">ຈຳນວນ</th>
+                                    <th rowspan="2" class="w-16">ຫົວໜ່ວຍ</th>
+                                    <th rowspan="2" class="w-20">ເລກທີໃບ<br>ລາຍງານ</th>
+                                    <th colspan="3" class="bg-indigo-50/50">ຂໍ້ມູນໝໍ້ແທກນ້ຳໃໝ່</th>
+                                    <th colspan="2" class="bg-orange-50/50">ໝາຍເຫດ</th>
+                                </tr>
+                                <tr>
+                                    <th class="w-16 bg-indigo-50/50">ຂະໜາດ</th>
+                                    <th class="w-16 bg-indigo-50/50">ຍີ່ຫໍ້</th>
+                                    <th class="w-24 bg-indigo-50/50">ເລກໝໍ້ແທກນ້ຳໃໝ່</th>
+                                    <th class="w-12 bg-orange-50/50">ນຳໃຊ້</th>
+                                    <th class="w-16 bg-orange-50/50">ສົ່ງຄືນ</th>
                                 </tr>
                             </thead>
-                            <tbody id="cartTableBody" class="divide-y divide-gray-100">
-                                <tr><td colspan="5" class="p-8 text-center text-gray-400 italic">ຍັງບໍ່ມີລາຍການ. ກະລຸນາເລືອກເຄື່ອງແລ້ວກົດ "ເພີ່ມລົງບິນ"</td></tr>
+                            <tbody class="table-body">
+                                <tr>
+                                    <td class="font-bold text-slate-500">1</td>
+                                    <td class="text-left px-2 font-bold text-slate-800">ໝໍ້ແທກນ້ຳ</td>
+                                    <td class="font-extrabold text-indigo-600 text-sm">10</td>
+                                    <td>ໜ່ວຍ</td>
+                                    <td>RP-001</td>
+                                    <td class="text-indigo-700">15mm</td>
+                                    <td class="text-indigo-700">Kent</td>
+                                    <td class="text-indigo-700">KM-88214</td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class="font-bold text-slate-500">2</td>
+                                    <td class="text-left px-2 font-bold text-slate-800">ຂໍ້ຕໍ່ຊື່ PVC</td>
+                                    <td class="font-extrabold text-indigo-600 text-sm">20</td>
+                                    <td>ອັນ</td>
+                                    <td>-</td>
+                                    <td class="bg-slate-50"></td>
+                                    <td class="bg-slate-50"></td>
+                                    <td class="bg-slate-50"></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                                <!-- ແຖວຫວ່າງເປົ່າສຳລັບຄວາມງາມ -->
+                                <tr><td>3</td><td class="py-3"></td><td></td><td></td><td></td><td class="bg-slate-50"></td><td class="bg-slate-50"></td><td class="bg-slate-50"></td><td></td><td></td></tr>
+                                <tr><td>4</td><td class="py-3"></td><td></td><td></td><td></td><td class="bg-slate-50"></td><td class="bg-slate-50"></td><td class="bg-slate-50"></td><td></td><td></td></tr>
                             </tbody>
                         </table>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 pt-4 border-t border-dashed">
-                        <div>
-                            <label class="block text-sm font-bold mb-1 text-gray-700">ຊື່ໜ່ວຍງານເບີກ *</label>
-                            <input list="dept-list" id="departmentName" placeholder="ເລືອກ ຫຼື ພິມໜ່ວຍງານ..." class="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 font-bold">
-                            <datalist id="dept-list">
-                                <option value="ໜ່ວຍງານຕິດຕັ້ງ"></option>
-                                <option value="ໜ່ວຍງານສ້ອມແປງ"></option>
-                                <option value="ໜ່ວຍງານສຳຫຼວດ"></option>
-                                <option value="ພະແນກເຕັກນິກ"></option>
-                                <option value="ພະແນກບໍລິຫານ"></option>
-                            </datalist>
+                    <!-- ຊ່ອງລາຍເຊັນລຸ່ມສຸດ -->
+                    <div class="text-xs text-right mb-6 text-slate-700">
+                        <p>ວຽງຈັນ ວັນທີ....../....../..........</p>
+                    </div>
+                    
+                    <div class="flex justify-between items-start text-xs font-bold text-slate-800 px-4 text-center">
+                        <div class="space-y-12">
+                            <p>ພາກສ່ວນປ່ຽນຖ່າຍ, ຍົກ , ຍ້າຍ ແລະ ສ້ອມແປງ</p>
+                            <p>ຜູ້ເບີກເຄື່ອງ</p>
                         </div>
-                        <div>
-                            <label class="block text-sm font-bold mb-1 text-gray-700">ຊື່ຜູ້ຮັບເຄື່ອງ *</label>
-                            <input type="text" id="receiverName" placeholder="ຊື່ພະນັກງານທີ່ມາເບີກ..." class="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+                        <div class="space-y-12">
+                            <p>ຫົວໜ້າພະແນກຄຸ້ມຄອງໝໍ້ແທກນ້ຳ</p>
+                            <p></p>
                         </div>
-                        <div>
-                            <label class="block text-sm font-bold mb-1 text-gray-700">ເຫດຜົນນຳໃຊ້ *</label>
-                            <input list="reason-list" id="issueRemark" placeholder="ກົດເພື່ອເລືອກເຫດຜົນ..." class="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 font-bold text-blue-800">
-                            <datalist id="reason-list">
-                                <option value="ປ່ຽນຖ່າຍ/ເປີດນ້ຳ"></option>
-                                <option value="ເບີກອຸປະກອນສ້ອມແປງໝໍ້ແທກນ້ຳ"></option>
-                            </datalist>
+                        <div class="space-y-12 mt-6 lg:mt-0">
+                            <p></p>
+                            <p>ຜູ້ຮັບເຄື່ອງ</p>
                         </div>
                     </div>
 
-                    <button onclick="confirmAndPrint()" class="w-full bg-green-600 hover:bg-green-700 text-white p-4 rounded-xl font-bold text-xl shadow-lg transition-transform transform hover:-translate-y-0.5">
-                        <i class="fas fa-print mr-2"></i> ຢືນຢັນການເບີກ ແລະ ພິມບິນ
-                    </button>
                 </div>
             </div>
-        </main>
 
-        <div id="printArea" class="print-only print-container p-8 bg-white absolute top-0 left-0 w-full h-full z-50"></div>
+        </div>
+    </main>
 
-    </div>
-
-    <script type="module">
-        import { renderSidebar } from './sidebar.js';
-        if(typeof renderSidebar === 'function') renderSidebar('issue');
-    </script>
-    <script type="module" src="./auth-guard.js"></script>
-    <script type="module" src="./js/pages/issue-items.js"></script>
-
+    <script src="/sidebar.js"></script>
 </body>
 </html>
