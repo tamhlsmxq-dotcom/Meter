@@ -115,7 +115,6 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
-                        <!-- ແກ້ໄຂແລ້ວ: ຂະໜາດໂຕເລກ ແລະ ຫົວໜ່ວຍເທົ່າກັນແລ້ວ (ລຶບ text-lg ອອກ) -->
                         <tr class="hover:bg-slate-50 transition-colors"><td class="p-4 font-bold text-indigo-600">WM-15M</td><td class="p-4 font-medium text-slate-800">ໝໍ້ແທກນ້ຳ ຂະໜາດ 15mm (Kent)</td><td class="p-4 text-slate-500">ໝໍ້ແທກນ້ຳ</td><td class="p-4 text-center"><span class="font-bold text-slate-800">150</span> <span class="text-slate-600">ໜ່ວຍ</span></td><td class="p-4 text-center"><span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold border border-emerald-200">ພ້ອມໃຊ້ງານ</span></td><td class="p-4 text-center"><button class="text-indigo-600 hover:text-indigo-900 font-medium">ເບິ່ງ</button></td></tr>
                         <tr class="hover:bg-slate-50 transition-colors"><td class="p-4 font-bold text-indigo-600">PVC-20</td><td class="p-4 font-medium text-slate-800">ທໍ່ນ້ຳ PVC 20mm ຊັ້ນ 8.5</td><td class="p-4 text-slate-500">ທໍ່ນ້ຳ</td><td class="p-4 text-center"><span class="font-bold text-amber-600">12</span> <span class="text-slate-600">ເສັ້ນ</span></td><td class="p-4 text-center"><span class="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-bold border border-amber-200">ໃກ້ໝົດ</span></td><td class="p-4 text-center"><button class="text-indigo-600 hover:text-indigo-900 font-medium">ເບິ່ງ</button></td></tr>
                         <tr class="hover:bg-slate-50 transition-colors bg-rose-50/20"><td class="p-4 font-bold text-indigo-600">VA-01</td><td class="p-4 font-medium text-slate-800">ວາວປິດ-ເປີດນ້ຳ 15mm</td><td class="p-4 text-slate-500">ຂໍ້ຕໍ່ / ວາວ</td><td class="p-4 text-center"><span class="font-bold text-rose-600">0</span> <span class="text-slate-600">ອັນ</span></td><td class="p-4 text-center"><span class="px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-xs font-bold border border-rose-200">ໝົດສະຕັອກ</span></td><td class="p-4 text-center"><button class="text-indigo-600 hover:text-indigo-900 font-medium">ເບິ່ງ</button></td></tr>
@@ -151,10 +150,10 @@
                 </h3>
                 <div class="flex items-center space-x-3">
                     
-                    <!-- 🟢 ປຸ່ມແຄບພາບ (Capture) ທີ່ເພີ່ມມາໃໝ່ 🟢 -->
+                    <!-- 🟢 ປຸ່ມແຄບພາບ (ປ່ຽນຊື່ເປັນ Capture) 🟢 -->
                     <button onclick="captureReport()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-bold flex items-center text-xs shadow-sm transition-colors">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                        ແຄບພາບ (Capture)
+                        Capture
                     </button>
 
                     <button class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded font-bold flex items-center text-xs shadow-sm transition-colors">
@@ -268,7 +267,7 @@
             // ປ່ຽນຂໍ້ຄວາມໃນປຸ່ມເພື່ອໃຫ້ຮູ້ວ່າກຳລັງປະມວນຜົນ
             const captureBtn = event.currentTarget;
             const originalText = captureBtn.innerHTML;
-            captureBtn.innerHTML = "ກຳລັງແຄບພາບ...";
+            captureBtn.innerHTML = "Capturing...";
             
             // ເລືອກເອົາສະເພາະພື້ນທີ່ເຈ້ຍ A4 ສີຂາວ (id="printable-area")
             const element = document.getElementById('printable-area');
