@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", function() {
         <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-2 custom-scrollbar">
             
             <a href="/index.html" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-white transition-all group">
-                <svg class="w-5 h-5 text-slate-400 group-hover:text-indigo-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                <svg class="w-5 h-5 text-slate-400 group-hover:text-indigo-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2h-2a2 2 0 01-2-2v-2z"/></svg>
                 <span class="font-medium">ໜ້າຫຼັກ (Dashboard)</span>
             </a>
 
@@ -21,12 +21,18 @@ document.addEventListener("DOMContentLoaded", function() {
             <div class="pt-4 pb-2">
                 <p class="px-4 text-xs font-bold text-slate-500 uppercase tracking-wider">ລະບົບສາງ (Warehouse)</p>
             </div>
-            <!-- ເມນູໃໝ່: ສະຕັອກສິນຄ້າ -->
+            
             <a href="/pages/warehouse/inventory.html" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-white transition-all group">
                 <svg class="w-5 h-5 text-slate-400 group-hover:text-indigo-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
                 <span class="font-medium">ສະຕັອກສິນຄ້າ</span>
             </a>
-            <!-- ເມນູເກົ່າ: ເບີກຈ່າຍອຸປະກອນ -->
+
+            <!-- 🟢 ເມນູໃໝ່ທີ່ເພີ່ມເຂົ້າມາ: ຮັບອຸປະກອນເຂົ້າສາງ 🟢 -->
+            <a href="/pages/warehouse/receive-items.html" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-white transition-all group">
+                <svg class="w-5 h-5 text-slate-400 group-hover:text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                <span class="font-medium">ຮັບອຸປະກອນເຂົ້າສາງ</span>
+            </a>
+
             <a href="/pages/warehouse/issue-items.html" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-white transition-all group">
                 <svg class="w-5 h-5 text-slate-400 group-hover:text-indigo-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
                 <span class="font-medium">ເບີກຈ່າຍອຸປະກອນ</span>
@@ -57,15 +63,23 @@ document.addEventListener("DOMContentLoaded", function() {
     if (container) {
         container.innerHTML = sidebarHTML;
         
-        // ໂຄ້ດໄຮໄລ້ເມນູຕອນກົດ (Active link)
+        // ໄຮໄລ້ເມນູຕອນກົດ (Active link)
         const currentPath = window.location.pathname;
         const links = container.querySelectorAll('a');
         links.forEach(link => {
-            if (currentPath === link.getAttribute('href')) {
+            if (currentPath === link.getAttribute('href') || (currentPath === '/' && link.getAttribute('href') === '/index.html')) {
                 link.classList.remove('hover:bg-slate-800', 'text-slate-400');
                 link.classList.add('bg-indigo-500/10', 'text-indigo-400', 'border', 'border-indigo-500/20');
                 const svg = link.querySelector('svg');
-                if(svg) svg.classList.remove('text-slate-400');
+                if(svg) {
+                    svg.classList.remove('text-slate-400');
+                    if (currentPath.includes('receive-items')) {
+                        svg.classList.add('text-emerald-500');
+                        link.classList.replace('text-indigo-400', 'text-emerald-500');
+                        link.classList.replace('bg-indigo-500/10', 'bg-emerald-500/10');
+                        link.classList.replace('border-indigo-500/20', 'border-emerald-500/20');
+                    }
+                }
             }
         });
     }
