@@ -3,34 +3,304 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ໜ້າຫຼັກ - Water Meter</title>
+    <title>ພາບລວມລະບົບ - Water Meter System</title>
+    
+    <!-- ດຶງ TailwindCSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- ດຶງ Chart.js ສຳລັບແຕ້ມກຣາບ -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style> body { font-family: 'Noto Sans Lao', sans-serif; background-color: #f8fafc; } </style>
-</head>
-<body class="flex min-h-screen">
-
-    <!-- Sidebar ຈະມາສະແດງຢູ່ນີ້ -->
-    <div id="sidebar-container" class="w-64 flex-shrink-0"></div>
-
-    <!-- ເນື້ອໃນຫຼັກ -->
-    <main class="flex-1 p-8 ml-64">
-        <h1 class="text-3xl font-bold text-slate-800 mb-6">ພາບລວມລະບົບ (Dashboard)</h1>
+    
+    <style>
+        body { font-family: 'Noto Sans Lao', sans-serif; background-color: #f8fafc; }
         
-        <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
-            <div class="flex items-center space-x-4">
-                <div class="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+        /* ອະນິເມຊັນໂຫຼດໜ້າເວັບແລ້ວຄ່ອຍໆລອຍຂຶ້ນມາ */
+        .page-animate { animation: pageEnter 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes pageEnter { 
+            from { opacity: 0; transform: translateY(20px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        /* ອະນິເມຊັນເວລາເອົາເມົາສ໌ໄປຊີ້ກາດ (Card) */
+        .hover-float { transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .hover-float:hover { 
+            transform: translateY(-6px); 
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01); 
+            border-color: #e2e8f0; 
+        }
+
+        /* ຕົກແຕ່ງ Scrollbar ໃຫ້ງາມຄື Mac */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="flex min-h-screen relative overflow-x-hidden">
+
+    <!-- 🟢 ບ່ອນດຶງ Sidebar ມາສະແດງ 🟢 -->
+    <div id="sidebar-container"></div>
+
+    <!-- 🟢 ເນື້ອຫາຫຼັກ 🟢 -->
+    <main class="flex-1 p-8 ml-64 overflow-y-auto space-y-6 page-animate">
+        
+        <!-- ສ່ວນຫົວ (Header) -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-2">
+            <div>
+                <h2 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-800 to-indigo-800 tracking-wide mb-1">ພາບລວມລະບົບ (Dashboard)</h2>
+                <p class="text-slate-500 text-sm font-medium">ຍິນດີຕ້ອນຮັບສູ່ ລະບົບຄຸ້ມຄອງສາງອຸປະກອນ ພະແນກຄຸ້ມຄອງໝໍ້ແທກນ້ຳ</p>
+            </div>
+            
+            <div class="bg-white px-5 py-2.5 rounded-2xl shadow-sm border border-slate-200 flex items-center space-x-3">
+                <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                 </div>
                 <div>
-                    <h2 class="text-xl font-bold text-slate-800">ລະບົບເຊື່ອມຕໍ່ສຳເລັດແລ້ວ!</h2>
-                    <p class="text-slate-500 mt-1">ຕອນນີ້ທ່ານສາມາດກົດເມນູດ້ານຊ້າຍມື ເພື່ອເຂົ້າຫາໜ້າຕ່າງໆໄດ້ເລີຍ.</p>
+                    <p class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">ຂໍ້ມູນປະຈຳວັນທີ</p>
+                    <p class="text-sm font-extrabold text-slate-700" id="current-date">--/--/----</p>
                 </div>
             </div>
         </div>
+
+        <!-- 🟢 1. ກາດສະຫຼຸບຕົວເລກ (Summary Cards) 🟢 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            
+            <!-- Card 1: ຍອດສະຕັອກທັງໝົດ -->
+            <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm hover-float relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-blue-50 rounded-full group-hover:scale-150 transition-transform duration-500 ease-in-out opacity-50"></div>
+                <div class="flex justify-between items-start relative z-10">
+                    <div>
+                        <p class="text-slate-500 text-sm font-bold mb-1">ອຸປະກອນໃນສາງທັງໝົດ</p>
+                        <h3 class="text-4xl font-extrabold text-slate-800 tracking-tight">1,245</h3>
+                        <p class="text-xs text-emerald-500 font-bold mt-2 flex items-center">
+                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg> ພ້ອມໃຊ້ງານ 98%
+                        </p>
+                    </div>
+                    <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2: ຍອດເບີກມື້ນີ້ -->
+            <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm hover-float relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-indigo-50 rounded-full group-hover:scale-150 transition-transform duration-500 ease-in-out opacity-50"></div>
+                <div class="flex justify-between items-start relative z-10">
+                    <div>
+                        <p class="text-slate-500 text-sm font-bold mb-1">ເບີກຈ່າຍມື້ນີ້</p>
+                        <h3 class="text-4xl font-extrabold text-slate-800 tracking-tight">42</h3>
+                        <p class="text-xs text-indigo-500 font-bold mt-2 flex items-center">
+                            3 ໃບບິນ (ອະນຸມັດແລ້ວ)
+                        </p>
+                    </div>
+                    <div class="w-14 h-14 bg-gradient-to-br from-indigo-500 to-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3: ຍອດຮັບເຂົ້າສາງມື້ນີ້ -->
+            <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm hover-float relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-50 rounded-full group-hover:scale-150 transition-transform duration-500 ease-in-out opacity-50"></div>
+                <div class="flex justify-between items-start relative z-10">
+                    <div>
+                        <p class="text-slate-500 text-sm font-bold mb-1">ຮັບເຂົ້າສາງມື້ນີ້</p>
+                        <h3 class="text-4xl font-extrabold text-slate-800 tracking-tight">150</h3>
+                        <p class="text-xs text-emerald-600 font-bold mt-2 flex items-center">
+                            ໝໍ້ແທກນ້ຳ 15mm (Kent)
+                        </p>
+                    </div>
+                    <div class="w-14 h-14 bg-gradient-to-br from-emerald-500 to-emerald-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 4: ແຈ້ງເຕືອນໃກ້ໝົດ -->
+            <div class="bg-white rounded-3xl p-6 border border-rose-100 shadow-sm hover-float relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-rose-50 rounded-full group-hover:scale-150 transition-transform duration-500 ease-in-out opacity-50"></div>
+                <div class="flex justify-between items-start relative z-10">
+                    <div>
+                        <p class="text-rose-500 text-sm font-bold mb-1">ແຈ້ງເຕືອນໃກ້ໝົດສາງ!</p>
+                        <h3 class="text-4xl font-extrabold text-slate-800 tracking-tight">8</h3>
+                        <p class="text-xs text-rose-600 font-bold mt-2 flex items-center bg-rose-50 inline-block px-2 py-1 rounded-md">
+                            ກະລຸນາກວດສອບດ່ວນ
+                        </p>
+                    </div>
+                    <div class="w-14 h-14 bg-gradient-to-br from-rose-500 to-red-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-rose-500/30 animate-pulse">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 🟢 2. ສ່ວນສະແດງກຣາບ (Charts & Analytics) 🟢 -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- ກຣາບແທ່ງ: ສະຖິຕິການເບີກ-ຮັບ (ກິນພື້ນທີ່ 2 ສ່ວນ) -->
+            <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm lg:col-span-2">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h3 class="text-lg font-extrabold text-slate-800">ສະຖິຕິ ການເບີກ-ຮັບ ປະຈຳເດືອນ</h3>
+                        <p class="text-sm text-slate-500 font-medium">ຂໍ້ມູນປຽບທຽບການເຄື່ອນໄຫວໃນສາງ (6 ເດືອນຫຼ້າສຸດ)</p>
+                    </div>
+                    <select class="bg-slate-50 border border-slate-200 text-slate-600 text-sm font-bold rounded-xl px-4 py-2 focus:outline-none focus:border-indigo-500">
+                        <option>ປີ 2026</option>
+                        <option>ປີ 2025</option>
+                    </select>
+                </div>
+                <div class="relative h-72 w-full">
+                    <!-- ເອີ້ນໃຊ້ Chart.js ຢູ່ບ່ອນນີ້ -->
+                    <canvas id="barChart"></canvas>
+                </div>
+            </div>
+
+            <!-- ກຣາບວົງມົນ: ສັດສ່ວນປະເພດອຸປະກອນ -->
+            <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
+                <h3 class="text-lg font-extrabold text-slate-800 mb-1">ສັດສ່ວນອຸປະກອນໃນສາງ</h3>
+                <p class="text-sm text-slate-500 font-medium mb-6">ແຍກຕາມໝວດໝູ່ຫຼັກ</p>
+                <div class="relative h-56 w-full flex justify-center">
+                    <canvas id="doughnutChart"></canvas>
+                </div>
+                <!-- ຄຳອະທິບາຍລຸ່ມກຣາບວົງມົນ -->
+                <div class="mt-6 grid grid-cols-2 gap-4">
+                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-indigo-500 mr-2"></span><span class="text-xs font-bold text-slate-600">ໝໍ້ແທກນ້ຳ (45%)</span></div>
+                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-blue-400 mr-2"></span><span class="text-xs font-bold text-slate-600">ທໍ່ PVC (30%)</span></div>
+                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-emerald-400 mr-2"></span><span class="text-xs font-bold text-slate-600">ຂໍ້ຕໍ່/ວາວ (15%)</span></div>
+                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-slate-300 mr-2"></span><span class="text-xs font-bold text-slate-600">ອື່ນໆ (10%)</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 🟢 3. ຕາຕະລາງລາຍການເຄື່ອນໄຫວຫຼ້າສຸດ (Recent Activities) 🟢 -->
+        <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <h3 class="text-lg font-extrabold text-slate-800 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    ການເຄື່ອນໄຫວຫຼ້າສຸດ (Recent Activities)
+                </h3>
+                <a href="/pages/warehouse/inventory.html" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 transition-colors">ເບິ່ງທັງໝົດ →</a>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse whitespace-nowrap">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-500 text-[11px] uppercase tracking-wider">
+                            <th class="p-4 font-extrabold">ເລກທີໃບບິນ</th>
+                            <th class="p-4 font-extrabold">ປະເພດ</th>
+                            <th class="p-4 font-extrabold">ລາຍການ</th>
+                            <th class="p-4 font-extrabold text-center">ຈຳນວນ</th>
+                            <th class="p-4 font-extrabold">ຜູ້ດຳເນີນການ</th>
+                            <th class="p-4 font-extrabold text-right">ເວລາ</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50 text-sm text-slate-700 font-medium">
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="p-4 font-bold text-indigo-600">IS-2026-089</td>
+                            <td class="p-4"><span class="px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-xs font-bold">ເບີກອອກ</span></td>
+                            <td class="p-4 text-slate-800">ໝໍ້ແທກນ້ຳ 15mm (Kent)</td>
+                            <td class="p-4 text-center font-extrabold text-rose-600">-10</td>
+                            <td class="p-4">ທ້າວ ສົມຊາຍ</td>
+                            <td class="p-4 text-right text-slate-400">10 ນາທີກ່ອນ</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="p-4 font-bold text-indigo-600">RC-2026-045</td>
+                            <td class="p-4"><span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold">ຮັບເຂົ້າ</span></td>
+                            <td class="p-4 text-slate-800">ທໍ່ນ້ຳ PVC 20mm ຊັ້ນ 8.5</td>
+                            <td class="p-4 text-center font-extrabold text-emerald-600">+50</td>
+                            <td class="p-4">ນາງ ນາລີ</td>
+                            <td class="p-4 text-right text-slate-400">2 ຊົ່ວໂມງກ່ອນ</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="p-4 font-bold text-indigo-600">IS-2026-088</td>
+                            <td class="p-4"><span class="px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-xs font-bold">ເບີກອອກ</span></td>
+                            <td class="p-4 text-slate-800">ວາວປິດ-ເປີດນ້ຳ 15mm</td>
+                            <td class="p-4 text-center font-extrabold text-rose-600">-5</td>
+                            <td class="p-4">ທ້າວ ບຸນມີ</td>
+                            <td class="p-4 text-right text-slate-400">ມື້ວານນີ້</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </main>
 
-    <!-- ສູດສຳເລັດ: ດຶງໂຄ້ດ Sidebar -->
+    <!-- 🟢 Script ໂຫຼດ Sidebar 🟢 -->
     <script src="./js/components/sidebar.js"></script>
+
+    <!-- 🟢 Script ສຳລັບກຣາບ ແລະ ວັນທີ 🟢 -->
+    <script>
+        // 1. ສະແດງວັນທີປັດຈຸບັນ
+        const today = new Date();
+        const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+        document.getElementById('current-date').innerText = today.toLocaleDateString('en-GB', options);
+
+        // 2. ຕັ້ງຄ່າກຣາບແທ່ງ (Bar Chart: ເບີກ-ຮັບ)
+        const barCtx = document.getElementById('barChart').getContext('2d');
+        new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: ['ກຸມພາ', 'ມີນາ', 'ເມສາ', 'ພຶດສະພາ', 'ມິຖຸນາ', 'ກໍລະກົດ'],
+                datasets: [
+                    {
+                        label: 'ຮັບເຂົ້າ (ລາຍການ)',
+                        data: [120, 150, 80, 200, 170, 150],
+                        backgroundColor: '#10b981', // Emerald 500
+                        borderRadius: 6,
+                        barPercentage: 0.6
+                    },
+                    {
+                        label: 'ເບີກອອກ (ລາຍການ)',
+                        data: [90, 110, 100, 140, 160, 42],
+                        backgroundColor: '#4f46e5', // Indigo 600
+                        borderRadius: 6,
+                        barPercentage: 0.6
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top', labels: { font: { family: 'Noto Sans Lao', size: 12 } } }
+                },
+                scales: {
+                    y: { beginAtZero: true, grid: { borderDash: [4, 4] } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // 3. ຕັ້ງຄ່າກຣາບວົງມົນ (Doughnut Chart: ສັດສ່ວນອຸປະກອນ)
+        const doughnutCtx = document.getElementById('doughnutChart').getContext('2d');
+        new Chart(doughnutCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['ໝໍ້ແທກນ້ຳ', 'ທໍ່ PVC', 'ຂໍ້ຕໍ່/ວາວ', 'ອື່ນໆ'],
+                datasets: [{
+                    data: [45, 30, 15, 10],
+                    backgroundColor: [
+                        '#6366f1', // Indigo 500
+                        '#60a5fa', // Blue 400
+                        '#34d399', // Emerald 400
+                        '#cbd5e1'  // Slate 300
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '75%', // ເຮັດໃຫ້ຮູເຄິ່ງກາງໃຫຍ່ຂຶ້ນ ເບິ່ງຫຼູຫຼາ
+                plugins: {
+                    legend: { display: false } // ປິດ legend ເກົ່າ ເພາະເຮົາສ້າງເອງທາງລຸ່ມແລ້ວ
+                }
+            }
+        });
+    </script>
 </body>
 </html>
