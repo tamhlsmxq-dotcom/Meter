@@ -228,6 +228,57 @@
             if (show) modal.classList.remove('hidden');
             else modal.classList.add('hidden');
         }
+        <!-- 🟢 Script ສຳລັບເຊື່ອມຕໍ່ Firebase Firestore 🟢 -->
+<script type="module">
+    // ອ້າງອີງເຖິງໄຟລ໌ firebase-config.js ທີ່ເຈົ້າມີຢູ່ແລ້ວ (ໃຫ້ແນ່ໃຈວ່າ Path ຖືກຕ້ອງ)
+    import { db } from '../../js/firebase-config.js';
+    import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // ສ້າງຟັງຊັນໃຫ້ເປັນ Global ເພື່ອໃຫ້ປຸ່ມ HTML ເອີ້ນໃຊ້ໄດ້
+    window.saveUserToFirestore = async function() {
+        const btn = document.getElementById('btnSaveUser');
+        const name = document.getElementById('newUserName').value.trim();
+        const email = document.getElementById('newUserEmail').value.trim();
+        const pwd = document.getElementById('newUserPwd').value.trim();
+        const role = document.getElementById('newUserRole').value;
+
+        if(!name || !email || !pwd) {
+            alert("ກະລຸນາປ້ອນຂໍ້ມູນໃຫ້ຄົບຖ້ວນ!");
+            return;
+        }
+
+        try {
+            // ປ່ຽນສະຖານະປຸ່ມເພື່ອປ້ອງກັນການກົດຊ້ຳ
+            btn.innerHTML = 'ກຳລັງບັນທຶກ...';
+            btn.disabled = true;
+
+            // ບັນທຶກຂໍ້ມູນໂປຣໄຟລ໌ລົງ Firestore (ບໍ່ບັນທຶກລະຫັດຜ່ານລົງ Database)
+            const docRef = await addDoc(collection(db, "users"), {
+                fullName: name,
+                email: email,
+                role: role,
+                status: 'active', // ສະຖານະເລີ່ມຕົ້ນແມ່ນເປີດນຳໃຊ້
+                createdAt: serverTimestamp()
+            });
+
+            alert("ເພີ່ມຂໍ້ມູນຜູ້ໃຊ້ສຳເລັດແລ້ວ! (ID: " + docRef.id + ")");
+            toggleModal('userModal', false);
+
+            // ລ້າງຂໍ້ມູນໃນຟອມ
+            document.getElementById('newUserName').value = '';
+            document.getElementById('newUserEmail').value = '';
+            document.getElementById('newUserPwd').value = '';
+            
+            // TODO: ຫຼັງຈາກບັນທຶກແລ້ວ ຕ້ອງດຶງຂໍ້ມູນໃໝ່ລົງມາອັບເດດໃນຕາຕະລາງທັນທີ
+
+        } catch (error) {
+            console.error("Error adding user to Firestore: ", error);
+            alert("ເກີດຂໍ້ຜິດພາດ: " + error.message);
+        } finally {
+            btn.innerHTML = `<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg> ບັນທຶກຜູ້ໃຊ້`;
+            btn.disabled = false;
+        }
+    }
     </script>
 </body>
 </html>
