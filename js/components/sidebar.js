@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", function() {
     // ກວດສອບອັດຕະໂນມັດວ່າເປີດຢູ່ Local ຫຼື GitHub Pages
-    const basePath = window.location.hostname.includes('github.io') ? '/Meter' : '';
+    const isGitHub = window.location.hostname.includes('github.io');
+    const basePath = isGitHub ? '/Meter' : '';
     
     const sidebarHTML = `
     <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col transition-all duration-300 shadow-2xl z-20 min-h-screen fixed left-0 top-0">
