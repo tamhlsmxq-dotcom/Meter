@@ -8,31 +8,19 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <style> 
-        /* ຕັ້ງຄ່າຟອນ: ອັງກິດ/ໂຕເລກເປັນ Times New Roman, ລາວເປັນ Phetsarath OT */
         * { font-family: 'Times New Roman', 'Phetsarath OT', serif; }
         body { background-color: #f8fafc; overflow-x: hidden; }
-
-        /* ອະນິເມຊັນທັນສະໄໝ */
         .page-animate { animation: pageEnter 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         @keyframes pageEnter { from { opacity: 0; transform: translateY(25px); } to { opacity: 1; transform: translateY(0); } }
-
         .hover-float { transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
         .hover-float:hover { transform: translateY(-6px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01); border-color: #e2e8f0; }
-
         .modal-backdrop { animation: fadeInBg 0.3s ease-out forwards; }
         @keyframes fadeInBg { from { opacity: 0; backdrop-filter: blur(0px); } to { opacity: 1; backdrop-filter: blur(8px); } }
-        
         .modal-animate { animation: smoothPop 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         @keyframes smoothPop { from { opacity: 0; transform: scale(0.95) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-        
-        /* ຕາຕະລາງສຳລັບເອກະສານ A4 (ຂາວ-ດຳ) */
         .report-table th, .report-table td { border: 1px solid #000000; padding: 8px; color: #000000; }
         .report-table th { background-color: #f8fafc; text-align: center; font-weight: bold; }
-        
-        /* ປັບແຕ່ງ input type month ໃຫ້ງາມຂຶ້ນ */
         input[type="month"]::-webkit-calendar-picker-indicator { cursor: pointer; filter: invert(0.5); }
-
-        /* 🟢 ໂຄ້ດສຳລັບປຣິ້ນ (Print) ສະເພາະພື້ນທີ່ A4 🟢 */
         @media print {
             body * { visibility: hidden; }
             .print-active-area, .print-active-area * { visibility: visible; }
@@ -41,7 +29,6 @@
     </style>
 </head>
 <body class="flex min-h-screen relative">
-    <!-- 🟢 ຈຸດລົງຈອດ Sidebar ທີ່ຖືກຕ້ອງ (ມີອັນດຽວ) 🟢 -->
     <div id="sidebar-container"></div>
 
     <main class="flex-1 p-8 ml-64 overflow-y-auto space-y-6 page-animate">
@@ -156,10 +143,7 @@
                 
                 <div class="flex items-center space-x-2">
                     <button onclick="captureElement('printable-monthly-area', 'ລາຍງານດັດແກ້_07-2026.png', this)" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded font-bold flex items-center text-xs shadow-sm hover:shadow-md active:scale-95 transition-all"><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg> Capture </button>
-                    <button class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded font-bold flex items-center text-xs shadow-sm hover:shadow-md active:scale-95 transition-all"><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> Export Excel</button>
-                    <button class="bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded font-bold flex items-center text-xs shadow-sm hover:shadow-md active:scale-95 transition-all"><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg> Print PDF</button>
                     <button onclick="printSection('printable-monthly-area')" class="bg-slate-600 hover:bg-slate-500 border border-slate-500 text-white px-4 py-2 rounded font-bold flex items-center text-xs shadow-sm hover:shadow-md active:scale-95 transition-all"><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg> ພິມເອກະສານ (Print)</button>
-                    
                     <div class="w-px h-6 bg-slate-600 mx-1"></div>
                     <button onclick="toggleModal('monthlyReportModal', false)" class="hover:bg-rose-500 p-2 rounded transition-colors bg-slate-700 active:scale-90"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg></button>
                 </div>
@@ -177,7 +161,7 @@
                     <div class="flex justify-between items-start mb-8 text-xs">
                         <div class="space-y-1 font-bold">
                             <p class="text-sm">ລັດວິສາຫະກິດ ນ້ຳປະປາ ນະຄອນຫຼວງ</p>
-                            <p>ພະແນກຄຸ້ມຄອງໝໍ້ແທກນ້ຳ ແລະ ຫລຸດຜ່່ອນນ້ຳສູນເສຍ</p>
+                            <p>ພະແນກຄຸ້ມຄອງໝໍ້ແທກນ້ຳ ແລະ ຫຼຸດຜ່ອນນ້ຳສູນເສຍ</p>
                             <p>ພາກສ່ວນສາງ</p>
                         </div>
                         <div class="text-right space-y-1">
@@ -238,19 +222,18 @@
                     
                     <div class="flex justify-between items-start text-xs font-bold text-center px-4">
                         <div class="space-y-16">
-                            <p>ຫົວໜ້າພະແນກ</p>
+                            <p>ຫົວໜ້າພະແນກຄຸ້ມຄອງໝໍ້ແທກນ້ຳ<br>ແລະ ຫຼຸດຜ່ອນນ້ຳສູນເສຍ</p>
                             <p>.......................................</p>
                         </div>
                         <div class="space-y-16">
                             <p>ຫົວໜ້າພາກສ່ວນສາງ</p>
                             <p>.......................................</p>
                         </div>
-                        <div class="space-y-16">
+                        <div class="space-y-16 mt-4">
                             <p>ຜູ້ສະຫຼຸບລາຍງານ</p>
                             <p>.......................................</p>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -265,8 +248,6 @@
                 <h3 class="font-bold text-base flex items-center">ບົດສະຫຼຸບສາງທັງໝົດ</h3>
                 <div class="flex items-center space-x-2">
                     <button onclick="captureElement('printable-all-area', 'ລາຍງານສະຕັອກລວມ.png', this)" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded font-bold flex items-center text-xs shadow-sm hover:shadow-md active:scale-95 transition-all"><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg> Capture </button>
-                    <button class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded font-bold flex items-center text-xs shadow-sm hover:shadow-md active:scale-95 transition-all"><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> Export Excel</button>
-                    <button class="bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded font-bold flex items-center text-xs shadow-sm hover:shadow-md active:scale-95 transition-all"><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg> Print PDF</button>
                     <button onclick="printSection('printable-all-area')" class="bg-slate-600 hover:bg-slate-500 border border-slate-500 text-white px-4 py-2 rounded font-bold flex items-center text-xs shadow-sm hover:shadow-md active:scale-95 transition-all"><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg> Print</button>
                     <div class="w-px h-6 bg-slate-600 mx-1"></div>
                     <button onclick="toggleModal('summaryModal', false)" class="hover:bg-rose-500 p-2 rounded transition-colors bg-slate-700 active:scale-90"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg></button>
@@ -275,7 +256,7 @@
             <div class="p-8 pb-16 bg-slate-200">
                 <div id="printable-all-area" class="bg-white mx-auto shadow-2xl p-10 rounded-sm text-black relative" style="min-height: 297mm; max-width: 210mm;">
                     <div class="text-center mb-6"><h2 class="text-base font-bold">ສາທາລະນະລັດ ປະຊາທິປະໄຕ ປະຊາຊົນລາວ</h2><h3 class="text-sm font-bold mt-1">ສັນຕິພາບ ເອກະລາດ ປະຊາທິປະໄຕ ເອກະພາບ ວັດທະນະຖາວອນ</h3><p class="mt-1">………........................................</p></div>
-                    <div class="flex justify-between items-start mb-8 text-xs"><div class="space-y-1 font-bold"><p class="text-sm">ລັດວິສາຫະກິດ ນ້ຳປະປາ ນະຄອນຫຼວງ</p><p>ພະແນກຄຸ້ມຄອງໝໍ້ແທກນ້ຳ ແລະ ຫລຸດຜ່່ອນນ້ຳສູນເສຍ</p><p>ພາກສ່ວນສາງ</p></div><div class="text-right space-y-1"><p>ເລກທີ……………./ຄໝນ/2026</p></div></div>
+                    <div class="flex justify-between items-start mb-8 text-xs"><div class="space-y-1 font-bold"><p class="text-sm">ລັດວິສາຫະກິດ ນ້ຳປະປາ ນະຄອນຫຼວງ</p><p>ພະແນກຄຸ້ມຄອງໝໍ້ແທກນ້ຳ ແລະ ຫຼຸດຜ່ອນນ້ຳສູນເສຍ</p><p>ພາກສ່ວນສາງ</p></div><div class="text-right space-y-1"><p>ເລກທີ……………./ຄໝນ/2026</p></div></div>
                     <div class="text-center mb-8"><h1 class="text-xl font-extrabold">ໃບລາຍງານສະຫຼຸບສະຕັອກສິນຄ້າ (Inventory Report)</h1><p class="text-sm mt-2 font-medium">ປະຈຳວັນທີ 19 ກໍລະກົດ 2026</p></div>
                     
                     <div class="mb-8">
@@ -306,19 +287,30 @@
                     <div class="text-xs text-right mb-6 font-medium">
                         <p>ວຽງຈັນ, ວັນທີ 19 ກໍລະກົດ 2026</p>
                     </div>
-                    <div class="flex justify-between items-start text-xs font-bold text-center px-4"><div class="space-y-16"><p>ຫົວໜ້າພະແນກ</p><p>.......................................</p></div><div class="space-y-16"><p>ຫົວໜ້າພາກສ່ວນສາງ</p><p>.......................................</p></div><div class="space-y-16"><p>ຜູ້ສະຫຼຸບລາຍງານ</p><p>.......................................</p></div></div>
+                    <div class="flex justify-between items-start text-xs font-bold text-center px-4">
+                        <div class="space-y-16">
+                            <p>ຫົວໜ້າພະແນກຄຸ້ມຄອງໝໍ້ແທກນ້ຳ<br>ແລະ ຫຼຸດຜ່ອນນ້ຳສູນເສຍ</p>
+                            <p>.......................................</p>
+                        </div>
+                        <div class="space-y-16">
+                            <p>ຫົວໜ້າພາກສ່ວນສາງ</p>
+                            <p>.......................................</p>
+                        </div>
+                        <div class="space-y-16 mt-4">
+                            <p>ຜູ້ສະຫຼຸບລາຍງານ</p>
+                            <p>.......................................</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- ====================================================================== -->
-    <!-- 🟢 4. MODAL: ແກ້ໄຂຍອດສະຕັອກ 🟢 -->
-    <!-- ====================================================================== -->
+    <!-- 🟢 4. MODAL: ແກ້ໄຂຍອດສະຕັອກ (ຫຍໍ້ໄວ້ເພື່ອປະຢັດພື້ນທີ່ໂຄ້ດ) 🟢 -->
     <div id="editModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4 modal-backdrop">
         <div class="bg-white rounded-2xl w-full max-w-md flex flex-col shadow-2xl modal-animate border border-slate-200 overflow-hidden">
             <div class="bg-gradient-to-r from-amber-500 to-orange-500 p-4 flex justify-between items-center text-white">
-                <h3 class="font-bold text-lg flex items-center"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg> ປັບປຸງຍອດສະຕັອກ (Manual Edit)</h3>
+                <h3 class="font-bold text-lg flex items-center"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg> ປັບປຸງຍອດສະຕັອກ</h3>
                 <button onclick="toggleModal('editModal', false)" class="hover:bg-white/20 p-1.5 rounded-lg transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             </div>
             <div class="p-6 space-y-4">
@@ -330,7 +322,6 @@
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">ຍອດປັດຈຸບັນ</label><input type="text" value="150" disabled class="w-full p-2.5 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 font-bold text-center"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1 text-indigo-600">ຍອດໃໝ່ <span class="text-red-500">*</span></label><input type="number" placeholder="0" class="w-full p-2.5 border-2 border-indigo-200 rounded-xl focus:outline-none focus:border-indigo-500 font-bold text-center text-indigo-700 transition-colors"></div>
                 </div>
-                <div><label class="block text-xs font-bold text-slate-600 mb-1">ຜູ້ແກ້ໄຂ <span class="text-red-500">*</span></label><select class="w-full p-2.5 border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50"><option value="">-- ເລືອກຕຳແໜ່ງ --</option><option value="admin">ແອດມິນລະບົບ</option><option value="manager">ຫົວໜ້າພາກສ່ວນສາງ</option></select></div>
                 <div><label class="block text-xs font-bold text-slate-600 mb-1">ສາເຫດ <span class="text-red-500">*</span></label><textarea rows="3" placeholder="ຕົວຢ່າງ: ກວດພົບເຄື່ອງຊຳລຸດ..." class="w-full p-2.5 border border-slate-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50"></textarea></div>
             </div>
             <div class="bg-slate-50 p-4 border-t border-slate-200 flex justify-end space-x-3">
@@ -340,9 +331,7 @@
         </div>
     </div>
     
-    <!-- ====================================================================== -->
     <!-- 🟢 5. MODAL: ປະຫວັດການແກ້ໄຂ 🟢 -->
-    <!-- ====================================================================== -->
     <div id="historyModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4 modal-backdrop">
         <div class="bg-white rounded-2xl w-full max-w-3xl flex flex-col shadow-2xl modal-animate border border-slate-200 overflow-hidden">
             <div class="bg-slate-800 p-4 flex justify-between items-center text-white">
@@ -353,18 +342,16 @@
             <div class="p-0 overflow-x-auto max-h-[60vh]">
                 <table class="w-full text-left whitespace-nowrap text-sm">
                     <thead class="bg-slate-100 sticky top-0">
-                        <tr><th class="p-4 font-bold text-slate-600">ວັນທີ & ເວລາ</th><th class="p-4 font-bold text-slate-600">ຜູ້ແກ້ໄຂ</th><th class="p-4 font-bold text-slate-600 text-center">ລາຍການປ່ຽນແປງ</th><th class="p-4 font-bold text-slate-600">ສາເຫດ</th></tr>
+                        <tr><th class="p-4 font-bold text-slate-600">ວັນທີ & ເວລາ</th><th class="p-4 font-bold text-slate-600 text-center">ລາຍການປ່ຽນແປງ</th><th class="p-4 font-bold text-slate-600">ສາເຫດ</th></tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-slate-700">
-                        <tr class="hover:bg-slate-50"><td class="p-4 font-medium text-slate-500">19 ກໍລະກົດ 2026 <span class="block text-xs">09:45 AM</span></td><td class="p-4"><span class="px-2 py-1 bg-indigo-100 text-indigo-700 rounded-md text-xs font-bold">ແອດມິນລະບົບ</span></td><td class="p-4 text-center font-bold"><span class="line-through text-slate-400 mr-2">152</span> <span class="text-rose-500 ml-2">150</span></td><td class="p-4 text-slate-600 truncate">ກວດພົບເຄື່ອງຊຳລຸດ 2 ໜ່ວຍ</td></tr>
-                        <tr class="hover:bg-slate-50"><td class="p-4 font-medium text-slate-500">15 ກໍລະກົດ 2026 <span class="block text-xs">14:20 PM</span></td><td class="p-4"><span class="px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-xs font-bold">ນາຍສາງ</span></td><td class="p-4 text-center font-bold"><span class="line-through text-slate-400 mr-2">150</span> <span class="text-emerald-500 ml-2">152</span></td><td class="p-4 text-slate-600 truncate">ລູກຄ້າສົ່ງຄືນ ແຕ່ລືມເຂົ້າລະບົບ</td></tr>
+                        <tr class="hover:bg-slate-50"><td class="p-4 font-medium text-slate-500">19 ກໍລະກົດ 2026</td><td class="p-4 text-center font-bold"><span class="line-through text-slate-400 mr-2">152</span> <span class="text-rose-500 ml-2">150</span></td><td class="p-4 text-slate-600 truncate">ກວດພົບເຄື່ອງຊຳລຸດ 2 ໜ່ວຍ</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- 🟢 Scripts (ຄວບຄຸມການພິມແຍກສ່ວນ ແລະ ແຄບພາບ) 🟢 -->
     <script>
         function toggleModal(modalId, show) {
             const modal = document.getElementById(modalId);
@@ -384,7 +371,6 @@
             });
         }
 
-        // ຟັງຊັນສຳລັບການແຄບພາບແບບເຄື່ອນໄຫວ
         function captureElement(elementId, fileName, btnElement) {
             const originalText = btnElement.innerHTML;
             btnElement.innerHTML = "Capturing...";
@@ -398,18 +384,13 @@
             });
         }
 
-        // ຟັງຊັນສຳລັບການປຣິ້ນແຍກສ່ວນ (ເອົາແຕ່ເຈ້ຍ A4)
         function printSection(elementId) {
-            // ລຶບ class print-active-area ອອກຈາກທຸກອັນກ່ອນ
             document.querySelectorAll('.print-active-area').forEach(el => el.classList.remove('print-active-area'));
-            // ເພີ່ມ class ໃສ່ໂຕທີ່ຕ້ອງການປຣິ້ນ
             document.getElementById(elementId).classList.add('print-active-area');
-            // ສັ່ງປຣິ້ນ
             window.print();
         }
     </script>
     
-    <!-- 🟢 ດຶງໄຟລ໌ Sidebar ທີ່ຖືກຕ້ອງ 🟢 -->
     <script src="../../js/components/sidebar.js"></script>
 </body>
 </html>

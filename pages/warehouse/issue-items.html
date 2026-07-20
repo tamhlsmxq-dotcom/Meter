@@ -24,12 +24,10 @@
 </head>
 <body class="flex min-h-screen">
 
-    <!-- 🟢 ຈຸດລົງຈອດ Sidebar ທີ່ຖືກຕ້ອງ 🟢 -->
     <div id="sidebar-container"></div>
 
     <main class="flex-1 p-8 ml-64 overflow-y-auto space-y-6">
         
-        <!-- ຫົວຂໍ້ຫຼັກຂອງໜ້າ + ປຸ່ມກັບໜ້າຫຼັກ -->
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 pb-5">
             <div class="flex items-start space-x-4">
                 <div class="bg-gradient-to-br from-indigo-500 to-blue-600 p-3 rounded-2xl text-white shadow-lg shadow-indigo-500/30">
@@ -39,17 +37,15 @@
                 </div>
                 <div>
                     <h2 class="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-800 to-indigo-800 tracking-wide">ເບີກຈ່າຍອຸປະກອນ (Issue Items)</h2>
-                    <p class="text-slate-500 mt-1 text-sm">ອອກໃບຢືມເຄື່ອງ/ເບີກເຄື່ອງ ພະແນກຄຸ້ມຄອງໝໍ້ແທກນ້ຳ</p>
+                    <p class="text-slate-500 mt-1 text-sm">ອອກໃບຢືມເຄື່ອງ/ເບີກເຄື່ອງ ພະແນກຄຸ້ມຄອງໝໍ້ແທກນ້ຳ ແລະ ຫຼຸດຜ່ອນນ້ຳສູນເສຍ</p>
                 </div>
             </div>
             
-            <!-- ແຖບວັນທີ ແລະ ປຸ່ມກັບໜ້າຫຼັກ -->
             <div class="flex items-center space-x-3">
                 <div class="bg-indigo-50 text-indigo-700 font-bold px-4 py-2.5 rounded-xl flex items-center shadow-sm border border-indigo-100">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     ວັນທີ: 18 ກໍລະກົດ 2026
                 </div>
-                <!-- ປຸ່ມກັບໜ້າຫຼັກ ມາໃໝ່ -->
                 <a href="/index.html" class="flex items-center space-x-2 px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 hover:text-indigo-600 hover:border-indigo-200 text-slate-600 rounded-xl transition-all shadow-sm group">
                     <svg class="w-5 h-5 text-slate-400 group-hover:text-indigo-500 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
@@ -61,12 +57,8 @@
 
         <div class="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
             
-            <!-- ========================================== -->
-            <!-- ຝັ່ງຊ້າຍ: ຟອມປ້ອນຂໍ້ມູນເບີກ (Col-span 4) -->
-            <!-- ========================================== -->
+            <!-- ຝັ່ງຊ້າຍ: ຟອມປ້ອນຂໍ້ມູນເບີກ -->
             <div class="xl:col-span-4 space-y-6">
-                
-                <!-- ກາດ 1: ຂໍ້ມູນການເບີກ -->
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5 relative overflow-hidden">
                     <div class="absolute top-0 right-0 bg-indigo-50 text-indigo-500 text-[10px] font-bold px-2 py-1 rounded-bl-lg">ດຶງຂໍ້ມູນຈາກ Master Data</div>
                     <h3 class="text-sm font-extrabold text-slate-800 mb-4 flex items-center mt-2">
@@ -104,7 +96,6 @@
                     </div>
                 </div>
 
-                <!-- ກາດ 2: ເລືອກອຸປະກອນເຂົ້າຕາຕະລາງ -->
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5 border-t-4 border-t-indigo-500 relative overflow-hidden">
                     <div class="absolute top-0 right-0 bg-indigo-50 text-indigo-500 text-[10px] font-bold px-2 py-1 rounded-bl-lg">ດຶງຂໍ້ມູນຈາກ Master Data</div>
                     <h3 class="text-sm font-extrabold text-slate-800 mb-4 flex items-center mt-2">
@@ -152,12 +143,9 @@
                 </div>
             </div>
 
-            <!-- ========================================== -->
-            <!-- ຝັ່ງຂວາ: ໃບບິນ (Col-span 8) -->
-            <!-- ========================================== -->
+            <!-- ຝັ່ງຂວາ: ໃບບິນ -->
             <div class="xl:col-span-8">
                 
-                <!-- ປຸ່ມ Action Toolbar ເທິງໃບບິນ -->
                 <div class="flex justify-end space-x-3 mb-4">
                     <button class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold py-2 px-5 rounded-lg shadow-sm transition-all flex items-center">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -173,7 +161,6 @@
                     </button>
                 </div>
 
-                <!-- ໂຄງສ້າງໃບບິນມາດຕະຖານ -->
                 <div class="receipt-paper rounded-xl p-8 relative overflow-x-auto">
                     
                     <div class="text-center mb-6">
@@ -185,7 +172,8 @@
                     <div class="flex justify-between items-start mb-6">
                         <div class="text-xs text-slate-700 space-y-1">
                             <p class="font-extrabold text-sm">ລັດວິສາຫະກິດ ນ້ຳປະປາ ນະຄອນຫຼວງ</p>
-                            <p>ພະແນກຄຸ້ມຄອງໝໍ້ແທກນ້ຳ ແລະ ຫລຸດຜ່່ອນນ້ຳສູນເສຍ</p>
+                            <p>ພະແນກຄຸ້ມຄອງໝໍ້ແທກນ້ຳ ແລະ ຫຼຸດຜ່ອນນ້ຳສູນເສຍ</p>
+                            <p>ພາກສ່ວນສາງ</p>
                             <p>ໂທ : 021 560 665</p>
                         </div>
                         <div class="text-xs text-slate-700 text-right space-y-1">
@@ -194,7 +182,7 @@
                     </div>
 
                     <div class="text-center mb-6">
-                        <h1 class="text-xl font-extrabold text-slate-800">ໃບຢືມເຄື່ອງອອກສາງ ພະແນກຄຸ້ມຄອງໝໍ້ແທກນ້ຳ</h1>
+                        <h1 class="text-xl font-extrabold text-slate-800">ໃບຢືມເຄື່ອງອອກສາງ ພະແນກຄຸ້ມຄອງໝໍ້ແທກນ້ຳ ແລະ ຫຼຸດຜ່ອນນ້ຳສູນເສຍ</h1>
                     </div>
 
                     <div class="text-sm text-slate-800 flex flex-wrap gap-x-8 gap-y-3 mb-6 font-medium">
@@ -203,7 +191,6 @@
                         <p>ພະແນກ - ສາຂາ: <span class="border-b border-dotted border-slate-400 inline-block min-w-[200px] text-indigo-700 font-bold px-2">ປ່ຽນຖ່າຍໝໍ້ແທກນ້ຳ</span></p>
                     </div>
 
-                    <!-- ຕາຕະລາງອຸປະກອນ -->
                     <div class="min-h-[200px] mb-8 overflow-x-auto">
                         <table class="w-full text-[11px] border-collapse bg-white">
                             <thead class="bg-slate-100/80 text-slate-700 table-header">
@@ -249,14 +236,12 @@
                                     <td></td>
                                     <td></td>
                                 </tr>
-                                <!-- ແຖວຫວ່າງເປົ່າສຳລັບຄວາມງາມ -->
                                 <tr><td>3</td><td class="py-3"></td><td></td><td></td><td></td><td class="bg-slate-50"></td><td class="bg-slate-50"></td><td class="bg-slate-50"></td><td></td><td></td></tr>
                                 <tr><td>4</td><td class="py-3"></td><td></td><td></td><td></td><td class="bg-slate-50"></td><td class="bg-slate-50"></td><td class="bg-slate-50"></td><td></td><td></td></tr>
                             </tbody>
                         </table>
                     </div>
 
-                    <!-- ຊ່ອງລາຍເຊັນລຸ່ມສຸດ -->
                     <div class="text-xs text-right mb-6 text-slate-700">
                         <p>ວຽງຈັນ ວັນທີ....../....../..........</p>
                     </div>
@@ -267,10 +252,10 @@
                             <p>ຜູ້ເບີກເຄື່ອງ</p>
                         </div>
                         <div class="space-y-12">
-                            <p>ຫົວໜ້າພະແນກຄຸ້ມຄອງໝໍ້ແທກນ້ຳ</p>
+                            <p>ຫົວໜ້າພະແນກຄຸ້ມຄອງໝໍ້ແທກນ້ຳ<br>ແລະ ຫຼຸດຜ່ອນນ້ຳສູນເສຍ</p>
                             <p></p>
                         </div>
-                        <div class="space-y-12 mt-6 lg:mt-0">
+                        <div class="space-y-12 mt-4 lg:mt-0">
                             <p></p>
                             <p>ຜູ້ຮັບເຄື່ອງ</p>
                         </div>
@@ -282,7 +267,6 @@
         </div>
     </main>
 
-    <!-- 🟢 ດຶງໄຟລ໌ Sidebar ທີ່ຖືກຕ້ອງ 🟢 -->
     <script src="../../js/components/sidebar.js"></script>
 </body>
 </html>
