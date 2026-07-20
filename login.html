@@ -9,19 +9,16 @@
     <style>
         body {
             font-family: 'Noto Sans Lao', sans-serif;
-            /* 💡 ຈຸດປ່ຽນຮູບພື້ນຫຼັງ: ເຈົ້າສາມາດເອົາຮູບກົງເຕີ້ນ້ຳຂອງເຈົ້າມາໃສ່ແທນ URL ນີ້ໄດ້ເລີຍ */
             background-image: url('https://images.unsplash.com/photo-1544431448-3561917fcc07?q=80&w=2070&auto=format&fit=crop'); 
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
         }
         
-        /* ເຮັດໃຫ້ພື້ນຫຼັງມືດລົງໜ້ອຍໜຶ່ງ ເພື່ອໃຫ້ກ່ອງ Login ໂດດເດັ່ນຂຶ້ນ */
         .bg-overlay {
             background: linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 58, 138, 0.6) 100%);
         }
 
-        /* ເອັບເຟັກແກ້ວ (Glassmorphism) */
         .glass-panel {
             background: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(16px);
@@ -30,7 +27,6 @@
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
-        /* ຊ່ອງປ້ອນຂໍ້ມູນແບບແກ້ວ */
         .input-glass {
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -48,16 +44,14 @@
 </head>
 <body class="min-h-screen flex items-center justify-center bg-overlay relative overflow-hidden">
 
-    <!-- ອະນິເມຊັນຢອດນ້ຳຕົກແຕ່ງທາງຫຼັງ (ເຮັດໃຫ້ເບິ່ງມີມິຕິ) -->
     <div class="absolute top-1/4 left-1/4 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
     <div class="absolute bottom-1/4 right-1/4 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse" style="animation-delay: 2s;"></div>
 
     <div class="w-full max-w-md p-8 glass-panel rounded-3xl relative z-10 m-4">
         
-        <<!-- ສ່ວນໂລໂກ້ ທີ່ປັບປຸງໃໝ່ -->
+        <!-- ສ່ວນໂລໂກ້ ຮູບໜ້າປັດໝໍ້ແທກນ້ຳ -->
         <div class="flex flex-col items-center mb-8">
             <div class="w-16 h-16 bg-gradient-to-br from-blue-400 to-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/50 mb-4 transform hover:scale-110 transition-transform cursor-default p-3">
-                <!-- ໄອຄອນຮູບໜ້າປັດໝໍ້ແທກນ້ຳ (Gauge Meter) -->
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-full h-full">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"></path>
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18Z"></path>
@@ -68,17 +62,16 @@
             <p class="text-blue-100/80 text-sm mt-2 text-center">ພະແນກຄຸ້ມຄອງໝໍ້ແທກນ້ຳ<br>ແລະ ຫຼຸດຜ່ອນນ້ຳສູນເສຍ</p>
         </div>
 
-        <!-- ຟອມ Login -->
-        <form id="loginForm" class="space-y-6">
+        <!-- ຟອມ Login: ໃສ່ autocomplete="off" ເພື່ອປ້ອງກັນການຈື່ລະຫັດ -->
+        <form id="loginForm" class="space-y-6" autocomplete="off">
             <div>
                 <label class="block text-sm font-medium text-white mb-2">ຊື່ຜູ້ໃຊ້ (Username)</label>
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="h-5 w-5 text-blue-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
+                        <svg class="h-5 w-5 text-blue-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                     </div>
-                    <input type="text" id="username" required class="input-glass w-full pl-10 pr-4 py-3 rounded-xl transition-all font-medium" placeholder="ປ້ອນຊື່ຜູ້ໃຊ້...">
+                    <!-- autocomplete="off" -->
+                    <input type="text" id="username" autocomplete="off" required class="input-glass w-full pl-10 pr-4 py-3 rounded-xl transition-all font-medium" placeholder="ປ້ອນຊື່ຜູ້ໃຊ້...">
                 </div>
             </div>
 
@@ -86,23 +79,19 @@
                 <label class="block text-sm font-medium text-white mb-2">ລະຫັດຜ່ານ (Password)</label>
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="h-5 w-5 text-blue-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
+                        <svg class="h-5 w-5 text-blue-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
                     </div>
-                    <input type="password" id="password" required class="input-glass w-full pl-10 pr-12 py-3 rounded-xl transition-all font-medium" placeholder="••••••••">
+                    <!-- autocomplete="new-password" ຫຼອກ Browser ບໍ່ໃຫ້ໃສ່ລະຫັດເກົ່າ -->
+                    <input type="password" id="password" autocomplete="new-password" required class="input-glass w-full pl-10 pr-12 py-3 rounded-xl transition-all font-medium" placeholder="••••••••">
                     <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-blue-200 hover:text-white transition-colors">
-                        <svg id="eye-icon" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
+                        <svg id="eye-icon" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                     </button>
                 </div>
             </div>
 
             <div class="flex items-center justify-between text-sm">
                 <label class="flex items-center cursor-pointer">
-                    <input type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 h-4 w-4 bg-transparent">
+                    <input type="checkbox" id="rememberMe" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 h-4 w-4 bg-transparent">
                     <span class="ml-2 text-blue-100">ຈື່ຂ້ອຍໄວ້</span>
                 </label>
                 <a href="#" class="text-blue-300 hover:text-white font-medium transition-colors">ລືມລະຫັດຜ່ານ?</a>
@@ -116,6 +105,26 @@
     </div>
 
     <script>
+        // ເມື່ອໂຫຼດໜ້າເວັບຂຶ້ນມາ
+        document.addEventListener("DOMContentLoaded", function() {
+            const userField = document.getElementById('username');
+            const passField = document.getElementById('password');
+            const rememberChk = document.getElementById('rememberMe');
+
+            // 1. ບັງຄັບລ້າງຂໍ້ມູນຖິ້ມທັນທີເພື່ອຄວາມປອດໄພ
+            userField.value = '';
+            passField.value = '';
+
+            // 2. ກວດເບິ່ງວ່າເຄີຍຕິກ "ຈື່ຂ້ອຍໄວ້" ຫຼືບໍ່
+            const savedUser = localStorage.getItem('wm_user');
+            
+            if(savedUser) {
+                userField.value = savedUser;
+                // ເພື່ອຄວາມປອດໄພສູງສຸດ ຈະບໍ່ຈື່ Password (ໃຫ້ພິມໃໝ່) ຫຼື ຖ້າຢາກໃຫ້ຈື່ກໍດຶງມາໃສ່ໄດ້
+                rememberChk.checked = true;
+            }
+        });
+
         // ຟັງຊັນເປີດ/ປິດ ຕາເບິ່ງລະຫັດຜ່ານ
         function togglePassword() {
             const pwdInput = document.getElementById('password');
@@ -130,18 +139,25 @@
             }
         }
 
-        // ຟັງຊັນສຳລັບກົດເຂົ້າສູ່ລະບົບແລ້ວໃຫ້ລິ້ງໄປໜ້າຫຼັກ (index.html)
+        // ຟັງຊັນກົດເຂົ້າສູ່ລະບົບ
         function handleLogin() {
-            // ກວດສອບກ່ອນວ່າປ້ອນຂໍ້ມູນຫຼືຍັງ
             const user = document.getElementById('username').value;
             const pass = document.getElementById('password').value;
+            const rememberChk = document.getElementById('rememberMe').checked;
             
             if(user === '' || pass === '') {
                 alert('ກະລຸນາປ້ອນຊື່ຜູ້ໃຊ້ ແລະ ລະຫັດຜ່ານກ່ອນ!');
                 return;
             }
+
+            // ຖ້າຕິກຈື່ໄວ້ ໃຫ້ບັນທຶກ Username ລົງເຄື່ອງ (ແຕ່ບໍ່ເກັບ Password ເພື່ອຄວາມປອດໄພ)
+            if(rememberChk) {
+                localStorage.setItem('wm_user', user);
+            } else {
+                localStorage.removeItem('wm_user');
+            }
             
-            // ເມື່ອປ້ອນຄົບແລ້ວ ໃຫ້ເດັ້ງໄປໜ້າ index.html
+            // ສຳເລັດແລ້ວໄປໜ້າຫຼັກ
             window.location.href = 'index.html';
         }
     </script>
