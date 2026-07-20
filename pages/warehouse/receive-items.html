@@ -19,7 +19,7 @@
     </style>
 </head>
 <body class="flex min-h-screen relative">
-    <script src="../../js/components/sidebar.js"></script>
+    <!-- ເອົາ Script ທຳມະດາທີ່ຜິດອອກແລ້ວ -->
 
     <div id="sidebar-container" class="w-64 flex-shrink-0"></div>
 
@@ -147,9 +147,7 @@
 
     </main>
 
-    <script src="/js/components/sidebar.js"></script>
-
-    <!-- 🟢 Scripts ສຳລັບຈັດການຕາຕະລາງໃບຮັບ 🟢 -->
+    <!-- 🟢 Scripts ສຳລັບຈັດການຕາຕະລາງໃບຮັບ (ຂອງເດີມເຈົ້າທັງໝົດ) 🟢 -->
     <script>
         // ຕັ້ງຄ່າວັນທີປັດຈຸບັນໃຫ້ຊ່ອງ Input
         document.getElementById('receiptDate').valueAsDate = new Date();
@@ -244,6 +242,15 @@
             // ໃນລະບົບແທ້ ຈະຕ້ອງ Redirect ກັບໄປໜ້າ inventory.html ຫຼັງຈາກບັນທຶກແລ້ວ
             window.location.href = "inventory.html";
         }
+    </script>
+
+    <!-- 🟢 Script ທີ່ຖືກຕ້ອງສຳລັບໂຫຼດ Sidebar 🟢 -->
+    <script type="module">
+        import { initSidebar } from '../../js/components/sidebar.js';
+        
+        // ໝາຍເຫດ: ຖ້າໃນໄຟລ໌ sidebar.js ຂອງເຈົ້າໃຊ້ຊື່ຟັງຊັນ 'renderSidebar' 
+        // ໃຫ້ປ່ຽນຄຳວ່າ initSidebar ເປັນ renderSidebar ແທນ.
+        initSidebar();
     </script>
 </body>
 </html>
