@@ -49,7 +49,7 @@
 
     <div class="w-full max-w-md p-8 glass-panel rounded-3xl relative z-10 m-4">
         
-        <!-- ສ່ວນໂລໂກ້ ຮູບໜ້າປັດໝໍ້ແທກນ້ຳ -->
+        <!-- ສ່ວນໂລໂກ້ -->
         <div class="flex flex-col items-center mb-8">
             <div class="w-16 h-16 bg-gradient-to-br from-blue-400 to-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/50 mb-4 transform hover:scale-110 transition-transform cursor-default p-3">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-full h-full">
@@ -62,16 +62,15 @@
             <p class="text-blue-100/80 text-sm mt-2 text-center">ພະແນກຄຸ້ມຄອງໝໍ້ແທກນ້ຳ<br>ແລະ ຫຼຸດຜ່ອນນ້ຳສູນເສຍ</p>
         </div>
 
-        <!-- ຟອມ Login: ໃສ່ autocomplete="off" ເພື່ອປ້ອງກັນການຈື່ລະຫັດ -->
-        <form id="loginForm" class="space-y-6" autocomplete="off">
+        <!-- ຟອມ Login ທີ່ເຊື່ອມ Firebase ແລ້ວ -->
+        <form id="loginForm" class="space-y-5" autocomplete="off">
             <div>
-                <label class="block text-sm font-medium text-white mb-2">ຊື່ຜູ້ໃຊ້ (Username)</label>
+                <label class="block text-sm font-medium text-white mb-2">ອີເມວ (Email)</label>
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <svg class="h-5 w-5 text-blue-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                     </div>
-                    <!-- autocomplete="off" -->
-                    <input type="text" id="username" autocomplete="off" required class="input-glass w-full pl-10 pr-4 py-3 rounded-xl transition-all font-medium" placeholder="ປ້ອນຊື່ຜູ້ໃຊ້...">
+                    <input type="email" id="email" required class="input-glass w-full pl-10 pr-4 py-3 rounded-xl transition-all font-medium" placeholder="admin@meter.com">
                 </div>
             </div>
 
@@ -81,8 +80,7 @@
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <svg class="h-5 w-5 text-blue-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
                     </div>
-                    <!-- autocomplete="new-password" ຫຼອກ Browser ບໍ່ໃຫ້ໃສ່ລະຫັດເກົ່າ -->
-                    <input type="password" id="password" autocomplete="new-password" required class="input-glass w-full pl-10 pr-12 py-3 rounded-xl transition-all font-medium" placeholder="••••••••">
+                    <input type="password" id="password" required class="input-glass w-full pl-10 pr-12 py-3 rounded-xl transition-all font-medium" placeholder="••••••••">
                     <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-blue-200 hover:text-white transition-colors">
                         <svg id="eye-icon" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                     </button>
@@ -91,42 +89,32 @@
 
             <div class="flex items-center justify-between text-sm">
                 <label class="flex items-center cursor-pointer">
-                    <input type="checkbox" id="rememberMe" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 h-4 w-4 bg-transparent">
+                    <input type="checkbox" id="rememberMe" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 h-4 w-4 bg-transparent">
                     <span class="ml-2 text-blue-100">ຈື່ຂ້ອຍໄວ້</span>
                 </label>
                 <a href="#" class="text-blue-300 hover:text-white font-medium transition-colors">ລືມລະຫັດຜ່ານ?</a>
             </div>
 
-            <button type="button" onclick="handleLogin()" class="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 flex justify-center items-center group">
-                <span>ເຂົ້າສູ່ລະບົບ</span>
-                <svg class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            <!-- ກ່ອງແຈ້ງເຕືອນ Error -->
+            <div id="errorMessage" class="hidden text-rose-500 bg-rose-50/90 text-xs font-bold text-center p-3 rounded-xl transition-all">
+                ອີເມວ ຫຼື ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ!
+            </div>
+
+            <!-- ປຸ່ມ Login ປ່ຽນເປັນ type="submit" -->
+            <button type="submit" id="btnLogin" class="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 flex justify-center items-center group">
+                <span id="btnText">ເຂົ້າສູ່ລະບົບ</span>
+                <svg id="btnIcon" class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
             </button>
         </form>
     </div>
 
-    <script>
-        // ເມື່ອໂຫຼດໜ້າເວັບຂຶ້ນມາ
-        document.addEventListener("DOMContentLoaded", function() {
-            const userField = document.getElementById('username');
-            const passField = document.getElementById('password');
-            const rememberChk = document.getElementById('rememberMe');
+    <!-- Script ສຳລັບ Firebase Auth -->
+    <script type="module">
+        import { auth } from './firebase-config.js';
+        import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-            // 1. ບັງຄັບລ້າງຂໍ້ມູນຖິ້ມທັນທີເພື່ອຄວາມປອດໄພ
-            userField.value = '';
-            passField.value = '';
-
-            // 2. ກວດເບິ່ງວ່າເຄີຍຕິກ "ຈື່ຂ້ອຍໄວ້" ຫຼືບໍ່
-            const savedUser = localStorage.getItem('wm_user');
-            
-            if(savedUser) {
-                userField.value = savedUser;
-                // ເພື່ອຄວາມປອດໄພສູງສຸດ ຈະບໍ່ຈື່ Password (ໃຫ້ພິມໃໝ່) ຫຼື ຖ້າຢາກໃຫ້ຈື່ກໍດຶງມາໃສ່ໄດ້
-                rememberChk.checked = true;
-            }
-        });
-
-        // ຟັງຊັນເປີດ/ປິດ ຕາເບິ່ງລະຫັດຜ່ານ
-        function togglePassword() {
+        // ຟັງຊັນເປີດ-ປິດ ຕາເບິ່ງລະຫັດຜ່ານ (ຍັງຮັກສາຂອງເກົ່າໄວ້)
+        window.togglePassword = function() {
             const pwdInput = document.getElementById('password');
             const eyeIcon = document.getElementById('eye-icon');
             
@@ -139,27 +127,67 @@
             }
         }
 
-        // ຟັງຊັນກົດເຂົ້າສູ່ລະບົບ
-        function handleLogin() {
-            const user = document.getElementById('username').value;
-            const pass = document.getElementById('password').value;
-            const rememberChk = document.getElementById('rememberMe').checked;
-            
-            if(user === '' || pass === '') {
-                alert('ກະລຸນາປ້ອນຊື່ຜູ້ໃຊ້ ແລະ ລະຫັດຜ່ານກ່ອນ!');
-                return;
-            }
+        const loginForm = document.getElementById('loginForm');
+        const btnLogin = document.getElementById('btnLogin');
+        const btnText = document.getElementById('btnText');
+        const errorMessage = document.getElementById('errorMessage');
 
-            // ຖ້າຕິກຈື່ໄວ້ ໃຫ້ບັນທຶກ Username ລົງເຄື່ອງ (ແຕ່ບໍ່ເກັບ Password ເພື່ອຄວາມປອດໄພ)
-            if(rememberChk) {
-                localStorage.setItem('wm_user', user);
-            } else {
-                localStorage.removeItem('wm_user');
+        // ເມື່ອໂຫຼດໜ້າຂຶ້ນມາ ໃຫ້ດຶງອີເມວທີ່ເຄີຍຈື່ໄວ້ມາສະແດງ
+        document.addEventListener("DOMContentLoaded", function() {
+            const savedUser = localStorage.getItem('wm_user');
+            if(savedUser) {
+                document.getElementById('email').value = savedUser;
+                document.getElementById('rememberMe').checked = true;
             }
+        });
+
+        // ເມື່ອກົດປຸ່ມເຂົ້າສູ່ລະບົບ (Submit Form)
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); 
             
-            // ສຳເລັດແລ້ວໄປໜ້າຫຼັກ
-            window.location.href = 'index.html';
-        }
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
+
+            // ປ່ຽນສະຖານະປຸ່ມເປັນກຳລັງໂຫຼດ
+            btnText.innerText = 'ກຳລັງກວດສອບ...';
+            btnLogin.disabled = true;
+            btnLogin.classList.add('opacity-75', 'cursor-not-allowed');
+            errorMessage.classList.add('hidden');
+
+            try {
+                // ລັອກອິນຜ່ານ Firebase ຂອງແທ້ 🚀
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                
+                // ຈັດການເລື່ອງ "ຈື່ຂ້ອຍໄວ້"
+                if(rememberMe) {
+                    localStorage.setItem('wm_user', email);
+                } else {
+                    localStorage.removeItem('wm_user');
+                }
+                
+                // ລັອກອິນສຳເລັດ ໂດດໄປໜ້າ Dashboard
+                window.location.href = 'index.html';
+
+            } catch (error) {
+                console.error("Login Error:", error.code);
+                errorMessage.classList.remove('hidden');
+                
+                // ສະແດງຂໍ້ຄວາມ Error ໃຫ້ເຂົ້າໃຈງ່າຍ
+                if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    errorMessage.innerText = '❌ ອີເມວ ຫຼື ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ!';
+                } else if (error.code === 'auth/too-many-requests') {
+                    errorMessage.innerText = '❌ ໃສ່ຜິດຫຼາຍຄັ້ງເກີນໄປ. ກະລຸນາລໍຖ້າຈັກໜ່ອຍ.';
+                } else {
+                    errorMessage.innerText = '❌ ເກີດຂໍ້ຜິດພາດ: ' + error.message;
+                }
+            } finally {
+                // ຖ້າລັອກອິນບໍ່ຜ່ານ ໃຫ້ປຸ່ມກັບມາເປັນຄືເກົ່າ
+                btnText.innerText = 'ເຂົ້າສູ່ລະບົບ';
+                btnLogin.disabled = false;
+                btnLogin.classList.remove('opacity-75', 'cursor-not-allowed');
+            }
+        });
     </script>
 </body>
 </html>
