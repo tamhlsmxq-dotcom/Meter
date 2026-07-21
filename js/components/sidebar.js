@@ -1,5 +1,5 @@
 // =========================================================================
-// 🧠 ໂລຈິກກວດສອບຜູ້ໃຊ້ & Dynamic Routing (ຄົບຖ້ວນທຸກຟີເຈີ & ດີໄຊງ໌ເດີມ)
+// 🧠 ໂລຈິກກວດສອບຜູ້ໃຊ້ & Dynamic Routing (ພ້ອມລະບົບ Real-time Online Users)
 // =========================================================================
 const userDataStr = localStorage.getItem('wm_user_data');
 const userData = userDataStr ? JSON.parse(userDataStr) : { fullName: 'ແອດມິນລະບົບ', email: 'admin@meter.com', role: 'system_manager', permissions: {} };
@@ -23,7 +23,7 @@ const adminBadge = isAdmin
     ? `<span class="inline-flex items-center justify-center ml-2 px-1.5 py-0.5 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded text-[9px] font-extrabold tracking-wider uppercase"><svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg> Admin</span>` 
     : '';
 
-// 🌟 ໂລຈິກຄຳນວນ Path ປ້ອງກັນ 404 (Auto Base URL) 🌟
+// 🌟 ໂລຈິກຄຳນວນ Path ປ້ອງກັນ 404 (Auto Base URL)
 const currentPath = window.location.pathname;
 const base = currentPath.includes('/pages/') ? '../..' : '.';
 
@@ -77,36 +77,17 @@ document.getElementById('sidebar-container').innerHTML = `
             <span class="font-bold text-sm">ເບີກຈ່າຍອຸປະກອນ</span>
         </a>
 
-        <!-- 🟢 ລາຍຊື່ເພື່ອນຮ່ວມງານທີ່ Online 🟢 -->
+        <!-- 🟢 ລາຍຊື່ເພື່ອນຮ່ວມງານທີ່ Online (ດຶງຈາກຕົວຈິງ) 🟢 -->
         <div class="mt-8 mb-2">
             <div class="flex items-center justify-between px-3 mb-3">
                 <p class="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest">ທີມງານທີ່ອອນໄລນ໌</p>
-                <span class="bg-emerald-500/20 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center">
-                    <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1 animate-pulse"></span> 3 ຄົນ
+                <span id="online-count" class="bg-emerald-500/20 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center">
+                    <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1 animate-pulse"></span> 0 ຄົນ
                 </span>
             </div>
             
-            <div class="px-2 space-y-1">
-                <div class="flex items-center p-2 rounded-lg hover:bg-slate-800/50 transition-colors cursor-pointer group">
-                    <div class="relative mr-3">
-                        <div class="w-8 h-8 rounded-full bg-blue-900 flex items-center justify-center text-blue-200 text-xs font-bold border border-slate-700">ທ</div>
-                        <div class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-slate-900 rounded-full"></div>
-                    </div>
-                    <div>
-                        <p class="text-xs font-bold text-slate-300 group-hover:text-white transition-colors">ທ້າວ ສົມຊາຍ</p>
-                        <p class="text-[10px] text-slate-500">ພາກສະໜາມ</p>
-                    </div>
-                </div>
-                <div class="flex items-center p-2 rounded-lg hover:bg-slate-800/50 transition-colors cursor-pointer group">
-                    <div class="relative mr-3">
-                        <div class="w-8 h-8 rounded-full bg-purple-900 flex items-center justify-center text-purple-200 text-xs font-bold border border-slate-700">ນ</div>
-                        <div class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-slate-900 rounded-full"></div>
-                    </div>
-                    <div>
-                        <p class="text-xs font-bold text-slate-300 group-hover:text-white transition-colors">ນາງ ນາລີ</p>
-                        <p class="text-[10px] text-slate-500">ບັນຊີ & ການເງິນ</p>
-                    </div>
-                </div>
+            <div id="online-users-list" class="px-2 space-y-1">
+                <p class="text-[10px] text-slate-500 text-center py-2">ກຳລັງກວດສອບ...</p>
             </div>
         </div>
     </nav>
@@ -133,12 +114,12 @@ document.getElementById('sidebar-container').innerHTML = `
             </div>
         </div>
         
-        <a href="${base}/login.html" onclick="localStorage.removeItem('wm_user_data'); return confirm('ທ່ານຕ້ອງການອອກຈາກລະບົບແທ້ບໍ່?');" class="flex items-center justify-center w-full px-4 py-2.5 bg-rose-500/5 text-rose-500 hover:bg-rose-500 hover:text-white border border-rose-500/20 hover:border-rose-500 rounded-xl transition-all duration-300 group cursor-pointer shadow-sm hover:shadow-[0_0_15px_rgba(244,63,94,0.4)] active:scale-95">
+        <button id="btn-logout" class="flex items-center justify-center w-full px-4 py-2.5 bg-rose-500/5 text-rose-500 hover:bg-rose-500 hover:text-white border border-rose-500/20 hover:border-rose-500 rounded-xl transition-all duration-300 group cursor-pointer shadow-sm hover:shadow-[0_0_15px_rgba(244,63,94,0.4)] active:scale-95">
             <svg class="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
             </svg>
             <span class="font-bold text-sm tracking-wide">ອອກຈາກລະບົບ</span>
-        </a>
+        </button>
     </div>
 </aside>
 `;
@@ -162,6 +143,119 @@ document.getElementById('sidebar-container').innerHTML = `
     });
 })();
 
+// =========================================================================
+// 🚀 ລະບົບຈັດການສະຖານະ Online ຕົວຈິງ ແລະ Auto Logout
+// =========================================================================
+let updateStatusToOffline = async () => {}; // ຟັງຊັນສຳຮອງ
+
+async function initRealtimePresence() {
+    try {
+        // Dynamic Import ເພື່ອບໍ່ໃຫ້ກະທົບກັບໂຄງສ້າງໜ້າເວັບເກົ່າທີ່ໃຊ້ <script defer>
+        const { db } = await import(base + '/firebase-config.js');
+        const { collection, query, where, getDocs, updateDoc, doc, onSnapshot, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+        
+        const usersRef = collection(db, 'users');
+        let currentUserDocId = null;
+
+        // 1️⃣ ອັບເດດສະຖານະຕົວເອງໃຫ້ເປັນ Online (isOnline: true)
+        if (userEmail && userEmail !== 'admin@meter.com') { // ຂ້າມໄອດີ Admin ທີ່ເປັນ Default
+            const myQ = query(usersRef, where('email', '==', userEmail));
+            const mySnapshot = await getDocs(myQ);
+            
+            if (!mySnapshot.empty) {
+                currentUserDocId = mySnapshot.docs[0].id;
+                const myDocRef = doc(db, 'users', currentUserDocId);
+                
+                await updateDoc(myDocRef, { isOnline: true, lastActive: serverTimestamp() });
+
+                // ເມື່ອຜູ້ໃຊ້ປິດໜ້າເວັບ (ແຖບ/ບຣາວເຊີ) ພະຍາຍາມປ່ຽນສະຖານະເປັນ Offline
+                window.addEventListener('beforeunload', () => {
+                    updateDoc(myDocRef, { isOnline: false });
+                });
+            }
+        }
+
+        // 2️⃣ ດຶງຂໍ້ມູນຄົນອື່ນທີ່ອອນໄລນ໌ແບບ Real-time ມາສະແດງ
+        const onlineQ = query(usersRef, where('isOnline', '==', true));
+        onSnapshot(onlineQ, (snapshot) => {
+            const listContainer = document.getElementById('online-users-list');
+            const countContainer = document.getElementById('online-count');
+            if (!listContainer) return;
+
+            let html = '';
+            let count = 0;
+
+            snapshot.forEach(docSnap => {
+                const user = docSnap.data();
+                
+                // ບໍ່ສະແດງຊື່ຕົວເອງໃນລາຍຊື່
+                if (user.email === userEmail) return;
+
+                count++;
+                const name = user.fullName || 'User';
+                const firstChar = name.charAt(0).toUpperCase();
+
+                // ສຸ່ມສີ Avatar ໃຫ້ແຕ່ລະຄົນຕາມຊື່ (Color generator)
+                const colors = ['bg-blue-900 text-blue-200','bg-purple-900 text-purple-200','bg-amber-900 text-amber-200','bg-rose-900 text-rose-200','bg-indigo-900 text-indigo-200'];
+                const colorClass = colors[name.charCodeAt(0) % colors.length];
+
+                let roleDisplay = 'ພະນັກງານ';
+                if (user.role === 'system_manager' || user.role === 'super_admin') roleDisplay = 'ຜູ້ບໍລິຫານ';
+                else if (user.role === 'department_head') roleDisplay = 'ຫົວໜ້າພະແນກ';
+                else if (user.role === 'section_head') roleDisplay = 'ຫົວໜ້າພາກສ່ວນ';
+                else if (user.role === 'warehouse_manager') roleDisplay = 'ຜູ້ຈັດການສາງ';
+
+                html += `
+                <div class="flex items-center p-2 rounded-lg hover:bg-slate-800/50 transition-colors cursor-pointer group">
+                    <div class="relative mr-3">
+                        <div class="w-8 h-8 rounded-full ${colorClass} flex items-center justify-center text-xs font-bold border border-slate-700">${firstChar}</div>
+                        <div class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-slate-900 rounded-full"></div>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-300 group-hover:text-white transition-colors truncate w-36">${name}</p>
+                        <p class="text-[10px] text-slate-500 truncate w-36">${roleDisplay}</p>
+                    </div>
+                </div>`;
+            });
+
+            countContainer.innerHTML = `<span class="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1 animate-pulse"></span> ${count} ຄົນ`;
+
+            if (count === 0) {
+                listContainer.innerHTML = '<p class="text-[11px] text-slate-500 px-2 py-2 text-center bg-slate-800/30 rounded-lg">ບໍ່ມີທີມງານອື່ນອອນໄລນ໌</p>';
+            } else {
+                listContainer.innerHTML = html;
+            }
+        });
+
+        // ສົ່ງຟັງຊັນສຳລັບການປ່ຽນສະຖານະເປັນ Offline ອອກໄປໃຊ້ງານຂ້າງນອກ
+        return async function() {
+            if (currentUserDocId) {
+                await updateDoc(doc(db, 'users', currentUserDocId), { isOnline: false });
+            }
+        };
+
+    } catch (error) {
+        console.error("Firebase Realtime Error:", error);
+        return async () => {}; 
+    }
+}
+
+// ເລີ່ມຕົ້ນລະບົບ Presence
+initRealtimePresence().then(fn => {
+    if(fn) updateStatusToOffline = fn;
+});
+
+// 🟢 ຈັດການປຸ່ມ Logout ໃໝ່ (ໃຫ້ອັບເດດສະຖານະກ່ອນອອກ)
+document.getElementById('btn-logout').addEventListener('click', async (e) => {
+    e.preventDefault();
+    if (confirm('ທ່ານຕ້ອງການອອກຈາກລະບົບແທ້ບໍ່?')) {
+        document.getElementById('btn-logout').innerHTML = '<span class="font-bold text-sm">ກຳລັງອອກ...</span>';
+        await updateStatusToOffline(); // ສັ່ງໃຫ້ອອຟໄລນ໌ໃນຖານຂໍ້ມູນ
+        localStorage.removeItem('wm_user_data');
+        window.location.href = `${base}/login.html`;
+    }
+});
+
 // 🔒 ລະບົບ Auto Logout (Idle Timeout 5 ນາທີ)
 (function() {
     let idleTimer;
@@ -169,19 +263,18 @@ document.getElementById('sidebar-container').innerHTML = `
     
     function resetIdleTimer() {
         clearTimeout(idleTimer);
-        idleTimer = setTimeout(() => {
+        idleTimer = setTimeout(async () => {
+            await updateStatusToOffline(); // ສັ່ງໃຫ້ອອຟໄລນ໌ໃນຖານຂໍ້ມູນກ່ອນເຕະອອກ
             localStorage.removeItem('wm_user_data');
             alert("🔒 ໝົດເວລາການໃຊ້ງານ 5 ນາທີ! ລະບົບໄດ້ລັອກເອົາອັດຕະໂນມັດເພື່ອຄວາມປອດໄພ.");
             window.location.replace(`${base}/login.html`);
         }, idleTimeLimit);
     }
 
-    // ໃຊ້ Event Listeners ແບບ Passive ເພື່ອລົດການກິນຊັບພະຍາກອນ (Performance Optimization)
     const events = ['mousemove', 'keydown', 'mousedown', 'touchstart', 'scroll'];
     events.forEach(event => {
         window.addEventListener(event, resetIdleTimer, { passive: true });
     });
 
-    // Initialize
     resetIdleTimer();
 })();
