@@ -1,35 +1,31 @@
 // =========================================================================
-// 🧠 ໂລຈິກກວດສອບຜູ້ໃຊ້ & Dynamic Permissions (ລວມຮ່າງສີສັນ ແລະ ຟີເຈີເດີມ)
+// 🧠 ໂລຈິກກວດສອບຜູ້ໃຊ້ & Dynamic Routing (ແກ້ບັນຫາ 404)
 // =========================================================================
-const userDataStr = localStorage.getItem('wm_user_data');
+const loggedUser = localStorage.getItem('wm_user') || 'admin@meter.com'; 
+let userName, userRole, userEmail, avatarText, isAdmin;
 
-// ໂລຈິກຄຳນວນ Path ປ້ອງກັນ 404 (Auto Base URL)
-const currentPath = window.location.pathname;
-const base = currentPath.includes('/pages/') ? '../..' : '.';
-
-// ຖ້າບໍ່ໃສ່ຊື່ລັອກອິນ ໃຫ້ເດັ້ງກັບໄປໜ້າ Login
-if (!userDataStr && !currentPath.includes('login.html')) {
-    window.location.replace(base + '/login.html');
+if (loggedUser === 'admin@meter.com' || loggedUser === 'admin@merter.com') {
+    userName = 'ແອດມິນລະບົບ';
+    userRole = 'ຜູ້ບໍລິຫານລະບົບ (Super Admin)';
+    userEmail = 'admin@meter.com';
+    avatarText = 'A';
+    isAdmin = true;
+} else {
+    userName = loggedUser;
+    userRole = 'ພະນັກງານພາກສ່ວນສາງ';
+    userEmail = loggedUser + '@meter.com';
+    avatarText = loggedUser.charAt(0).toUpperCase();
+    isAdmin = false;
 }
 
-const userData = userDataStr ? JSON.parse(userDataStr) : { fullName: 'Unknown', email: '', role: 'technical_staff', permissions: {} };
-const perms = userData.permissions || {};
-const isAdmin = userData.role === 'system_manager' || userData.role === 'super_admin';
-
-// ປ່ຽນຊື່ Role ເປັນພາສາລາວຕາມທີ່ຕັ້ງຄ່າ
-let userRoleText = 'ພະນັກງານວິຊາການ';
-if (userData.role === 'system_manager') userRoleText = 'ຜູ້ຈັດການລະບົບ';
-else if (userData.role === 'department_head') userRoleText = 'ຫົວໜ້າພະແນກ';
-else if (userData.role === 'section_head') userRoleText = 'ຫົວໜ້າພາກສ່ວນ';
-else if (userData.role === 'warehouse_manager') userRoleText = 'ຜູ້ຈັດການສາງ';
-
-const userName = userData.fullName || 'User';
-const userEmail = userData.email || 'user@meter.com';
-const avatarText = userName.charAt(0).toUpperCase();
-
-const adminBadge = isAdmin || userData.role === 'system_manager'
+const adminBadge = isAdmin 
     ? `<span class="inline-flex items-center justify-center ml-2 px-1.5 py-0.5 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded text-[9px] font-extrabold tracking-wider uppercase"><svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg> Admin</span>` 
     : '';
+
+// 🌟 ໂລຈິກຄຳນວນ Path ປ້ອງກັນ 404 (Auto Base URL) 🌟
+const currentPath = window.location.pathname;
+// ຖ້າຢູ່ໂຟນເດີ /pages/ ໃຫ້ຖອຍຫຼັງ 2 ຂັ້ນ (../../), ຖ້າຢູ່ໜ້າແຮກໃຫ້ໃຊ້ (./)
+const base = currentPath.includes('/pages/') ? '../..' : '.';
 
 document.getElementById('sidebar-container').innerHTML = `
 <!-- ແຖບ Sidebar ຫຼັກ -->
@@ -49,45 +45,37 @@ document.getElementById('sidebar-container').innerHTML = `
         </div>
     </div>
 
-    <!-- ເມນູຕ່າງໆ (ປ່ຽນໄປໃຊ້ ${base} ແລະ ອ່ານສິດທິ Perms) -->
+    <!-- ເມນູຕ່າງໆ (ປ່ຽນໄປໃຊ້ ${base} ທັງໝົດ) -->
     <nav class="flex-1 overflow-y-auto py-6 px-3 space-y-1 custom-scrollbar">
         <p class="px-3 text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mb-3">ເມນູຫຼັກ (Main Menu)</p>
 
-        <!-- ໜ້າຫຼັກ -->
-        ${perms.dashboard ? `
         <a href="${base}/index.html" class="nav-link flex items-center px-4 py-3.5 rounded-xl text-slate-400 transition-all duration-300 group active:scale-[0.98] border border-transparent" data-path="/index.html">
             <svg class="w-5 h-5 mr-3 group-hover:translate-x-1 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
             <span class="font-bold text-sm">ໜ້າຫຼັກ (Dashboard)</span>
-        </a>` : ''}
+        </a>
 
-        <!-- ສະຕັອກສິນຄ້າ -->
-        ${perms.inventory ? `
         <a href="${base}/pages/warehouse/inventory.html" class="nav-link flex items-center px-4 py-3.5 rounded-xl text-slate-400 transition-all duration-300 group active:scale-[0.98] border border-transparent" data-path="/inventory.html">
             <svg class="w-5 h-5 mr-3 group-hover:translate-x-1 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
             <span class="font-bold text-sm">ສະຕັອກສິນຄ້າ</span>
-        </a>` : ''}
+        </a>
 
-        <!-- ຮັບເຄື່ອງເຂົ້າສາງ -->
-        ${perms.receive ? `
         <a href="${base}/pages/warehouse/receive-items.html" class="nav-link flex items-center px-4 py-3.5 rounded-xl text-slate-400 transition-all duration-300 group active:scale-[0.98] border border-transparent" data-path="/receive-items.html">
             <svg class="w-5 h-5 mr-3 group-hover:translate-x-1 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
             <span class="font-bold text-sm">ຮັບເຄື່ອງເຂົ້າສາງ</span>
-        </a>` : ''}
+        </a>
 
-        <!-- ຈັດການຜູ້ໃຊ້ລະບົບ (Admin) -->
-        ${perms.manageUsers || isAdmin ? `
+        ${isAdmin ? `
         <p class="px-3 text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mb-3 mt-6">ສຳລັບຜູ້ບໍລິຫານ (Admin)</p>
         <a href="${base}/pages/admin/manage-users.html" class="nav-link flex items-center px-4 py-3.5 rounded-xl text-slate-400 transition-all duration-300 group active:scale-[0.98] border border-transparent" data-path="/manage-users.html">
             <svg class="w-5 h-5 mr-3 group-hover:translate-x-1 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
             <span class="font-bold text-sm">ຈັດການຜູ້ໃຊ້ລະບົບ</span>
-        </a>` : ''}
+        </a>
+        ` : ''}
 
-        <!-- ເບີກຈ່າຍອຸປະກອນ -->
-        ${perms.issue ? `
         <a href="${base}/pages/warehouse/issue-items.html" class="nav-link flex items-center px-4 py-3.5 rounded-xl text-slate-400 transition-all duration-300 group active:scale-[0.98] border border-transparent" data-path="/issue-items.html">
             <svg class="w-5 h-5 mr-3 group-hover:translate-x-1 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
             <span class="font-bold text-sm">ເບີກຈ່າຍອຸປະກອນ</span>
-        </a>` : ''}
+        </a>
 
         <!-- 🟢 ລາຍຊື່ເພື່ອນຮ່ວມງານທີ່ Online (ຈຳລອງ) 🟢 -->
         <div class="mt-8 mb-2">
@@ -99,6 +87,7 @@ document.getElementById('sidebar-container').innerHTML = `
             </div>
             
             <div class="px-2 space-y-1">
+                <!-- User 1 -->
                 <div class="flex items-center p-2 rounded-lg hover:bg-slate-800/50 transition-colors cursor-pointer group">
                     <div class="relative mr-3">
                         <div class="w-8 h-8 rounded-full bg-blue-900 flex items-center justify-center text-blue-200 text-xs font-bold border border-slate-700">ທ</div>
@@ -109,6 +98,7 @@ document.getElementById('sidebar-container').innerHTML = `
                         <p class="text-[10px] text-slate-500">ພາກສະໜາມ</p>
                     </div>
                 </div>
+                <!-- User 2 -->
                 <div class="flex items-center p-2 rounded-lg hover:bg-slate-800/50 transition-colors cursor-pointer group">
                     <div class="relative mr-3">
                         <div class="w-8 h-8 rounded-full bg-purple-900 flex items-center justify-center text-purple-200 text-xs font-bold border border-slate-700">ນ</div>
@@ -140,35 +130,31 @@ document.getElementById('sidebar-container').innerHTML = `
                 <p class="text-sm font-bold text-white group-hover:text-indigo-300 transition-colors flex items-center truncate">
                     ${userName} ${adminBadge}
                 </p>
-                <p class="text-[10.5px] text-slate-400 font-medium truncate">${userRoleText}</p>
+                <p class="text-[10.5px] text-slate-400 font-medium truncate">${userRole}</p>
                 <p class="text-[9px] text-slate-500 font-medium truncate mt-0.5">${userEmail}</p>
             </div>
         </div>
         
-        <button onclick="handleLogout()" class="flex items-center justify-center w-full px-4 py-2.5 bg-rose-500/5 text-rose-500 hover:bg-rose-500 hover:text-white border border-rose-500/20 hover:border-rose-500 rounded-xl transition-all duration-300 group cursor-pointer shadow-sm hover:shadow-[0_0_15px_rgba(244,63,94,0.4)] active:scale-95">
+        <a href="${base}/login.html" onclick="return confirm('ທ່ານຕ້ອງການອອກຈາກລະບົບແທ້ບໍ່?');" class="flex items-center justify-center w-full px-4 py-2.5 bg-rose-500/5 text-rose-500 hover:bg-rose-500 hover:text-white border border-rose-500/20 hover:border-rose-500 rounded-xl transition-all duration-300 group cursor-pointer shadow-sm hover:shadow-[0_0_15px_rgba(244,63,94,0.4)] active:scale-95">
             <svg class="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
             </svg>
             <span class="font-bold text-sm tracking-wide">ອອກຈາກລະບົບ</span>
-        </button>
+        </a>
     </div>
 </aside>
 `;
 
-// ຟັງຊັນອອກຈາກລະບົບ
-window.handleLogout = function() {
-    if(confirm('ທ່ານຕ້ອງການອອກຈາກລະບົບແທ້ບໍ່?')) {
-        localStorage.removeItem('wm_user_data');
-        window.location.replace(`${base}/login.html`);
-    }
-}
-
 // 🌟 ລະບົບ Highlight ເມນູອັດຕະໂນມັດ 🌟
 (function() {
+    const currentLoc = window.location.pathname;
     const navLinks = document.querySelectorAll('.nav-link');
+
     navLinks.forEach(link => {
+        // ໃຊ້ data-path ເພື່ອປຽບທຽບໃຫ້ຖືກຕ້ອງ ບໍ່ວ່າຈະຢູ່ Path ເລິກປານໃດ
         const pathData = link.getAttribute('data-path');
-        if (currentPath.includes(pathData) || (currentPath === '/' && pathData === '/index.html')) {
+        
+        if (currentLoc.includes(pathData) || (currentLoc === '/' && pathData === '/index.html')) {
             link.classList.remove('text-slate-400');
             link.classList.add(
                 'bg-gradient-to-r', 'from-indigo-600/20', 'to-transparent', 
@@ -188,7 +174,7 @@ window.handleLogout = function() {
         clearTimeout(idleTimer);
         idleTimer = setTimeout(() => {
             alert("🔒 ໝົດເວລາການໃຊ້ງານແລ້ວ! ລະບົບໄດ້ລັອກເອົາອັດຕະໂນມັດເພື່ອຄວາມປອດໄພ.");
-            window.location.replace(`${base}/login.html`);
+            window.location.href = `${base}/login.html`;
         }, idleTimeLimit);
     }
     window.onload = resetIdleTimer;
