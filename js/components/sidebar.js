@@ -1,22 +1,23 @@
 // =========================================================================
-// 🧠 ໂລຈິກກວດສອບຜູ້ໃຊ້ & Dynamic Routing (ແກ້ບັນຫາ 404)
+// 🧠 ໂລຈິກກວດສອບຜູ້ໃຊ້ & Dynamic Routing (ຄົບຖ້ວນທຸກຟີເຈີ & ດີໄຊງ໌ເດີມ)
 // =========================================================================
-const loggedUser = localStorage.getItem('wm_user') || 'admin@meter.com'; 
-let userName, userRole, userEmail, avatarText, isAdmin;
+const userDataStr = localStorage.getItem('wm_user_data');
+const userData = userDataStr ? JSON.parse(userDataStr) : { fullName: 'ແອດມິນລະບົບ', email: 'admin@meter.com', role: 'system_manager', permissions: {} };
 
-if (loggedUser === 'admin@meter.com' || loggedUser === 'admin@merter.com') {
-    userName = 'ແອດມິນລະບົບ';
-    userRole = 'ຜູ້ບໍລິຫານລະບົບ (Super Admin)';
-    userEmail = 'admin@meter.com';
-    avatarText = 'A';
-    isAdmin = true;
-} else {
-    userName = loggedUser;
-    userRole = 'ພະນັກງານພາກສ່ວນສາງ';
-    userEmail = loggedUser + '@meter.com';
-    avatarText = loggedUser.charAt(0).toUpperCase();
-    isAdmin = false;
-}
+const userName = userData.fullName || 'ແອດມິນລະບົບ';
+const userEmail = userData.email || 'admin@meter.com';
+const role = userData.role || 'system_manager';
+
+const isAdmin = userEmail.includes('admin') || role === 'system_manager' || role === 'super_admin';
+
+// ປ່ຽນຊື່ Role ເປັນພາສາລາວຕາມທີ່ຕັ້ງຄ່າ
+let userRole = 'ພະນັກງານວິຊາການ';
+if (role === 'system_manager' || isAdmin) userRole = 'ຜູ້ບໍລິຫານລະບົບ (Super Admin)';
+else if (role === 'department_head') userRole = 'ຫົວໜ້າພະແນກ';
+else if (role === 'section_head') userRole = 'ຫົວໜ້າພາກສ່ວນ';
+else if (role === 'warehouse_manager') userRole = 'ຜູ້ຈັດການສາງ';
+
+const avatarText = userName.charAt(0).toUpperCase();
 
 const adminBadge = isAdmin 
     ? `<span class="inline-flex items-center justify-center ml-2 px-1.5 py-0.5 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded text-[9px] font-extrabold tracking-wider uppercase"><svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg> Admin</span>` 
@@ -24,7 +25,6 @@ const adminBadge = isAdmin
 
 // 🌟 ໂລຈິກຄຳນວນ Path ປ້ອງກັນ 404 (Auto Base URL) 🌟
 const currentPath = window.location.pathname;
-// ຖ້າຢູ່ໂຟນເດີ /pages/ ໃຫ້ຖອຍຫຼັງ 2 ຂັ້ນ (../../), ຖ້າຢູ່ໜ້າແຮກໃຫ້ໃຊ້ (./)
 const base = currentPath.includes('/pages/') ? '../..' : '.';
 
 document.getElementById('sidebar-container').innerHTML = `
@@ -45,7 +45,7 @@ document.getElementById('sidebar-container').innerHTML = `
         </div>
     </div>
 
-    <!-- ເມນູຕ່າງໆ (ປ່ຽນໄປໃຊ້ ${base} ທັງໝົດ) -->
+    <!-- ເມນູຕ່າງໆ -->
     <nav class="flex-1 overflow-y-auto py-6 px-3 space-y-1 custom-scrollbar">
         <p class="px-3 text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mb-3">ເມນູຫຼັກ (Main Menu)</p>
 
@@ -77,7 +77,7 @@ document.getElementById('sidebar-container').innerHTML = `
             <span class="font-bold text-sm">ເບີກຈ່າຍອຸປະກອນ</span>
         </a>
 
-        <!-- 🟢 ລາຍຊື່ເພື່ອນຮ່ວມງານທີ່ Online (ຈຳລອງ) 🟢 -->
+        <!-- 🟢 ລາຍຊື່ເພື່ອນຮ່ວມງານທີ່ Online 🟢 -->
         <div class="mt-8 mb-2">
             <div class="flex items-center justify-between px-3 mb-3">
                 <p class="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest">ທີມງານທີ່ອອນໄລນ໌</p>
@@ -87,7 +87,6 @@ document.getElementById('sidebar-container').innerHTML = `
             </div>
             
             <div class="px-2 space-y-1">
-                <!-- User 1 -->
                 <div class="flex items-center p-2 rounded-lg hover:bg-slate-800/50 transition-colors cursor-pointer group">
                     <div class="relative mr-3">
                         <div class="w-8 h-8 rounded-full bg-blue-900 flex items-center justify-center text-blue-200 text-xs font-bold border border-slate-700">ທ</div>
@@ -98,7 +97,6 @@ document.getElementById('sidebar-container').innerHTML = `
                         <p class="text-[10px] text-slate-500">ພາກສະໜາມ</p>
                     </div>
                 </div>
-                <!-- User 2 -->
                 <div class="flex items-center p-2 rounded-lg hover:bg-slate-800/50 transition-colors cursor-pointer group">
                     <div class="relative mr-3">
                         <div class="w-8 h-8 rounded-full bg-purple-900 flex items-center justify-center text-purple-200 text-xs font-bold border border-slate-700">ນ</div>
@@ -135,7 +133,7 @@ document.getElementById('sidebar-container').innerHTML = `
             </div>
         </div>
         
-        <a href="${base}/login.html" onclick="return confirm('ທ່ານຕ້ອງການອອກຈາກລະບົບແທ້ບໍ່?');" class="flex items-center justify-center w-full px-4 py-2.5 bg-rose-500/5 text-rose-500 hover:bg-rose-500 hover:text-white border border-rose-500/20 hover:border-rose-500 rounded-xl transition-all duration-300 group cursor-pointer shadow-sm hover:shadow-[0_0_15px_rgba(244,63,94,0.4)] active:scale-95">
+        <a href="${base}/login.html" onclick="localStorage.removeItem('wm_user_data'); return confirm('ທ່ານຕ້ອງການອອກຈາກລະບົບແທ້ບໍ່?');" class="flex items-center justify-center w-full px-4 py-2.5 bg-rose-500/5 text-rose-500 hover:bg-rose-500 hover:text-white border border-rose-500/20 hover:border-rose-500 rounded-xl transition-all duration-300 group cursor-pointer shadow-sm hover:shadow-[0_0_15px_rgba(244,63,94,0.4)] active:scale-95">
             <svg class="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
             </svg>
@@ -151,9 +149,7 @@ document.getElementById('sidebar-container').innerHTML = `
     const navLinks = document.querySelectorAll('.nav-link');
 
     navLinks.forEach(link => {
-        // ໃຊ້ data-path ເພື່ອປຽບທຽບໃຫ້ຖືກຕ້ອງ ບໍ່ວ່າຈະຢູ່ Path ເລິກປານໃດ
         const pathData = link.getAttribute('data-path');
-        
         if (currentLoc.includes(pathData) || (currentLoc === '/' && pathData === '/index.html')) {
             link.classList.remove('text-slate-400');
             link.classList.add(
@@ -166,13 +162,14 @@ document.getElementById('sidebar-container').innerHTML = `
     });
 })();
 
-// 🔒 ລະບົບ Auto Logout
+// 🔒 ລະບົບ Auto Logout (120 ນາທີ)
 (function() {
     let idleTimer;
-    const idleTimeLimit = 5 * 60 * 1000; 
+    const idleTimeLimit = 120 * 60 * 1000; 
     function resetIdleTimer() {
         clearTimeout(idleTimer);
         idleTimer = setTimeout(() => {
+            localStorage.removeItem('wm_user_data');
             alert("🔒 ໝົດເວລາການໃຊ້ງານແລ້ວ! ລະບົບໄດ້ລັອກເອົາອັດຕະໂນມັດເພື່ອຄວາມປອດໄພ.");
             window.location.href = `${base}/login.html`;
         }, idleTimeLimit);
