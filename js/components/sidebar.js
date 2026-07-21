@@ -162,22 +162,26 @@ document.getElementById('sidebar-container').innerHTML = `
     });
 })();
 
-// 🔒 ລະບົບ Auto Logout (120 ນາທີ)
+// 🔒 ລະບົບ Auto Logout (Idle Timeout 5 ນາທີ)
 (function() {
     let idleTimer;
-    const idleTimeLimit = 120 * 60 * 1000; 
+    const idleTimeLimit = 5 * 60 * 1000; // 5 ນາທີ 
+    
     function resetIdleTimer() {
         clearTimeout(idleTimer);
         idleTimer = setTimeout(() => {
             localStorage.removeItem('wm_user_data');
-            alert("🔒 ໝົດເວລາການໃຊ້ງານແລ້ວ! ລະບົບໄດ້ລັອກເອົາອັດຕະໂນມັດເພື່ອຄວາມປອດໄພ.");
-            window.location.href = `${base}/login.html`;
+            alert("🔒 ໝົດເວລາການໃຊ້ງານ 5 ນາທີ! ລະບົບໄດ້ລັອກເອົາອັດຕະໂນມັດເພື່ອຄວາມປອດໄພ.");
+            window.location.replace(`${base}/login.html`);
         }, idleTimeLimit);
     }
-    window.onload = resetIdleTimer;
-    document.onmousemove = resetIdleTimer;
-    document.onkeypress = resetIdleTimer;
-    document.onmousedown = resetIdleTimer; 
-    document.ontouchstart = resetIdleTimer; 
-    document.onscroll = resetIdleTimer;
+
+    // ໃຊ້ Event Listeners ແບບ Passive ເພື່ອລົດການກິນຊັບພະຍາກອນ (Performance Optimization)
+    const events = ['mousemove', 'keydown', 'mousedown', 'touchstart', 'scroll'];
+    events.forEach(event => {
+        window.addEventListener(event, resetIdleTimer, { passive: true });
+    });
+
+    // Initialize
+    resetIdleTimer();
 })();
