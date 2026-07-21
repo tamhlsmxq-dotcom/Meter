@@ -100,7 +100,7 @@
                 ອີເມວ ຫຼື ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ!
             </div>
 
-            <!-- ປຸ່ມ Login ປ່ຽນເປັນ type="submit" -->
+            <!-- ປຸ່ມ Login -->
             <button type="submit" id="btnLogin" class="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 flex justify-center items-center group">
                 <span id="btnText">ເຂົ້າສູ່ລະບົບ</span>
                 <svg id="btnIcon" class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
@@ -108,16 +108,16 @@
         </form>
     </div>
 
-    <!-- Script ສຳລັບ Firebase Auth -->
+    <!-- 🟢 Script ໂຕໃໝ່ລ່າສຸດ ທີ່ດຶງສິດທິຈາກ Firestore ໄດ້ 🟢 -->
     <script type="module">
-        import { auth } from './firebase-config.js';
+        import { auth, db } from './firebase-config.js';
         import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // ຟັງຊັນເປີດ-ປິດ ຕາເບິ່ງລະຫັດຜ່ານ (ຍັງຮັກສາຂອງເກົ່າໄວ້)
+        // ຟັງຊັນເປີດ-ປິດ ຕາເບິ່ງລະຫັດຜ່ານ
         window.togglePassword = function() {
             const pwdInput = document.getElementById('password');
             const eyeIcon = document.getElementById('eye-icon');
-            
             if (pwdInput.type === 'password') {
                 pwdInput.type = 'text';
                 eyeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.29 3.293M3 3l18 18" />`;
@@ -134,9 +134,9 @@
 
         // ເມື່ອໂຫຼດໜ້າຂຶ້ນມາ ໃຫ້ດຶງອີເມວທີ່ເຄີຍຈື່ໄວ້ມາສະແດງ
         document.addEventListener("DOMContentLoaded", function() {
-            const savedUser = localStorage.getItem('wm_user');
-            if(savedUser) {
-                document.getElementById('email').value = savedUser;
+            const savedEmail = localStorage.getItem('wm_user_email');
+            if(savedEmail) {
+                document.getElementById('email').value = savedEmail;
                 document.getElementById('rememberMe').checked = true;
             }
         });
@@ -144,45 +144,67 @@
         // ເມື່ອກົດປຸ່ມເຂົ້າສູ່ລະບົບ (Submit Form)
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault(); 
-            
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const rememberMe = document.getElementById('rememberMe').checked;
 
-            // ປ່ຽນສະຖານະປຸ່ມເປັນກຳລັງໂຫຼດ
             btnText.innerText = 'ກຳລັງກວດສອບ...';
             btnLogin.disabled = true;
             btnLogin.classList.add('opacity-75', 'cursor-not-allowed');
             errorMessage.classList.add('hidden');
 
             try {
-                // ລັອກອິນຜ່ານ Firebase ຂອງແທ້ 🚀
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                // 1. ກວດສອບລະຫັດຜ່ານຜ່ານ Auth
+                await signInWithEmailAndPassword(auth, email, password);
                 
-                // ຈັດການເລື່ອງ "ຈື່ຂ້ອຍໄວ້"
-                if(rememberMe) {
-                    localStorage.setItem('wm_user', email);
-                } else {
-                    localStorage.removeItem('wm_user');
+                // 2. ດຶງຂໍ້ມູນສິດທິຈາກ Firestore (Users table)
+                const q = query(collection(db, "users"), where("email", "==", email));
+                const querySnapshot = await getDocs(q);
+                
+                // ຄ່າເລີ່ມຕົ້ນສຳລັບພະນັກງານທົ່ວໄປ (ຖ້າບໍ່ພົບຂໍ້ມູນໃນຖານ)
+                let userData = { 
+                    email: email, 
+                    fullName: email, 
+                    role: 'staff', 
+                    permissions: { dashboard: true, inventory: false, receive: false, issue: false, manageUsers: false } 
+                };
+
+                if (!querySnapshot.empty) {
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        userData.fullName = data.fullName || email;
+                        userData.role = data.role || 'staff';
+                        // ດຶງສິດທິທີ່ຕິກໄວ້ໃນຕາຕະລາງມາໃຊ້
+                        if (data.permissions) { userData.permissions = data.permissions; }
+                        
+                        // ຖ້າເປັນ admin ໃຫ້ສິດທຸກຢ່າງອັດຕະໂນມັດ (ປ້ອງກັນແອດມິນລືມຕິກໃຫ້ໂຕເອງ)
+                        if (data.role === 'super_admin' || data.role === 'system_manager') {
+                            userData.permissions = { dashboard: true, inventory: true, receive: true, issue: true, manageUsers: true };
+                        }
+                    });
+                } else if (email.includes('admin')) {
+                    // ກໍລະນີສຸກເສີນ: ຖ້າບັນຊີແອດມິນບໍ່ມີໃນຖານຂໍ້ມູນ ໃຫ້ສິດພິເສດໄປກ່ອນ
+                    userData.role = 'system_manager';
+                    userData.permissions = { dashboard: true, inventory: true, receive: true, issue: true, manageUsers: true };
+                }
+
+                // 3. ບັນທຶກຂໍ້ມູນທັງໝົດລົງເຄື່ອງ ເພື່ອໃຫ້ sidebar ເອົາໄປໃຊ້ງານຕໍ່
+                localStorage.setItem('wm_user_data', JSON.stringify(userData));
+                
+                if(rememberMe) { 
+                    localStorage.setItem('wm_user_email', email); 
+                } else { 
+                    localStorage.removeItem('wm_user_email'); 
                 }
                 
                 // ລັອກອິນສຳເລັດ ໂດດໄປໜ້າ Dashboard
                 window.location.href = 'index.html';
 
             } catch (error) {
-                console.error("Login Error:", error.code);
+                console.error("Login Error:", error);
                 errorMessage.classList.remove('hidden');
+                errorMessage.innerText = '❌ ອີເມວ ຫຼື ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ!';
                 
-                // ສະແດງຂໍ້ຄວາມ Error ໃຫ້ເຂົ້າໃຈງ່າຍ
-                if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-                    errorMessage.innerText = '❌ ອີເມວ ຫຼື ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ!';
-                } else if (error.code === 'auth/too-many-requests') {
-                    errorMessage.innerText = '❌ ໃສ່ຜິດຫຼາຍຄັ້ງເກີນໄປ. ກະລຸນາລໍຖ້າຈັກໜ່ອຍ.';
-                } else {
-                    errorMessage.innerText = '❌ ເກີດຂໍ້ຜິດພາດ: ' + error.message;
-                }
-            } finally {
-                // ຖ້າລັອກອິນບໍ່ຜ່ານ ໃຫ້ປຸ່ມກັບມາເປັນຄືເກົ່າ
                 btnText.innerText = 'ເຂົ້າສູ່ລະບົບ';
                 btnLogin.disabled = false;
                 btnLogin.classList.remove('opacity-75', 'cursor-not-allowed');
