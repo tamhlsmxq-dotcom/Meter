@@ -47,17 +47,32 @@
             <h3 class="text-base font-bold text-slate-800 mb-4 border-l-4 border-emerald-500 pl-3">ຂໍ້ມູນເອກະສານອ້າງອີງ</h3>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-2">ເລກທີໃບຮັບເຄື່ອງ <span class="text-rose-500">*</span></label>
-                    <input type="text" id="docRef" placeholder="ຕົວຢ່າງ: REC-2607-001" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/50 outline-none uppercase font-bold text-slate-700">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block text-xs font-bold text-slate-600">ເລກທີໃບຮັບເຄື່ອງ <span id="req-docRef" class="text-rose-500">*</span></label>
+                        <label class="flex items-center space-x-1 cursor-pointer" title="ຕິກເພື່ອປິດການນຳໃຊ້ຫ້ອງນີ້ຊົ່ວຄາວ">
+                            <input type="checkbox" id="skipDocRef" onchange="toggleFieldState('docRef', this.checked)" class="w-3.5 h-3.5 rounded border-slate-300 text-slate-400 focus:ring-slate-400">
+                            <span class="text-[10px] font-bold text-slate-400">ບໍ່ລະບຸ</span>
+                        </label>
+                    </div>
+                    <input type="text" id="docRef" placeholder="ຕົວຢ່າງ: REC-2607-001" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/50 outline-none uppercase font-bold text-slate-700 transition-all">
                 </div>
+                
                 <div>
                     <label class="block text-xs font-bold text-slate-600 mb-2">ວັນທີຮັບເຄື່ອງ <span class="text-rose-500">*</span></label>
                     <input type="date" id="receiveDate" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/50 outline-none">
                 </div>
+                
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-2">ຜູ້ສະໜອງ / ບໍລິສັດ <span class="text-rose-500">*</span></label>
-                    <input type="text" id="supplierName" placeholder="ຊື່ຮ້ານຄ້າ ຫຼື ບໍລິສັດທີ່ສົ່ງເຄື່ອງ" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/50 outline-none">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block text-xs font-bold text-slate-600">ຜູ້ສະໜອງ / ບໍລິສັດ <span id="req-supplierName" class="text-rose-500">*</span></label>
+                        <label class="flex items-center space-x-1 cursor-pointer" title="ຕິກເພື່ອປິດການນຳໃຊ້ຫ້ອງນີ້ຊົ່ວຄາວ">
+                            <input type="checkbox" id="skipSupplier" onchange="toggleFieldState('supplierName', this.checked)" class="w-3.5 h-3.5 rounded border-slate-300 text-slate-400 focus:ring-slate-400">
+                            <span class="text-[10px] font-bold text-slate-400">ບໍ່ລະບຸ</span>
+                        </label>
+                    </div>
+                    <input type="text" id="supplierName" placeholder="ຊື່ຮ້ານຄ້າ ຫຼື ບໍລິສັດທີ່ສົ່ງເຄື່ອງ" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/50 outline-none transition-all">
                 </div>
+                
                 <div>
                     <label class="block text-xs font-bold text-slate-600 mb-2">ຜູ້ຮັບເຄື່ອງ (ພະນັກງານ)</label>
                     <input type="text" id="receiverName" disabled class="w-full p-2.5 border border-slate-200 bg-slate-50 rounded-xl text-sm font-bold text-emerald-700 cursor-not-allowed">
@@ -104,8 +119,6 @@
         const userDataStr = localStorage.getItem('wm_user_data');
         const userData = userDataStr ? JSON.parse(userDataStr) : {};
         document.getElementById('receiverName').value = userData.fullName || 'ແອດມິນລະບົບ';
-        
-        // ຕັ້ງຄ່າວັນທີເລີ່ມຕົ້ນໃຫ້ເປັນມື້ນີ້
         document.getElementById('receiveDate').valueAsDate = new Date();
 
         // 2. ຕົວແປເກັບຂໍ້ມູນ Master Data ຈາກສະຕັອກ
@@ -116,11 +129,10 @@
             try {
                 const snap = await getDocs(collection(db, "materials"));
                 const datalist = document.getElementById('materialsList');
-                datalist.innerHTML = ''; // ລ້າງຂໍ້ມູນເກົ່າ
+                datalist.innerHTML = ''; 
 
                 snap.forEach(doc => {
                     const data = doc.data();
-                    // ເກັບໄວ້ໃນ Array ເພື່ອເອົາໄວ້ຄົ້ນຫາຊື່
                     masterMaterials.push({
                         id: doc.id,
                         itemCode: data.itemCode,
@@ -128,23 +140,40 @@
                         unit: data.unit || 'ອັນ'
                     });
 
-                    // ສ້າງຕົວເລືອກໃຫ້ Datalist (ເວລາພິມລະຫັດຈະເຫັນຊື່ນຳ)
                     const option = document.createElement('option');
                     option.value = data.itemCode;
                     option.textContent = data.itemName;
                     datalist.appendChild(option);
                 });
 
-                // ເມື່ອໂຫຼດຂໍ້ມູນສຳເລັດ ໃຫ້ສ້າງແຖວທຳອິດຖ້າຫາກຍັງບໍ່ມີ
                 if(document.getElementById('receiveTableBody').children.length === 0) {
                     addTableRow();
                 }
 
             } catch (error) {
                 console.error("Error loading materials: ", error);
-                alert("ບໍ່ສາມາດໂຫຼດລາຍຊື່ວັດຖຸໄດ້. ກະລຸນາກວດສອບອິນເຕີເນັດ.");
             }
         }
+
+        // 🟢 ຟັງຊັນສຳລັບປິດ/ເປີດ ຫ້ອງຂໍ້ມູນ (ຕິກສີເທົາ) 🟢
+        window.toggleFieldState = function(fieldId, isSkipped) {
+            const input = document.getElementById(fieldId);
+            const reqStar = document.getElementById('req-' + fieldId);
+            if (isSkipped) {
+                // ເມື່ອຕິກປິດ
+                input.disabled = true;
+                input.value = '';
+                input.classList.add('bg-slate-100', 'text-slate-400', 'cursor-not-allowed', 'border-dashed');
+                input.classList.remove('focus:ring-2', 'focus:ring-emerald-500/50');
+                if(reqStar) reqStar.style.display = 'none';
+            } else {
+                // ເມື່ອຕິກເປີດໃຊ້ງານຄືນ
+                input.disabled = false;
+                input.classList.remove('bg-slate-100', 'text-slate-400', 'cursor-not-allowed', 'border-dashed');
+                input.classList.add('focus:ring-2', 'focus:ring-emerald-500/50');
+                if(reqStar) reqStar.style.display = 'inline';
+            }
+        };
 
         // 4. ຟັງຊັນສ້າງແຖວໃໝ່
         window.addTableRow = function() {
@@ -153,12 +182,12 @@
             const tr = document.createElement('tr');
             tr.className = "hover:bg-slate-50 transition-colors receive-row";
             
-            // ສັງເກດ input ລະຫັດວັດຖຸ ຈະໃຊ້ list="materialsList" ເພື່ອດຶງ Auto-complete
             tr.innerHTML = `
                 <td class="p-3 text-center font-bold text-slate-400 row-number">${rowCount}</td>
                 <td class="p-3">
                     <input type="text" list="materialsList" onchange="autoFillItemDetails(this)" placeholder="ພິມລະຫັດ..." class="input-code w-full p-2 border border-slate-300 rounded-lg text-sm focus:ring-1 focus:ring-emerald-500 outline-none uppercase font-bold text-indigo-600">
-                    <input type="hidden" class="input-doc-id"> </td>
+                    <input type="hidden" class="input-doc-id">
+                </td>
                 <td class="p-3">
                     <div class="flex items-center">
                         <input type="text" disabled placeholder="ເລືອກລະຫັດກ່ອນ" class="input-name w-full p-2 border border-transparent bg-transparent text-sm font-medium text-slate-700">
@@ -190,18 +219,15 @@
             const unitSpan = row.querySelector('.input-unit');
             const docIdInput = row.querySelector('.input-doc-id');
 
-            // ຊອກຫາລະຫັດໃນ Master Data ທີ່ເຮົາໂຫຼດມາໄວ້
             const matchedItem = masterMaterials.find(m => m.itemCode.toUpperCase() === code);
 
             if (matchedItem) {
-                // ຖ້າພົບ ກໍດຶງຊື່ ແລະ ຫົວໜ່ວຍມາສະແດງ
                 nameInput.value = matchedItem.itemName;
                 unitSpan.textContent = matchedItem.unit;
-                docIdInput.value = matchedItem.id; // ສຳຄັນ: ເກັບ ID ເພື່ອເອົາໄປຕັດສະຕັອກ
+                docIdInput.value = matchedItem.id; 
                 inputElement.classList.remove('border-rose-400', 'text-rose-500');
                 inputElement.classList.add('border-emerald-400', 'text-emerald-700');
             } else {
-                // ຖ້າບໍ່ພົບ (ພິມຜິດ)
                 nameInput.value = 'ບໍ່ພົບລະຫັດນີ້ໃນລະບົບ!';
                 unitSpan.textContent = '-';
                 docIdInput.value = '';
@@ -230,14 +256,20 @@
         // 7. 🟢 ຟັງຊັນບັນທຶກ ແລະ ຕັດສະຕັອກ (Batch Write) 🟢
         window.saveReceiveData = async function() {
             const btn = document.getElementById('btnSaveReceive');
-            const docRefVal = document.getElementById('docRef').value.trim();
+            
+            // ກວດສອບສະຖານະການຕິກ ບໍ່ລະບຸ
+            const skipDocRef = document.getElementById('skipDocRef').checked;
+            const skipSupplier = document.getElementById('skipSupplier').checked;
+
+            // ຖ້າຕິກບໍ່ລະບຸ ໃຫ້ສົ່ງຄ່າເປັນ '-' ແທນ
+            const docRefVal = skipDocRef ? '-' : document.getElementById('docRef').value.trim();
+            const supplierVal = skipSupplier ? '-' : document.getElementById('supplierName').value.trim();
             const dateVal = document.getElementById('receiveDate').value;
-            const supplierVal = document.getElementById('supplierName').value.trim();
             const receiverVal = document.getElementById('receiverName').value;
 
             // ກວດສອບຂໍ້ມູນເອກະສານ
             if (!docRefVal || !dateVal || !supplierVal) {
-                return alert("ກະລຸນາປ້ອນ ຂໍ້ມູນເອກະສານອ້າງອີງ ໃຫ້ຄົບຖ້ວນ!");
+                return alert("ກະລຸນາປ້ອນ ຂໍ້ມູນເອກະສານອ້າງອີງ ໃຫ້ຄົບຖ້ວນ (ຫຼື ຕິກ 'ບໍ່ລະບຸ')!");
             }
 
             const rows = document.querySelectorAll('.receive-row');
@@ -274,12 +306,10 @@
             if (hasError) return;
             if (itemsToReceive.length === 0) return alert("ກະລຸນາເພີ່ມຢ່າງໜ້ອຍ 1 ລາຍການອຸປະກອນ!");
 
-            // 🟢 ເລີ່ມບັນທຶກລົງ Firebase 🟢
             btn.disabled = true;
             btn.innerHTML = 'ກຳລັງບັນທຶກ...';
 
             try {
-                // ໃຊ້ WriteBatch ເພື່ອບັນທຶກປະຫວັດ + ອັບເດດສະຕັອກ ໄປພ້ອມກັນ
                 const batch = writeBatch(db);
 
                 // 1. ສ້າງປະຫວັດການຮັບເຄື່ອງ (Receipt History)
@@ -297,7 +327,6 @@
                 // 2. ອັບເດດຍອດສະຕັອກ (Inventory)
                 itemsToReceive.forEach(item => {
                     const materialRef = doc(db, "materials", item.materialDocId);
-                    // ໃຊ້ຄຳສັ່ງ increment ເພື່ອບວກຍອດເຂົ້າໄປໃນຂອງເກົ່າຢ່າງປອດໄພ
                     batch.update(materialRef, { 
                         stockQuantity: increment(item.quantity) 
                     });
@@ -311,6 +340,13 @@
                 // ລ້າງໜ້າຈໍເພື່ອກຽມຮັບບິນໃໝ່
                 document.getElementById('docRef').value = '';
                 document.getElementById('supplierName').value = '';
+                
+                // ປົດຕິກໃຫ້ກັບມາເປັນປົກກະຕິ
+                document.getElementById('skipDocRef').checked = false;
+                document.getElementById('skipSupplier').checked = false;
+                window.toggleFieldState('docRef', false);
+                window.toggleFieldState('supplierName', false);
+
                 document.getElementById('receiveTableBody').innerHTML = '';
                 addTableRow();
 
@@ -323,7 +359,6 @@
             }
         };
 
-        // ໂຫຼດລາຍຊື່ສິນຄ້າທັນທີທີ່ເປີດໜ້ານີ້
         loadMaterialsForAutocomplete();
 
     </script>
