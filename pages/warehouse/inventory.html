@@ -64,9 +64,14 @@
                     ສະຫຼຸບສາງທັງໝົດ
                 </button>
                 
+                <button id="btnAutoImport" onclick="autoImportData()" style="display: none;" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold py-2.5 px-4 rounded-xl shadow-[0_4px_14px_0_rgb(16,185,129,0.39)] hover:shadow-[0_6px_20px_rgba(16,185,129,0.23)] active:scale-95 transition-all duration-200 items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                    ດຶງຂໍ້ມູນຕົວຈິງເຂົ້າລະບົບ
+                </button>
+
                 <button id="btnAddMaterial" onclick="toggleModal('materialModal', true)" style="display: none;" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold py-2.5 px-5 rounded-xl shadow-[0_4px_14px_0_rgb(79,70,229,0.39)] hover:shadow-[0_6px_20px_rgba(79,70,229,0.23)] active:scale-95 transition-all duration-200 items-center">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
-                    ເພີ່ມວັດຖຸໃໝ່ (Master)
+                    ເພີ່ມວັດຖຸໃໝ່
                 </button>
             </div>
         </div>
@@ -170,13 +175,11 @@
                     <p class="text-xs text-slate-500 font-bold mb-1">ກຳລັງຕັ້ງຄ່າໃຫ້ກັບອຸປະກອນ:</p>
                     <p class="font-bold text-violet-700 text-base" id="configItemName">-</p>
                 </div>
-                
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-2">ແຈ້ງເຕືອນ (ສີເຫຼືອງ) ເມື່ອເຄື່ອງເຫຼືອໜ້ອຍກວ່າ ຫຼື ເທົ່າກັບ:</label>
                     <div class="flex items-center">
                         <input type="number" id="configMinStock" class="w-full p-3 border-2 border-violet-200 rounded-lg text-lg font-bold text-violet-700 outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 text-center" placeholder="15">
                     </div>
-                    <p class="text-[10px] text-slate-500 mt-2 text-center">* ຕົວເລກນີ້ຈະຊ່ວຍແຈ້ງເຕືອນໃຫ້ນາຍສາງຮູ້ວ່າຮອດເວລາສັ່ງຊື້ແລ້ວ</p>
                 </div>
             </div>
             <div class="bg-slate-50 p-4 border-t border-slate-200 flex justify-end space-x-3">
@@ -189,7 +192,7 @@
     <div id="monthlyReportModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-start justify-center p-4 overflow-y-auto modal-backdrop transition-all duration-300">
         <div class="bg-slate-200 rounded-xl w-full max-w-6xl my-8 flex flex-col shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] border-[6px] border-slate-400 modal-animate">
             <div class="bg-slate-800 p-4 rounded-t-sm flex flex-wrap gap-4 justify-between items-center text-white sticky top-0 z-10 shadow-lg">
-                <h3 class="font-bold text-base flex items-center"><svg class="w-5 h-5 mr-2 text-violet-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg> ບົດສະຫຼຸບການດັດແກ້ປະຈຳເດືອນ</h3>
+                <h3 class="font-bold text-base flex items-center"><svg class="w-5 h-5 mr-2 text-violet-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg> ບົດສະຫຼຸບການດັດແກ້ປະຈຳເດືອນ</h3>
                 <div class="flex items-center space-x-2">
                     <button onclick="printSection('printable-monthly-area')" class="bg-slate-600 hover:bg-slate-500 border border-slate-500 text-white px-4 py-2 rounded font-bold flex items-center text-xs shadow-sm hover:shadow-md active:scale-95 transition-all">ພິມເອກະສານ (Print)</button>
                     <button onclick="toggleModal('monthlyReportModal', false)" class="hover:bg-rose-500 p-2 rounded transition-colors bg-slate-700 active:scale-90"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg></button>
@@ -285,9 +288,7 @@
             toggleModal('editModal', true);
         }
 
-        // Global variable ເກັບໄອດີຂອງແຖວທີ່ກຳລັງຈະຕັ້ງຄ່າແຈ້ງເຕືອນ
         let currentAlertDocId = null;
-
         function openAlertConfig(docId, itemName, currentMin) {
             currentAlertDocId = docId;
             document.getElementById('configItemName').innerText = itemName;
@@ -298,7 +299,7 @@
 
     <script type="module">
         import { db } from '../../firebase-config.js';
-        import { collection, addDoc, getDocs, query, orderBy, serverTimestamp, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { collection, addDoc, getDocs, query, orderBy, serverTimestamp, doc, updateDoc, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // 🔒 RBAC: ກວດສອບສິດທິແອດມິນ
         const userDataStr = localStorage.getItem('wm_user_data');
@@ -307,6 +308,7 @@
 
         if (isAdmin) {
             document.getElementById('btnAddMaterial').style.display = 'flex';
+            document.getElementById('btnAutoImport').style.display = 'flex'; // ເປີດປຸ່ມນຳເຂົ້າຂໍ້ມູນສະເພາະ Admin
         }
 
         // 🟢 ໂຫຼດຂໍ້ມູນວັດຖຸຈາກ Firebase 🟢
@@ -320,24 +322,21 @@
                 let total = 0, low = 0, out = 0;
 
                 if (querySnapshot.empty) {
-                    tableBody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-400">ຍັງບໍ່ມີລາຍການອຸປະກອນໃນລະບົບ.</td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-400">ຍັງບໍ່ມີລາຍການອຸປະກອນໃນລະບົບ. ກະລຸນາກົດປຸ່ມ "ດຶງຂໍ້ມູນຕົວຈິງເຂົ້າລະບົບ" ດ້ານເທິງ.</td></tr>';
                     document.getElementById('countTotal').innerText = '0';
                     return;
                 }
 
                 querySnapshot.forEach((docSnap) => {
                     const data = docSnap.data();
-                    const docId = docSnap.id; // ເອົາ ID ສຳລັບອັບເດດ
+                    const docId = docSnap.id; 
                     const stock = data.stockQuantity || 0;
                     const cat = data.category || '';
                     const name = data.itemName || '';
                     
                     total++;
-                    
-                    // ດຶງຄ່າ "ຈຸດແຈ້ງເຕືອນ" ຈາກຖານຂໍ້ມູນ (ຖ້າບໍ່ມີໃຫ້ເລີ່ມຕົ້ນທີ່ 15)
                     const minThreshold = data.minThreshold !== undefined ? data.minThreshold : 15;
 
-                    // ກຳນົດສະຖານະ ແລະ CSS
                     let statusKey = 'ready';
                     let qtyColor = 'text-slate-800';
                     let statusBg = 'bg-emerald-100 text-emerald-700 border-emerald-200';
@@ -363,7 +362,6 @@
                     tr.className = `${rowClass} transition-all duration-200 inventory-row`;
                     tr.setAttribute('data-status', statusKey);
                     
-                    // 🟢 ສ້າງປຸ່ມ Action (ແອດມິນຈະເຫັນປຸ່ມກະດິ່ງເພີ່ມຂຶ້ນມາ)
                     let actionButtons = `
                         <button onclick="openEditMock('${data.itemCode}', '${name}', ${stock})" class="p-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-100 active:scale-90 transition-all" title="ແກ້ໄຂຍອດ"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
                     `;
@@ -378,11 +376,7 @@
                         <td class="p-4 font-medium text-slate-800">${name} <span class="block text-xs text-slate-500 font-normal">${cat}</span></td>
                         <td class="p-4 text-center"><span class="font-bold ${qtyColor}">${stock}</span> <span class="text-slate-600">${data.unit}</span></td>
                         <td class="p-4 text-center"><span class="px-3 py-1 ${statusBg} rounded-full text-[11px] font-bold border whitespace-nowrap">${statusText}</span></td>
-                        <td class="p-4 text-center">
-                            <div class="flex justify-center items-center">
-                                ${actionButtons}
-                            </div>
-                        </td>
+                        <td class="p-4 text-center"><div class="flex justify-center items-center">${actionButtons}</div></td>
                     `;
                     tableBody.appendChild(tr);
                 });
@@ -397,7 +391,7 @@
             }
         }
 
-        // 🟢 ຟັງຊັນບັນທຶກວັດຖຸໃໝ່ (ບໍ່ຕ້ອງມີຫ້ອງແຈ້ງເຕືອນແລ້ວ) 🟢
+        // 🟢 ຟັງຊັນບັນທຶກວັດຖຸໃໝ່ (Manual) 🟢
         window.saveMaterial = async function() {
             if (!isAdmin) return alert("⛔ ຂໍອະໄພ, ສະເພາະ Admin ເທົ່ານັ້ນ!");
 
@@ -412,28 +406,16 @@
             btn.disabled = true; btn.innerHTML = 'ກຳລັງບັນທຶກ...';
 
             try {
-                // ບັນທຶກຂໍ້ມູນທັງໝົດ ໂດຍໃຫ້ minThreshold ເປັນ 15 ຄ່າເລີ່ມຕົ້ນ
                 await addDoc(collection(db, "materials"), {
-                    itemCode: code,
-                    itemName: name,
-                    category: category,
-                    unit: unit,
-                    minThreshold: 15, 
-                    stockQuantity: 0, 
-                    createdAt: serverTimestamp()
+                    itemCode: code, itemName: name, category: category, unit: unit,
+                    minThreshold: 15, stockQuantity: 0, createdAt: serverTimestamp()
                 });
                 toggleModal('materialModal', false);
                 alert("✅ ເພີ່ມວັດຖຸເຂົ້າໃນຖານຂໍ້ມູນຫຼັກສຳເລັດແລ້ວ!");
-                
-                // ລ້າງຄ່າໃນຟອມ
-                document.getElementById('matCode').value = '';
-                document.getElementById('matName').value = '';
-                document.getElementById('matUnit').value = '';
-                
+                document.getElementById('matCode').value = ''; document.getElementById('matName').value = ''; document.getElementById('matUnit').value = '';
                 window.loadInventory(); 
             } catch (error) {
-                console.error("Error adding:", error);
-                alert("❌ ເກີດຂໍ້ຜິດພາດ: " + error.message);
+                console.error("Error adding:", error); alert("❌ ເກີດຂໍ້ຜິດພາດ: " + error.message);
             } finally {
                 btn.disabled = false; btn.innerHTML = 'ບັນທຶກຂໍ້ມູນ';
             }
@@ -450,22 +432,108 @@
             btn.disabled = true; btn.innerHTML = 'ກຳລັງບັນທຶກ...';
 
             try {
-                // ອັບເດດສະເພາະ field "minThreshold" ຂອງ document ນັ້ນໆ
-                const docRef = doc(db, "materials", currentAlertDocId);
-                await updateDoc(docRef, { minThreshold: minStock });
-                
+                await updateDoc(doc(db, "materials", currentAlertDocId), { minThreshold: minStock });
                 toggleModal('alertConfigModal', false);
-                // ໂຫຼດຕາຕະລາງໃໝ່ເພື່ອໃຫ້ເຫັນຜົນການປ່ຽນແປງທັນທີ
                 window.loadInventory(); 
             } catch (error) {
-                console.error("Error updating config:", error);
-                alert("❌ ເກີດຂໍ້ຜິດພາດ: " + error.message);
+                console.error("Error updating config:", error); alert("❌ ເກີດຂໍ້ຜິດພາດ: " + error.message);
             } finally {
                 btn.disabled = false; btn.innerHTML = 'ບັນທຶກ';
             }
         }
 
-        // ເອີ້ນໂຫຼດຂໍ້ມູນຕອນເປີດໜ້າເວັບ
+        // 🚀 ຟັງຊັນນຳເຂົ້າຂໍ້ມູນຕົວຢ່າງອັດຕະໂນມັດ (Seed Data ຈິງຈາກໄຟລ໌ Excel ຂອງທ່ານ) 🚀
+        window.autoImportData = async function() {
+            if (!isAdmin) return alert("ສະເພາະ Admin ເທົ່ານັ້ນ!");
+            if (!confirm("ລະບົບຈະທຳການດຶງລາຍຊື່ວັດຖຸຕົວຈິງ (ຈຳນວນຫຼາຍ) ເຂົ້າຖານຂໍ້ມູນ. ຕ້ອງການດຳເນີນການຕໍ່ຫຼືບໍ່?")) return;
+
+            const btn = document.getElementById('btnAutoImport');
+            const originalText = btn.innerHTML;
+            btn.disabled = true; btn.innerHTML = 'ກຳລັງນຳເຂົ້າ... ລໍຖ້າຈັກໜ່ອຍ...';
+
+            // ຂໍ້ມູນຕົວຈິງທີ່ດຶງມາຈາກຮູບພາບ ແລະ CSV ທີ່ທ່ານສົ່ງມາ
+            const realItemsData = [
+                // === ໝວດທໍ່ນ້ຳ (Min 12) ===
+                { code: "03.005.0001", name: "ທໍ່ນ້ຳເຫຼັກເຄືອບ (GSP) Ø 15", category: "ທໍ່ນ້ຳ", unit: "ແມັດ", min: 12 },
+                { code: "03.005.0002", name: "ທໍ່ນ້ຳເຫຼັກເຄືອບ (GSP) Ø 20", category: "ທໍ່ນ້ຳ", unit: "ແມັດ", min: 12 },
+                { code: "03.005.0003", name: "ທໍ່ນ້ຳເຫຼັກເຄືອບ (GSP) Ø 25", category: "ທໍ່ນ້ຳ", unit: "ແມັດ", min: 12 },
+                { code: "03.005.0004", name: "ທໍ່ນ້ຳເຫຼັກເຄືອບ (GSP) Ø 30", category: "ທໍ່ນ້ຳ", unit: "ແມັດ", min: 12 },
+                { code: "03.005.0005", name: "ທໍ່ນ້ຳເຫຼັກເຄືອບ (GSP) Ø 40", category: "ທໍ່ນ້ຳ", unit: "ແມັດ", min: 12 },
+                { code: "03.005.0006", name: "ທໍ່ນ້ຳເຫຼັກເຄືອບ (GSP) Ø 50", category: "ທໍ່ນ້ຳ", unit: "ແມັດ", min: 12 },
+                { code: "03.005.0008", name: "ທໍ່ນ້ຳເຫຼັກເຄືອບ (GSP) Ø 75", category: "ທໍ່ນ້ຳ", unit: "ແມັດ", min: 12 },
+                { code: "03.005.0009", name: "ທໍ່ນ້ຳເຫຼັກເຄືອບ (GSP) Ø 100", category: "ທໍ່ນ້ຳ", unit: "ແມັດ", min: 12 },
+                { code: "03.011.0001", name: "ທໍ່ນ້ຳຢາງ (PVC) Ø 18", category: "ທໍ່ນ້ຳ", unit: "ແມັດ", min: 12 },
+                { code: "03.011.0002", name: "ທໍ່ນ້ຳຢາງ (PVC) Ø 20", category: "ທໍ່ນ້ຳ", unit: "ແມັດ", min: 12 },
+
+                // === ໝວດຂໍ້ຕໍ່ / ວາວ (Min 40) ===
+                { code: "26.138.0002", name: "ຂໍ້ຕໍ່ຊື່ຢາງ (PE) Ø 20", category: "ຂໍ້ຕໍ່ / ວາວ", unit: "ອັນ", min: 40 },
+                { code: "26.138.0003", name: "ຂໍ້ຕໍ່ຊື່ຢາງ (PE) Ø 25", category: "ຂໍ້ຕໍ່ / ວາວ", unit: "ອັນ", min: 40 },
+                { code: "26.138.0004", name: "ຂໍ້ຕໍ່ຊື່ຢາງ (PE) Ø 32", category: "ຂໍ້ຕໍ່ / ວາວ", unit: "ອັນ", min: 40 },
+                { code: "26.138.0006", name: "ຂໍ້ຕໍ່ຊື່ຢາງ (PE) Ø 50", category: "ຂໍ້ຕໍ່ / ວາວ", unit: "ອັນ", min: 40 },
+                { code: "26.138.0007", name: "ຂໍ້ຕໍ່ຊື່ຢາງ (PE) Ø 63", category: "ຂໍ້ຕໍ່ / ວາວ", unit: "ອັນ", min: 40 },
+                { code: "26.140.0002", name: "ຂໍ້ຕໍ່ກຽວນອກຢາງ (PE) Ø 20", category: "ຂໍ້ຕໍ່ / ວາວ", unit: "ອັນ", min: 40 },
+                { code: "26.140.0003", name: "ຂໍ້ຕໍ່ກຽວນອກຢາງ (PE) Ø 25", category: "ຂໍ້ຕໍ່ / ວາວ", unit: "ອັນ", min: 40 },
+                { code: "26.140.0006", name: "ຂໍ້ຕໍ່ກຽວນອກຢາງ (PE) Ø 50", category: "ຂໍ້ຕໍ່ / ວາວ", unit: "ອັນ", min: 40 },
+                { code: "26.140.0007", name: "ຂໍ້ຕໍ່ກຽວນອກຢາງ (PE) Ø 63", category: "ຂໍ້ຕໍ່ / ວາວ", unit: "ອັນ", min: 40 },
+                { code: "26.141.0002", name: "ຂໍ້ຕໍ່ກຽວໃນຢາງ (PE) Ø 20", category: "ຂໍ້ຕໍ່ / ວາວ", unit: "ອັນ", min: 40 },
+                { code: "26.141.0003", name: "ຂໍ້ຕໍ່ກຽວໃນຢາງ (PE) Ø 25", category: "ຂໍ້ຕໍ່ / ວາວ", unit: "ອັນ", min: 40 },
+                { code: "26.141.0004", name: "ຂໍ້ຕໍ່ກຽວໃນຢາງ (PE) Ø 32", category: "ຂໍ້ຕໍ່ / ວາວ", unit: "ອັນ", min: 40 },
+                { code: "27.141.0002", name: "ຂໍ້ງໍ 90 ຢາງ (PE) Ø 20", category: "ຂໍ້ຕໍ່ / ວາວ", unit: "ອັນ", min: 40 },
+
+                // === ໝວດມິເຕີ (ຕັ້ງ Min ຕາມຂະໜາດ) ===
+                { code: "WM-15M", name: "ໝໍ້ແທກນ້ຳ ຂະໜາດ 15mm", category: "ມິເຕີ ແລະ ອຸປະກອນ", unit: "ໜ່ວຍ", min: 150 },
+                { code: "WM-20M", name: "ໝໍ້ແທກນ້ຳ ຂະໜາດ 20mm", category: "ມິເຕີ ແລະ ອຸປະກອນ", unit: "ໜ່ວຍ", min: 150 },
+                { code: "WM-25M", name: "ໝໍ້ແທກນ້ຳ ຂະໜາດ 25mm", category: "ມິເຕີ ແລະ ອຸປະກອນ", unit: "ໜ່ວຍ", min: 200 },
+                { code: "WM-40M", name: "ໝໍ້ແທກນ້ຳ ຂະໜາດ 40mm", category: "ມິເຕີ ແລະ ອຸປະກອນ", unit: "ໜ່ວຍ", min: 100 },
+                { code: "WM-50M", name: "ໝໍ້ແທກນ້ຳ ຂະໜາດ 50mm", category: "ມິເຕີ ແລະ ອຸປະກອນ", unit: "ໜ່ວຍ", min: 10 },
+                { code: "WM-80M", name: "ໝໍ້ແທກນ້ຳ ຂະໜາດ 80mm", category: "ມິເຕີ ແລະ ອຸປະກອນ", unit: "ໜ່ວຍ", min: 10 },
+                { code: "WM-100M", name: "ໝໍ້ແທກນ້ຳ ຂະໜາດ 100mm", category: "ມິເຕີ ແລະ ອຸປະກອນ", unit: "ໜ່ວຍ", min: 10 },
+                { code: "WM-150M", name: "ໝໍ້ແທກນ້ຳ ຂະໜາດ 150mm", category: "ມິເຕີ ແລະ ອຸປະກອນ", unit: "ໜ່ວຍ", min: 10 },
+                { code: "WM-200M", name: "ໝໍ້ແທກນ້ຳ ຂະໜາດ 200mm", category: "ມິເຕີ ແລະ ອຸປະກອນ", unit: "ໜ່ວຍ", min: 10 },
+                { code: "WM-250M", name: "ໝໍ້ແທກນ້ຳ ຂະໜາດ 250mm", category: "ມິເຕີ ແລະ ອຸປະກອນ", unit: "ໜ່ວຍ", min: 10 },
+                { code: "WM-400M", name: "ໝໍ້ແທກນ້ຳ ຂະໜາດ 400mm", category: "ມິເຕີ ແລະ ອຸປະກອນ", unit: "ໜ່ວຍ", min: 10 },
+
+                // === ໝວດອື່ນໆ ===
+                { code: "TP-01", name: "ສະກັອດພັນກຽວທໍ່ນ້ຳ", category: "ອຸປະກອນຊ່າງ", unit: "ມ້ວນ", min: 15 },
+                { code: "GL-01", name: "ກາວທາທໍ່ນ້ຳ PVC", category: "ອຸປະກອນຊ່າງ", unit: "ກະປ໋ອງ", min: 15 },
+                { code: "VA-15", name: "ວາວປິດ-ເປີດນ້ຳ 15mm", category: "ຂໍ້ຕໍ່ / ວາວ", unit: "ອັນ", min: 40 }
+            ];
+
+            try {
+                let count = 0;
+                for (const item of realItemsData) {
+                    // ກວດສອບກ່ອນວ່າມີລະຫັດນີ້ແລ້ວຫຼືຍັງ (ປ້ອງກັນການເພີ່ມຊ້ຳ)
+                    const q = query(collection(db, "materials"), where("itemCode", "==", item.code));
+                    const snap = await getDocs(q);
+                    
+                    if (snap.empty) {
+                        await addDoc(collection(db, "materials"), {
+                            itemCode: item.code, 
+                            itemName: item.name, 
+                            category: item.category, 
+                            unit: item.unit,
+                            minThreshold: item.min, 
+                            stockQuantity: 0, 
+                            createdAt: serverTimestamp()
+                        });
+                        count++;
+                    }
+                }
+                
+                if(count > 0) {
+                    alert(`✅ ນຳເຂົ້າຂໍ້ມູນສຳເລັດແລ້ວ ຈຳນວນ ${count} ລາຍການ!`);
+                    window.loadInventory();
+                } else {
+                    alert(`⚠️ ຂໍ້ມູນຕົວຈິງເຫຼົ່ານີ້ມີໃນລະບົບໝົດແລ້ວ (ບໍ່ມີການເພີ່ມຊ້ຳ).`);
+                }
+            } catch (error) {
+                console.error("Import error:", error);
+                alert("❌ ເກີດຂໍ້ຜິດພາດ: " + error.message);
+            } finally {
+                btn.disabled = false; btn.innerHTML = originalText;
+            }
+        }
+
         window.loadInventory();
     </script>
 </body>
