@@ -8,11 +8,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <style> 
-        /* ຕັ້ງຄ່າຟອນ: ອັງກິດ/ໂຕເລກເປັນ Times New Roman, ລາວເປັນ Phetsarath OT */
         * { font-family: 'Times New Roman', 'Phetsarath OT', serif; }
         body { background-color: #f8fafc; overflow-x: hidden; }
 
-        /* ອະນິເມຊັນທັນສະໄໝ */
         .page-animate { animation: pageEnter 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         @keyframes pageEnter { from { opacity: 0; transform: translateY(25px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -25,14 +23,11 @@
         .modal-animate { animation: smoothPop 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         @keyframes smoothPop { from { opacity: 0; transform: scale(0.95) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
         
-        /* ຕາຕະລາງສຳລັບເອກະສານ A4 (ຂາວ-ດຳ) */
         .report-table th, .report-table td { border: 1px solid #000000; padding: 8px; color: #000000; }
         .report-table th { background-color: #f8fafc; text-align: center; font-weight: bold; }
         
-        /* ປັບແຕ່ງ input type month ໃຫ້ງາມຂຶ້ນ */
         input[type="month"]::-webkit-calendar-picker-indicator { cursor: pointer; filter: invert(0.5); }
 
-        /* 🟢 ໂຄ້ດສຳລັບປຣິ້ນ (Print) ສະເພາະພື້ນທີ່ A4 🟢 */
         @media print {
             body * { visibility: hidden; }
             .print-active-area, .print-active-area * { visibility: visible; }
@@ -41,8 +36,10 @@
     </style>
 </head>
 <body class="flex min-h-screen relative">
-    <!-- 🟢 ຈຸດລົງຈອດ Sidebar ທີ່ຖືກຕ້ອງ (ມີອັນດຽວ) 🟢 -->
-    <div id="sidebar-container"></div>
+    
+    <div id="sidebar-container" class="w-64 flex-shrink-0 z-50 relative"></div>
+    <script src="../../js/components/sidebar.js" defer></script>
+    <script type="module" src="../../js/components/auth-guard.js"></script>
 
     <main class="flex-1 p-8 ml-64 overflow-y-auto space-y-6 page-animate">
         
@@ -53,37 +50,38 @@
                 </div>
                 <div>
                     <h2 class="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-800 to-indigo-800 tracking-wide">ສະຕັອກສິນຄ້າ (Inventory)</h2>
-                    <p class="text-slate-500 mt-1 text-sm">ກວດສອບ ແລະ ຈັດການຍອດສະຕັອກອຸປະກອນ</p>
+                    <p class="text-slate-500 mt-1 text-sm">ກວດສອບ ແລະ ຈັດການຍອດສະຕັອກອຸປະກອນຫຼັກ</p>
                 </div>
             </div>
             
             <div class="flex flex-wrap gap-3">
                 <button onclick="toggleModal('monthlyReportModal', true)" class="bg-violet-50 hover:bg-violet-100 border border-violet-200 text-violet-700 text-sm font-bold py-2.5 px-4 rounded-xl shadow-sm hover:shadow-md active:scale-95 transition-all duration-200 flex items-center group">
                     <svg class="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
-                    ລາຍງານແກ້ໄຂເດືອນນີ້
+                    ລາຍງານແກ້ໄຂ
                 </button>
                 <button onclick="toggleModal('summaryModal', true)" class="bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-sm font-bold py-2.5 px-4 rounded-xl shadow-sm hover:shadow-md active:scale-95 transition-all duration-200 flex items-center group">
                     <svg class="w-5 h-5 mr-2 text-indigo-500 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                     ສະຫຼຸບສາງທັງໝົດ
                 </button>
-                <a href="/pages/warehouse/receive-items.html" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold py-2.5 px-5 rounded-xl shadow-[0_4px_14px_0_rgb(79,70,229,0.39)] hover:shadow-[0_6px_20px_rgba(79,70,229,0.23)] active:scale-95 transition-all duration-200 flex items-center">
+                
+                <button id="btnAddMaterial" onclick="toggleModal('materialModal', true)" style="display: none;" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold py-2.5 px-5 rounded-xl shadow-[0_4px_14px_0_rgb(79,70,229,0.39)] hover:shadow-[0_6px_20px_rgba(79,70,229,0.23)] active:scale-95 transition-all duration-200 items-center">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
-                    ເພີ່ມອຸປະກອນໃໝ່
-                </a>
+                    ເພີ່ມວັດຖຸໃໝ່ (Master)
+                </button>
             </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div onclick="filterTable('all')" class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex items-center justify-between hover-float cursor-pointer active:scale-95 transition-transform">
-                <div><p class="text-slate-500 text-sm font-semibold mb-1">ລາຍການອຸປະກອນທັງໝົດ</p><h3 class="text-3xl font-bold text-slate-800">124 <span class="text-sm font-normal text-slate-500">ລາຍການ</span></h3></div>
+                <div><p class="text-slate-500 text-sm font-semibold mb-1">ລາຍການອຸປະກອນທັງໝົດ</p><h3 class="text-3xl font-bold text-slate-800"><span id="countTotal">0</span> <span class="text-sm font-normal text-slate-500">ລາຍການ</span></h3></div>
                 <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg></div>
             </div>
             <div onclick="filterTable('low')" class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex items-center justify-between hover-float cursor-pointer active:scale-95 transition-transform">
-                <div><p class="text-slate-500 text-sm font-semibold mb-1">ອຸປະກອນໃກ້ໝົດ</p><h3 class="text-3xl font-bold text-amber-500">8 <span class="text-sm font-normal text-slate-500">ລາຍການ</span></h3></div>
+                <div><p class="text-slate-500 text-sm font-semibold mb-1">ອຸປະກອນໃກ້ໝົດ (Low Stock)</p><h3 class="text-3xl font-bold text-amber-500"><span id="countLow">0</span> <span class="text-sm font-normal text-slate-500">ລາຍການ</span></h3></div>
                 <div class="w-12 h-12 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg></div>
             </div>
             <div onclick="filterTable('out')" class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex items-center justify-between hover-float cursor-pointer active:scale-95 transition-transform">
-                <div><p class="text-slate-500 text-sm font-semibold mb-1">ອຸປະກອນໝົດສະຕັອກ</p><h3 class="text-3xl font-bold text-rose-500">2 <span class="text-sm font-normal text-slate-500">ລາຍການ</span></h3></div>
+                <div><p class="text-slate-500 text-sm font-semibold mb-1">ອຸປະກອນໝົດສະຕັອກ (0)</p><h3 class="text-3xl font-bold text-rose-500"><span id="countOut">0</span> <span class="text-sm font-normal text-slate-500">ລາຍການ</span></h3></div>
                 <div class="w-12 h-12 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
             </div>
         </div>
@@ -92,229 +90,138 @@
             <div class="p-4 border-b border-slate-100 flex flex-wrap gap-4 justify-between items-center bg-slate-50/50">
                 <div class="relative w-full md:w-64 group">
                     <svg class="w-5 h-5 absolute left-3 top-2.5 text-slate-400 group-focus-within:text-indigo-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    <input type="text" placeholder="ຄົ້ນຫາອຸປະກອນ..." class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm transition-all duration-300 hover:border-slate-300">
+                    <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="ຄົ້ນຫາອຸປະກອນ..." class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm transition-all duration-300 hover:border-slate-300">
                 </div>
                 
                 <div class="flex flex-wrap gap-2 items-center">
-                    <div class="flex items-center bg-white border border-slate-200 rounded-xl px-3 py-1.5 shadow-sm hover:border-indigo-300 transition-colors">
-                        <svg class="w-4 h-4 text-slate-400 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                        <input type="month" value="2026-07" class="focus:outline-none text-sm font-bold text-slate-700 cursor-pointer bg-transparent">
-                    </div>
-                    <button class="border border-indigo-200 bg-indigo-50 text-indigo-700 text-sm font-bold rounded-xl py-2 px-4 hover:bg-indigo-100 active:scale-95 transition-all flex items-center shadow-sm">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        ສະເພາະແກ້ໄຂ (2)
-                    </button>
                     <select id="statusSelect" onchange="filterTable(this.value)" class="border border-slate-200 text-slate-600 text-sm rounded-xl py-2 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 bg-white shadow-sm cursor-pointer hover:border-slate-300 transition-all"><option value="all">ທຸກສະຖານະ</option><option value="ready">🟢 ພ້ອມໃຊ້ງານ</option><option value="low">🟡 ໃກ້ໝົດ</option><option value="out">🔴 ໝົດສະຕັອກ</option></select>
                 </div>
             </div>
             
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto max-h-[60vh]">
                 <table class="w-full text-left border-collapse whitespace-nowrap">
-                    <thead>
-                        <tr class="bg-slate-50/80 border-b border-slate-100 text-slate-500 text-sm">
-                            <th class="p-4 font-semibold w-24">ລະຫັດ</th><th class="p-4 font-semibold">ຊື່ອຸປະກອນ</th><th class="p-4 font-semibold text-center w-32">ຈຳນວນເຫຼືອ</th><th class="p-4 font-semibold text-center w-32">ສະຖານະ</th><th class="p-4 font-semibold text-center w-32">ຈັດການ</th>
+                    <thead class="sticky top-0 z-10 shadow-sm">
+                        <tr class="bg-slate-50 border-b border-slate-100 text-slate-500 text-sm">
+                            <th class="p-4 font-semibold w-24">ລະຫັດ</th>
+                            <th class="p-4 font-semibold">ຊື່ອຸປະກອນ</th>
+                            <th class="p-4 font-semibold text-center w-32">ຈຳນວນເຫຼືອ</th>
+                            <th class="p-4 font-semibold text-center w-32">ສະຖານະ</th>
+                            <th class="p-4 font-semibold text-center w-32">ຈັດການ</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-50 text-sm text-slate-700" id="inventoryTable">
-                        <tr class="hover:bg-slate-50 transition-all duration-200 inventory-row" data-status="ready"><td class="p-4 font-bold text-indigo-600">WM-15M</td><td class="p-4 font-medium text-slate-800">ໝໍ້ແທກນ້ຳ ຂະໜາດ 15mm (Kent) <span class="ml-3 inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-100 text-indigo-700 border border-indigo-200 animate-pulse">ແກ້ໄຂເດືອນນີ້</span></td><td class="p-4 text-center"><span class="font-bold text-slate-800">150</span> <span class="text-slate-600">ໜ່ວຍ</span></td><td class="p-4 text-center"><span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold border border-emerald-200">ພ້ອມໃຊ້ງານ</span></td><td class="p-4 text-center"><div class="flex justify-center space-x-2"><button class="p-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 active:scale-90 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></button><button onclick="toggleModal('editModal', true)" class="p-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-100 active:scale-90 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button><button onclick="toggleModal('historyModal', true)" class="p-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 active:scale-90 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></button></div></td></tr>
-                        <tr class="hover:bg-slate-50 transition-all duration-200 inventory-row" data-status="low"><td class="p-4 font-bold text-indigo-600">PVC-20</td><td class="p-4 font-medium text-slate-800">ທໍ່ນ້ຳ PVC 20mm ຊັ້ນ 8.5 <span class="ml-3 inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-100 text-indigo-700 border border-indigo-200 animate-pulse">ແກ້ໄຂເດືອນນີ້</span></td><td class="p-4 text-center"><span class="font-bold text-amber-600">12</span> <span class="text-slate-600">ເສັ້ນ</span></td><td class="p-4 text-center"><span class="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-bold border border-amber-200">ໃກ້ໝົດ</span></td><td class="p-4 text-center"><div class="flex justify-center space-x-2"><button class="p-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 active:scale-90 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></button><button onclick="toggleModal('editModal', true)" class="p-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-100 active:scale-90 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button><button onclick="toggleModal('historyModal', true)" class="p-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 active:scale-90 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></button></div></td></tr>
-                        <tr class="hover:bg-rose-50/40 bg-rose-50/20 transition-all duration-200 inventory-row" data-status="out"><td class="p-4 font-bold text-indigo-600">VA-01</td><td class="p-4 font-medium text-slate-800">ວາວປິດ-ເປີດນ້ຳ 15mm</td><td class="p-4 text-center"><span class="font-bold text-rose-600">0</span> <span class="text-slate-600">ອັນ</span></td><td class="p-4 text-center"><span class="px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-xs font-bold border border-rose-200">ໝົດສະຕັອກ</span></td><td class="p-4 text-center"><div class="flex justify-center space-x-2"><button class="p-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 active:scale-90 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></button></div></td></tr>
-                        <tr class="hover:bg-slate-50 transition-all duration-200 inventory-row" data-status="ready"><td class="p-4 font-bold text-indigo-600">FIT-90</td><td class="p-4 font-medium text-slate-800">ຂ້ອງໍ 90 ອົງສາ PVC 15mm</td><td class="p-4 text-center"><span class="font-bold text-slate-800">320</span> <span class="text-slate-600">ອັນ</span></td><td class="p-4 text-center"><span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold border border-emerald-200">ພ້ອມໃຊ້ງານ</span></td><td class="p-4 text-center"><div class="flex justify-center space-x-2"><button class="p-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 active:scale-90 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></button></div></td></tr>
-                        <tr class="hover:bg-slate-50 transition-all duration-200 inventory-row" data-status="low"><td class="p-4 font-bold text-indigo-600">GL-01</td><td class="p-4 font-medium text-slate-800">ກາວທາທໍ່ນ້ຳ PVC (ກະປ໋ອງໃຫຍ່)</td><td class="p-4 text-center"><span class="font-bold text-amber-600">5</span> <span class="text-slate-600">ກະປ໋ອງ</span></td><td class="p-4 text-center"><span class="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-bold border border-amber-200">ໃກ້ໝົດ</span></td><td class="p-4 text-center"><div class="flex justify-center space-x-2"><button class="p-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 active:scale-90 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></button></div></td></tr>
-                        <tr class="hover:bg-slate-50 transition-all duration-200 inventory-row" data-status="ready"><td class="p-4 font-bold text-indigo-600">WM-25M</td><td class="p-4 font-medium text-slate-800">ໝໍ້ແທກນ້ຳ ຂະໜາດ 25mm</td><td class="p-4 text-center"><span class="font-bold text-slate-800">45</span> <span class="text-slate-600">ໜ່ວຍ</span></td><td class="p-4 text-center"><span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold border border-emerald-200">ພ້ອມໃຊ້ງານ</span></td><td class="p-4 text-center"><div class="flex justify-center space-x-2"><button class="p-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 active:scale-90 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></button></div></td></tr>
-                        <tr class="hover:bg-rose-50/40 bg-rose-50/20 transition-all duration-200 inventory-row" data-status="out"><td class="p-4 font-bold text-indigo-600">TP-01</td><td class="p-4 font-medium text-slate-800">ສະກັອດພັນກຽວທໍ່ນ້ຳ</td><td class="p-4 text-center"><span class="font-bold text-rose-600">0</span> <span class="text-slate-600">ມ້ວນ</span></td><td class="p-4 text-center"><span class="px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-xs font-bold border border-rose-200">ໝົດສະຕັອກ</span></td><td class="p-4 text-center"><div class="flex justify-center space-x-2"><button class="p-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 active:scale-90 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></button></div></td></tr>
-                        <tr class="hover:bg-slate-50 transition-all duration-200 inventory-row" data-status="ready"><td class="p-4 font-bold text-indigo-600">MB-01</td><td class="p-4 font-medium text-slate-800">ກ່ອງກັນນ້ຳສຳລັບໝໍ້ແທກ</td><td class="p-4 text-center"><span class="font-bold text-slate-800">80</span> <span class="text-slate-600">ອັນ</span></td><td class="p-4 text-center"><span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold border border-emerald-200">ພ້ອມໃຊ້ງານ</span></td><td class="p-4 text-center"><div class="flex justify-center space-x-2"><button class="p-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 active:scale-90 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></button></div></td></tr>
-                        <tr class="hover:bg-slate-50 transition-all duration-200 inventory-row" data-status="low"><td class="p-4 font-bold text-indigo-600">VA-02</td><td class="p-4 font-medium text-slate-800">ປະຕູນ້ຳ (Gate Valve) 20mm</td><td class="p-4 text-center"><span class="font-bold text-amber-600">3</span> <span class="text-slate-600">ອັນ</span></td><td class="p-4 text-center"><span class="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-bold border border-amber-200">ໃກ້ໝົດ</span></td><td class="p-4 text-center"><div class="flex justify-center space-x-2"><button class="p-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 active:scale-90 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></button></div></td></tr>
-                        <tr class="hover:bg-slate-50 transition-all duration-200 inventory-row" data-status="ready"><td class="p-4 font-bold text-indigo-600">PVC-15</td><td class="p-4 font-medium text-slate-800">ທໍ່ນ້ຳ PVC 15mm ຊັ້ນ 13.5</td><td class="p-4 text-center"><span class="font-bold text-slate-800">210</span> <span class="text-slate-600">ເສັ້ນ</span></td><td class="p-4 text-center"><span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold border border-emerald-200">ພ້ອມໃຊ້ງານ</span></td><td class="p-4 text-center"><div class="flex justify-center space-x-2"><button class="p-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 active:scale-90 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></button></div></td></tr>
+                        <tr><td colspan="5" class="p-8 text-center text-slate-400">ກຳລັງໂຫຼດຂໍ້ມູນຈາກຖານຂໍ້ມູນ...</td></tr>
                     </tbody>
                 </table>
-            </div>
-            
-            <div class="p-4 border-t border-slate-100 bg-slate-50/50 text-sm text-slate-500 flex justify-between items-center">
-                <span>ສະແດງ 1 ຫາ 10 ຈາກທັງໝົດ 124 ລາຍການ</span>
-                <div class="flex space-x-1">
-                    <button class="px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-white transition-colors disabled:opacity-50" disabled>ກ່ອນໜ້າ</button>
-                    <button class="px-3 py-1.5 bg-indigo-600 text-white rounded-lg font-medium shadow-[0_2px_8px_rgb(79,70,229,0.3)] active:scale-95 transition-all">1</button>
-                    <button class="px-3 py-1.5 border border-slate-200 rounded-lg bg-white hover:border-slate-300 active:scale-95 transition-all">2</button>
-                    <button class="px-3 py-1.5 border border-slate-200 rounded-lg bg-white hover:border-slate-300 active:scale-95 transition-all">3</button>
-                    <button class="px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-white active:scale-95 transition-all">ຖັດໄປ</button>
-                </div>
             </div>
         </div>
     </main>
 
-    <!-- ====================================================================== -->
-    <!-- 🟢 1. MODAL: ລາຍງານສະເພາະໂຕດັດແກ້ປະຈຳເດືອນ 🟢 -->
-    <!-- ====================================================================== -->
+    <div id="materialModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 modal-backdrop">
+        <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden border border-slate-200 modal-animate">
+            <div class="bg-indigo-600 p-4 flex justify-between items-center text-white">
+                <h3 class="font-bold text-lg">ເພີ່ມລາຍຊື່ວັດຖຸໃໝ່</h3>
+                <button onclick="toggleModal('materialModal', false)" class="hover:text-rose-400 transition-colors">✕</button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">ລະຫັດວັດຖຸ <span class="text-rose-500">*</span></label>
+                    <input type="text" id="matCode" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm outline-none focus:border-indigo-500 uppercase" placeholder="ຕົວຢ່າງ: 03.005.0001">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">ຊື່ອຸປະກອນ <span class="text-rose-500">*</span></label>
+                    <input type="text" id="matName" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm outline-none focus:border-indigo-500" placeholder="ຕົວຢ່າງ: ໝໍ້ແທກນ້ຳ 15mm">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">ໝວດໝູ່ <span class="text-rose-500">*</span></label>
+                        <select id="matCategory" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm font-medium outline-none focus:border-indigo-500">
+                            <option value="ມິເຕີ ແລະ ອຸປະກອນ">ມິເຕີ ແລະ ອຸປະກອນ</option>
+                            <option value="ທໍ່ນ້ຳ">ທໍ່ນ້ຳ</option>
+                            <option value="ຂໍ້ຕໍ່ / ວາວ">ຂໍ້ຕໍ່ / ວາວ</option>
+                            <option value="ອຸປະກອນຊ່າງ">ອຸປະກອນຊ່າງ</option>
+                            <option value="ອື່ນໆ">ອື່ນໆ</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">ຫົວໜ່ວຍ <span class="text-rose-500">*</span></label>
+                        <input type="text" id="matUnit" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm outline-none focus:border-indigo-500" placeholder="ຕົວຢ່າງ: ອັນ">
+                    </div>
+                </div>
+            </div>
+            <div class="bg-slate-50 p-4 border-t border-slate-200 flex justify-end space-x-3">
+                <button onclick="toggleModal('materialModal', false)" class="px-4 py-2 rounded-lg font-bold text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 text-sm">ຍົກເລີກ</button>
+                <button id="btnSaveMaterial" onclick="saveMaterial()" class="px-4 py-2 rounded-lg font-bold text-white bg-indigo-600 hover:bg-indigo-700 text-sm flex items-center">ບັນທຶກຂໍ້ມູນ</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="alertConfigModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 modal-backdrop">
+        <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden border border-slate-200 modal-animate">
+            <div class="bg-violet-600 p-4 flex justify-between items-center text-white">
+                <h3 class="font-bold text-lg flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                    ຕັ້ງຄ່າແຈ້ງເຕືອນສະຕັອກ
+                </h3>
+                <button onclick="toggleModal('alertConfigModal', false)" class="hover:text-rose-400 transition-colors">✕</button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 text-center">
+                    <p class="text-xs text-slate-500 font-bold mb-1">ກຳລັງຕັ້ງຄ່າໃຫ້ກັບອຸປະກອນ:</p>
+                    <p class="font-bold text-violet-700 text-base" id="configItemName">-</p>
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-2">ແຈ້ງເຕືອນ (ສີເຫຼືອງ) ເມື່ອເຄື່ອງເຫຼືອໜ້ອຍກວ່າ ຫຼື ເທົ່າກັບ:</label>
+                    <div class="flex items-center">
+                        <input type="number" id="configMinStock" class="w-full p-3 border-2 border-violet-200 rounded-lg text-lg font-bold text-violet-700 outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 text-center" placeholder="15">
+                    </div>
+                    <p class="text-[10px] text-slate-500 mt-2 text-center">* ຕົວເລກນີ້ຈະຊ່ວຍແຈ້ງເຕືອນໃຫ້ນາຍສາງຮູ້ວ່າຮອດເວລາສັ່ງຊື້ແລ້ວ</p>
+                </div>
+            </div>
+            <div class="bg-slate-50 p-4 border-t border-slate-200 flex justify-end space-x-3">
+                <button onclick="toggleModal('alertConfigModal', false)" class="px-4 py-2.5 rounded-lg font-bold text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 text-sm">ຍົກເລີກ</button>
+                <button id="btnSaveConfig" onclick="saveAlertConfig()" class="px-6 py-2.5 rounded-lg font-bold text-white bg-violet-600 hover:bg-violet-700 text-sm flex items-center shadow-sm active:scale-95 transition-all">ບັນທຶກ</button>
+            </div>
+        </div>
+    </div>
+
     <div id="monthlyReportModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-start justify-center p-4 overflow-y-auto modal-backdrop transition-all duration-300">
         <div class="bg-slate-200 rounded-xl w-full max-w-6xl my-8 flex flex-col shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] border-[6px] border-slate-400 modal-animate">
             <div class="bg-slate-800 p-4 rounded-t-sm flex flex-wrap gap-4 justify-between items-center text-white sticky top-0 z-10 shadow-lg">
-                <h3 class="font-bold text-base flex items-center">
-                    <svg class="w-5 h-5 mr-2 text-violet-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
-                    ບົດສະຫຼຸບການດັດແກ້ປະຈຳເດືອນ
-                </h3>
-                
+                <h3 class="font-bold text-base flex items-center"><svg class="w-5 h-5 mr-2 text-violet-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg> ບົດສະຫຼຸບການດັດແກ້ປະຈຳເດືອນ</h3>
                 <div class="flex items-center space-x-2">
-                    <button onclick="captureElement('printable-monthly-area', 'ລາຍງານດັດແກ້_07-2026.png', this)" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded font-bold flex items-center text-xs shadow-sm hover:shadow-md active:scale-95 transition-all"><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg> Capture </button>
-                    <button class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded font-bold flex items-center text-xs shadow-sm hover:shadow-md active:scale-95 transition-all"><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> Export Excel</button>
-                    <button class="bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded font-bold flex items-center text-xs shadow-sm hover:shadow-md active:scale-95 transition-all"><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg> Print PDF</button>
-                    <button onclick="printSection('printable-monthly-area')" class="bg-slate-600 hover:bg-slate-500 border border-slate-500 text-white px-4 py-2 rounded font-bold flex items-center text-xs shadow-sm hover:shadow-md active:scale-95 transition-all"><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg> ພິມເອກະສານ (Print)</button>
-                    
-                    <div class="w-px h-6 bg-slate-600 mx-1"></div>
+                    <button onclick="printSection('printable-monthly-area')" class="bg-slate-600 hover:bg-slate-500 border border-slate-500 text-white px-4 py-2 rounded font-bold flex items-center text-xs shadow-sm hover:shadow-md active:scale-95 transition-all">ພິມເອກະສານ (Print)</button>
                     <button onclick="toggleModal('monthlyReportModal', false)" class="hover:bg-rose-500 p-2 rounded transition-colors bg-slate-700 active:scale-90"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg></button>
                 </div>
             </div>
-
             <div class="p-8 pb-16 bg-slate-200">
                 <div id="printable-monthly-area" class="bg-white mx-auto shadow-2xl p-10 rounded-sm text-black relative" style="min-height: 297mm; max-width: 210mm;">
-                    
-                    <div class="text-center mb-6">
-                        <h2 class="text-base font-bold">ສາທາລະນະລັດ ປະຊາທິປະໄຕ ປະຊາຊົນລາວ</h2>
-                        <h3 class="text-sm font-bold mt-1">ສັນຕິພາບ ເອກະລາດ ປະຊາທິປະໄຕ ເອກະພາບ ວັດທະນະຖາວອນ</h3>
-                        <p class="mt-1">………........................................</p>
-                    </div>
-
-                    <div class="flex justify-between items-start mb-8 text-xs">
-                        <div class="space-y-1 font-bold">
-                            <p class="text-sm">ລັດວິສາຫະກິດ ນ້ຳປະປາ ນະຄອນຫຼວງ</p>
-                            <p>ພະແນກຄຸ້ມຄອງໝໍ້ແທກນ້ຳ ແລະ ຫລຸດຜ່່ອນນ້ຳສູນເສຍ</p>
-                            <p>ພາກສ່ວນສາງ</p>
-                        </div>
-                        <div class="text-right space-y-1">
-                            <p>ເລກທີ……………./ຄໝນ/2026</p>
-                        </div>
-                    </div>
-
-                    <div class="text-center mb-8">
-                        <h1 class="text-xl font-extrabold">ໃບລາຍງານສະຫຼຸບການດັດແກ້ສະຕັອກ (Adjustment Report)</h1>
-                        <p class="text-sm mt-2 font-medium">ປະຈຳເດືອນ: ກໍລະກົດ 2026</p>
-                    </div>
-
-                    <div class="mb-8">
-                        <table class="w-full text-[11px] report-table border-collapse">
-                            <thead>
-                                <tr>
-                                    <th class="w-8">ລ/ດ</th>
-                                    <th class="w-20 text-left px-2">ລະຫັດ</th>
-                                    <th class="text-left px-2">ລາຍການອຸປະກອນ</th>
-                                    <th class="w-16">ຍອດຍົກມາ</th>
-                                    <th class="w-16">ຍອດໃນເດືອນ</th>
-                                    <th class="w-20">ເພີ່ມຂຶ້ນໃນເດືອນ</th>
-                                    <th class="w-20">ຈຳນວນທີ່ມີການດັດແກ້</th>
-                                    <th class="w-32">ສາເຫດການແກ້ໄຂ</th>
-                                    <th class="w-20">ຜູ້ແກ້ໄຂ</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td class="text-center">1</td>
-                                    <td class="px-2 font-bold">WM-15M</td>
-                                    <td class="px-2">ໝໍ້ແທກນ້ຳ ຂະໜາດ 15mm</td>
-                                    <td class="text-center">160</td>
-                                    <td class="text-center">152</td>
-                                    <td class="text-center font-bold">0</td>
-                                    <td class="text-center font-bold">-2 ໜ່ວຍ</td>
-                                    <td class="px-2">ກວດພົບເຄື່ອງຊຳລຸດແຕກຫັກ</td>
-                                    <td class="text-center">ແອດມິນລະບົບ</td>
-                                </tr>
-                                <tr>
-                                    <td class="text-center">2</td>
-                                    <td class="px-2 font-bold">PVC-20</td>
-                                    <td class="px-2">ທໍ່ນ້ຳ PVC 20mm ຊັ້ນ 8.5</td>
-                                    <td class="text-center">8</td>
-                                    <td class="text-center">8</td>
-                                    <td class="text-center font-bold">+2 ເສັ້ນ</td>
-                                    <td class="text-center font-bold">+2 ເສັ້ນ</td>
-                                    <td class="px-2">ລູກຄ້າສົ່ງຄືນ ແຕ່ລືມເຂົ້າລະບົບ</td>
-                                    <td class="text-center">ນາຍສາງ</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="text-xs text-right mb-6 font-medium">
-                        <p>ວຽງຈັນ, ວັນທີ 19 ກໍລະກົດ 2026</p>
-                    </div>
-                    
-                    <div class="flex justify-between items-start text-xs font-bold text-center px-4">
-                        <div class="space-y-16">
-                            <p>ຫົວໜ້າພະແນກ</p>
-                            <p>.......................................</p>
-                        </div>
-                        <div class="space-y-16">
-                            <p>ຫົວໜ້າພາກສ່ວນສາງ</p>
-                            <p>.......................................</p>
-                        </div>
-                        <div class="space-y-16">
-                            <p>ຜູ້ສະຫຼຸບລາຍງານ</p>
-                            <p>.......................................</p>
-                        </div>
-                    </div>
-
+                    <div class="text-center mb-6"><h2 class="text-base font-bold">ສາທາລະນະລັດ ປະຊາທິປະໄຕ ປະຊາຊົນລາວ</h2></div>
+                    <div class="text-center mb-8"><h1 class="text-xl font-extrabold">ໃບລາຍງານສະຫຼຸບການດັດແກ້ສະຕັອກ</h1></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ====================================================================== -->
-    <!-- 🟢 2. MODAL: ໃບລາຍງານທາງການ (ບົດສະຫຼຸບລວມທັງໝົດ 10 ລາຍການ) 🟢 -->
-    <!-- ====================================================================== -->
     <div id="summaryModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-start justify-center p-4 overflow-y-auto modal-backdrop transition-all duration-300">
         <div class="bg-slate-200 rounded-xl w-full max-w-5xl my-8 flex flex-col shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] border-[6px] border-slate-400 modal-animate">
             <div class="bg-slate-800 p-4 rounded-t-sm flex justify-between items-center text-white sticky top-0 z-10 shadow-lg">
                 <h3 class="font-bold text-base flex items-center">ບົດສະຫຼຸບສາງທັງໝົດ</h3>
                 <div class="flex items-center space-x-2">
-                    <button onclick="captureElement('printable-all-area', 'ລາຍງານສະຕັອກລວມ.png', this)" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded font-bold flex items-center text-xs shadow-sm hover:shadow-md active:scale-95 transition-all"><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg> Capture </button>
-                    <button class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded font-bold flex items-center text-xs shadow-sm hover:shadow-md active:scale-95 transition-all"><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> Export Excel</button>
-                    <button class="bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded font-bold flex items-center text-xs shadow-sm hover:shadow-md active:scale-95 transition-all"><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg> Print PDF</button>
-                    <button onclick="printSection('printable-all-area')" class="bg-slate-600 hover:bg-slate-500 border border-slate-500 text-white px-4 py-2 rounded font-bold flex items-center text-xs shadow-sm hover:shadow-md active:scale-95 transition-all"><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg> Print</button>
-                    <div class="w-px h-6 bg-slate-600 mx-1"></div>
+                    <button onclick="printSection('printable-all-area')" class="bg-slate-600 hover:bg-slate-500 border border-slate-500 text-white px-4 py-2 rounded font-bold flex items-center text-xs shadow-sm hover:shadow-md active:scale-95 transition-all">ພິມເອກະສານ (Print)</button>
                     <button onclick="toggleModal('summaryModal', false)" class="hover:bg-rose-500 p-2 rounded transition-colors bg-slate-700 active:scale-90"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg></button>
                 </div>
             </div>
             <div class="p-8 pb-16 bg-slate-200">
                 <div id="printable-all-area" class="bg-white mx-auto shadow-2xl p-10 rounded-sm text-black relative" style="min-height: 297mm; max-width: 210mm;">
-                    <div class="text-center mb-6"><h2 class="text-base font-bold">ສາທາລະນະລັດ ປະຊາທິປະໄຕ ປະຊາຊົນລາວ</h2><h3 class="text-sm font-bold mt-1">ສັນຕິພາບ ເອກະລາດ ປະຊາທິປະໄຕ ເອກະພາບ ວັດທະນະຖາວອນ</h3><p class="mt-1">………........................................</p></div>
-                    <div class="flex justify-between items-start mb-8 text-xs"><div class="space-y-1 font-bold"><p class="text-sm">ລັດວິສາຫະກິດ ນ້ຳປະປາ ນະຄອນຫຼວງ</p><p>ພະແນກຄຸ້ມຄອງໝໍ້ແທກນ້ຳ ແລະ ຫລຸດຜ່່ອນນ້ຳສູນເສຍ</p><p>ພາກສ່ວນສາງ</p></div><div class="text-right space-y-1"><p>ເລກທີ……………./ຄໝນ/2026</p></div></div>
-                    <div class="text-center mb-8"><h1 class="text-xl font-extrabold">ໃບລາຍງານສະຫຼຸບສະຕັອກສິນຄ້າ (Inventory Report)</h1><p class="text-sm mt-2 font-medium">ປະຈຳວັນທີ 19 ກໍລະກົດ 2026</p></div>
-                    
-                    <div class="mb-8">
-                        <table class="w-full text-xs report-table border-collapse">
-                            <thead>
-                                <tr><th class="w-10">ລ/ດ</th><th class="w-24 text-left px-2">ລະຫັດ</th><th class="text-left px-2">ລາຍການອຸປະກອນ</th><th class="w-24">ໝວດໝູ່</th><th class="w-16">ຈຳນວນ</th><th class="w-16">ຫົວໜ່ວຍ</th><th class="w-20">ສະຖານະ</th><th class="w-32">ໝາຍເຫດ</th></tr>
-                            </thead>
-                            <tbody>
-                                <tr class="bg-slate-50 font-bold"><td colspan="8" class="text-left px-2">ອຸປະກອນໝົດສະຕັອກ (ຕ້ອງສັ່ງດ່ວນ)</td></tr>
-                                <tr><td class="text-center">1</td><td class="px-2 font-bold">VA-01</td><td class="px-2">ວາວປິດ-ເປີດນ້ຳ 15mm</td><td class="text-center">ຂໍ້ຕໍ່/ວາວ</td><td class="text-center font-bold">0</td><td class="text-center">ອັນ</td><td class="text-center font-bold">ໝົດ</td><td class="text-center text-[10px]">ໝົດເມື່ອ: 15/07/2026</td></tr>
-                                <tr><td class="text-center">2</td><td class="px-2 font-bold">TP-01</td><td class="px-2">ສະກັອດພັນກຽວທໍ່ນ້ຳ</td><td class="text-center">ອຸປະກອນເສີມ</td><td class="text-center font-bold">0</td><td class="text-center">ມ້ວນ</td><td class="text-center font-bold">ໝົດ</td><td class="text-center text-[10px]">ໝົດເມື່ອ: 12/07/2026</td></tr>
-                                
-                                <tr class="bg-slate-50 font-bold"><td colspan="8" class="text-left px-2">ອຸປະກອນໃກ້ໝົດສະຕັອກ (ກຽມສັ່ງຊື້)</td></tr>
-                                <tr><td class="text-center">3</td><td class="px-2 font-bold">PVC-20</td><td class="px-2">ທໍ່ນ້ຳ PVC 20mm ຊັ້ນ 8.5</td><td class="text-center">ທໍ່ນ້ຳ</td><td class="text-center font-bold">12</td><td class="text-center">ເສັ້ນ</td><td class="text-center">ໃກ້ໝົດ</td><td class="text-center text-[10px]"></td></tr>
-                                <tr><td class="text-center">4</td><td class="px-2 font-bold">GL-01</td><td class="px-2">ກາວທາທໍ່ນ້ຳ PVC (ກະປ໋ອງໃຫຍ່)</td><td class="text-center">ອຸປະກອນເສີມ</td><td class="text-center font-bold">5</td><td class="text-center">ກະປ໋ອງ</td><td class="text-center">ໃກ້ໝົດ</td><td class="text-center text-[10px]"></td></tr>
-                                <tr><td class="text-center">5</td><td class="px-2 font-bold">VA-02</td><td class="px-2">ປະຕູນ້ຳ (Gate Valve) 20mm</td><td class="text-center">ຂໍ້ຕໍ່/ວາວ</td><td class="text-center font-bold">3</td><td class="text-center">ອັນ</td><td class="text-center">ໃກ້ໝົດ</td><td class="text-center text-[10px]"></td></tr>
-                                
-                                <tr class="bg-slate-50 font-bold"><td colspan="8" class="text-left px-2">ອຸປະກອນສະຕັອກປົກກະຕິ (ພ້ອມໃຊ້ງານ)</td></tr>
-                                <tr><td class="text-center">6</td><td class="px-2 font-bold">WM-15M</td><td class="px-2">ໝໍ້ແທກນ້ຳ ຂະໜາດ 15mm (Kent)</td><td class="text-center">ໝໍ້ແທກນ້ຳ</td><td class="text-center font-bold">150</td><td class="text-center">ໜ່ວຍ</td><td class="text-center">ປົກກະຕິ</td><td class="text-center text-[10px]"></td></tr>
-                                <tr><td class="text-center">7</td><td class="px-2 font-bold">FIT-90</td><td class="px-2">ຂ້ອງໍ 90 ອົງສາ PVC 15mm</td><td class="text-center">ຂໍ້ຕໍ່/ວາວ</td><td class="text-center font-bold">320</td><td class="text-center">ອັນ</td><td class="text-center">ປົກກະຕິ</td><td class="text-center text-[10px]"></td></tr>
-                                <tr><td class="text-center">8</td><td class="px-2 font-bold">WM-25M</td><td class="px-2">ໝໍ້ແທກນ້ຳ ຂະໜາດ 25mm</td><td class="text-center">ໝໍ້ແທກນ້ຳ</td><td class="text-center font-bold">45</td><td class="text-center">ໜ່ວຍ</td><td class="text-center">ປົກກະຕິ</td><td class="text-center text-[10px]"></td></tr>
-                                <tr><td class="text-center">9</td><td class="px-2 font-bold">MB-01</td><td class="px-2">ກ່ອງກັນນ້ຳສຳລັບໝໍ້ແທກ</td><td class="text-center">ອຸປະກອນເສີມ</td><td class="text-center font-bold">80</td><td class="text-center">ອັນ</td><td class="text-center">ປົກກະຕິ</td><td class="text-center text-[10px]"></td></tr>
-                                <tr><td class="text-center">10</td><td class="px-2 font-bold">PVC-15</td><td class="px-2">ທໍ່ນ້ຳ PVC 15mm ຊັ້ນ 13.5</td><td class="text-center">ທໍ່ນ້ຳ</td><td class="text-center font-bold">210</td><td class="text-center">ເສັ້ນ</td><td class="text-center">ປົກກະຕິ</td><td class="text-center text-[10px]"></td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="text-xs text-right mb-6 font-medium">
-                        <p>ວຽງຈັນ, ວັນທີ 19 ກໍລະກົດ 2026</p>
-                    </div>
-                    <div class="flex justify-between items-start text-xs font-bold text-center px-4"><div class="space-y-16"><p>ຫົວໜ້າພະແນກ</p><p>.......................................</p></div><div class="space-y-16"><p>ຫົວໜ້າພາກສ່ວນສາງ</p><p>.......................................</p></div><div class="space-y-16"><p>ຜູ້ສະຫຼຸບລາຍງານ</p><p>.......................................</p></div></div>
+                    <div class="text-center mb-6"><h2 class="text-base font-bold">ສາທາລະນະລັດ ປະຊາທິປະໄຕ ປະຊາຊົນລາວ</h2></div>
+                    <div class="text-center mb-8"><h1 class="text-xl font-extrabold">ໃບລາຍງານສະຫຼຸບສະຕັອກສິນຄ້າ (Inventory Report)</h1></div>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- ====================================================================== -->
-    <!-- 🟢 4. MODAL: ແກ້ໄຂຍອດສະຕັອກ 🟢 -->
-    <!-- ====================================================================== -->
     <div id="editModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4 modal-backdrop">
         <div class="bg-white rounded-2xl w-full max-w-md flex flex-col shadow-2xl modal-animate border border-slate-200 overflow-hidden">
             <div class="bg-gradient-to-r from-amber-500 to-orange-500 p-4 flex justify-between items-center text-white">
@@ -324,47 +231,20 @@
             <div class="p-6 space-y-4">
                 <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
                     <p class="text-xs text-slate-500 font-bold">ລາຍການອຸປະກອນ:</p>
-                    <p class="font-bold text-slate-800 text-lg">WM-15M <span class="font-normal text-sm text-slate-600">- ໝໍ້ແທກນ້ຳ ຂະໜາດ 15mm</span></p>
+                    <p class="font-bold text-slate-800 text-lg" id="editItemName">WM-15M</p>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">ຍອດປັດຈຸບັນ</label><input type="text" value="150" disabled class="w-full p-2.5 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 font-bold text-center"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">ຍອດປັດຈຸບັນ</label><input type="text" id="editCurrentStock" disabled class="w-full p-2.5 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 font-bold text-center"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1 text-indigo-600">ຍອດໃໝ່ <span class="text-red-500">*</span></label><input type="number" placeholder="0" class="w-full p-2.5 border-2 border-indigo-200 rounded-xl focus:outline-none focus:border-indigo-500 font-bold text-center text-indigo-700 transition-colors"></div>
                 </div>
-                <div><label class="block text-xs font-bold text-slate-600 mb-1">ຜູ້ແກ້ໄຂ <span class="text-red-500">*</span></label><select class="w-full p-2.5 border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50"><option value="">-- ເລືອກຕຳແໜ່ງ --</option><option value="admin">ແອດມິນລະບົບ</option><option value="manager">ຫົວໜ້າພາກສ່ວນສາງ</option></select></div>
-                <div><label class="block text-xs font-bold text-slate-600 mb-1">ສາເຫດ <span class="text-red-500">*</span></label><textarea rows="3" placeholder="ຕົວຢ່າງ: ກວດພົບເຄື່ອງຊຳລຸດ..." class="w-full p-2.5 border border-slate-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50"></textarea></div>
             </div>
             <div class="bg-slate-50 p-4 border-t border-slate-200 flex justify-end space-x-3">
-                <button onclick="toggleModal('editModal', false)" class="px-5 py-2.5 rounded-xl font-bold text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 active:scale-95 transition-all text-sm">ຍົກເລີກ</button>
-                <button class="px-5 py-2.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm active:scale-95 transition-all text-sm">ບັນທຶກ</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- ====================================================================== -->
-    <!-- 🟢 5. MODAL: ປະຫວັດການແກ້ໄຂ 🟢 -->
-    <!-- ====================================================================== -->
-    <div id="historyModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4 modal-backdrop">
-        <div class="bg-white rounded-2xl w-full max-w-3xl flex flex-col shadow-2xl modal-animate border border-slate-200 overflow-hidden">
-            <div class="bg-slate-800 p-4 flex justify-between items-center text-white">
-                <h3 class="font-bold text-lg flex items-center"><svg class="w-5 h-5 mr-2 text-indigo-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> ປະຫວັດການປັບປຸງຍອດສະຕັອກ</h3>
-                <button onclick="toggleModal('historyModal', false)" class="hover:bg-rose-500 p-1.5 rounded-lg transition-colors bg-slate-700"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg></button>
-            </div>
-            <div class="p-5 border-b border-slate-100 bg-slate-50"><p class="font-bold text-slate-800 text-lg">WM-15M <span class="font-normal text-sm text-slate-600">- ໝໍ້ແທກນ້ຳ ຂະໜາດ 15mm</span></p></div>
-            <div class="p-0 overflow-x-auto max-h-[60vh]">
-                <table class="w-full text-left whitespace-nowrap text-sm">
-                    <thead class="bg-slate-100 sticky top-0">
-                        <tr><th class="p-4 font-bold text-slate-600">ວັນທີ & ເວລາ</th><th class="p-4 font-bold text-slate-600">ຜູ້ແກ້ໄຂ</th><th class="p-4 font-bold text-slate-600 text-center">ລາຍການປ່ຽນແປງ</th><th class="p-4 font-bold text-slate-600">ສາເຫດ</th></tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 text-slate-700">
-                        <tr class="hover:bg-slate-50"><td class="p-4 font-medium text-slate-500">19 ກໍລະກົດ 2026 <span class="block text-xs">09:45 AM</span></td><td class="p-4"><span class="px-2 py-1 bg-indigo-100 text-indigo-700 rounded-md text-xs font-bold">ແອດມິນລະບົບ</span></td><td class="p-4 text-center font-bold"><span class="line-through text-slate-400 mr-2">152</span> <span class="text-rose-500 ml-2">150</span></td><td class="p-4 text-slate-600 truncate">ກວດພົບເຄື່ອງຊຳລຸດ 2 ໜ່ວຍ</td></tr>
-                        <tr class="hover:bg-slate-50"><td class="p-4 font-medium text-slate-500">15 ກໍລະກົດ 2026 <span class="block text-xs">14:20 PM</span></td><td class="p-4"><span class="px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-xs font-bold">ນາຍສາງ</span></td><td class="p-4 text-center font-bold"><span class="line-through text-slate-400 mr-2">150</span> <span class="text-emerald-500 ml-2">152</span></td><td class="p-4 text-slate-600 truncate">ລູກຄ້າສົ່ງຄືນ ແຕ່ລືມເຂົ້າລະບົບ</td></tr>
-                    </tbody>
-                </table>
+                <button onclick="toggleModal('editModal', false)" class="px-5 py-2.5 rounded-xl font-bold text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 text-sm">ຍົກເລີກ</button>
+                <button class="px-5 py-2.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 text-sm">ບັນທຶກ</button>
             </div>
         </div>
     </div>
 
-    <!-- 🟢 Scripts (ຄວບຄຸມການພິມແຍກສ່ວນ ແລະ ແຄບພາບ) 🟢 -->
     <script>
         function toggleModal(modalId, show) {
             const modal = document.getElementById(modalId);
@@ -384,32 +264,209 @@
             });
         }
 
-        // ຟັງຊັນສຳລັບການແຄບພາບແບບເຄື່ອນໄຫວ
-        function captureElement(elementId, fileName, btnElement) {
-            const originalText = btnElement.innerHTML;
-            btnElement.innerHTML = "Capturing...";
-            const element = document.getElementById(elementId);
-            html2canvas(element, { scale: 2 }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = fileName;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-                btnElement.innerHTML = originalText;
+        function searchTable() {
+            const input = document.getElementById("searchInput").value.toUpperCase();
+            const rows = document.querySelectorAll('.inventory-row');
+            rows.forEach(row => {
+                const text = row.innerText.toUpperCase();
+                row.style.display = text.includes(input) ? '' : 'none';
             });
         }
 
-        // ຟັງຊັນສຳລັບການປຣິ້ນແຍກສ່ວນ (ເອົາແຕ່ເຈ້ຍ A4)
         function printSection(elementId) {
-            // ລຶບ class print-active-area ອອກຈາກທຸກອັນກ່ອນ
             document.querySelectorAll('.print-active-area').forEach(el => el.classList.remove('print-active-area'));
-            // ເພີ່ມ class ໃສ່ໂຕທີ່ຕ້ອງການປຣິ້ນ
             document.getElementById(elementId).classList.add('print-active-area');
-            // ສັ່ງປຣິ້ນ
             window.print();
         }
+
+        function openEditMock(code, name, stock) {
+            document.getElementById('editItemName').innerText = `${code} - ${name}`;
+            document.getElementById('editCurrentStock').value = stock;
+            toggleModal('editModal', true);
+        }
+
+        // Global variable ເກັບໄອດີຂອງແຖວທີ່ກຳລັງຈະຕັ້ງຄ່າແຈ້ງເຕືອນ
+        let currentAlertDocId = null;
+
+        function openAlertConfig(docId, itemName, currentMin) {
+            currentAlertDocId = docId;
+            document.getElementById('configItemName').innerText = itemName;
+            document.getElementById('configMinStock').value = currentMin;
+            toggleModal('alertConfigModal', true);
+        }
     </script>
-    
-    <!-- 🟢 ດຶງໄຟລ໌ Sidebar ທີ່ຖືກຕ້ອງ 🟢 -->
-    <script src="../../js/components/sidebar.js"></script>
+
+    <script type="module">
+        import { db } from '../../firebase-config.js';
+        import { collection, addDoc, getDocs, query, orderBy, serverTimestamp, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // 🔒 RBAC: ກວດສອບສິດທິແອດມິນ
+        const userDataStr = localStorage.getItem('wm_user_data');
+        const userData = userDataStr ? JSON.parse(userDataStr) : {};
+        const isAdmin = userData.role === 'system_manager' || userData.role === 'super_admin' || (userData.email || '').includes('admin');
+
+        if (isAdmin) {
+            document.getElementById('btnAddMaterial').style.display = 'flex';
+        }
+
+        // 🟢 ໂຫຼດຂໍ້ມູນວັດຖຸຈາກ Firebase 🟢
+        window.loadInventory = async function() {
+            const tableBody = document.getElementById('inventoryTable');
+            try {
+                const q = query(collection(db, "materials"), orderBy("createdAt", "desc"));
+                const querySnapshot = await getDocs(q);
+                
+                tableBody.innerHTML = '';
+                let total = 0, low = 0, out = 0;
+
+                if (querySnapshot.empty) {
+                    tableBody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-400">ຍັງບໍ່ມີລາຍການອຸປະກອນໃນລະບົບ.</td></tr>';
+                    document.getElementById('countTotal').innerText = '0';
+                    return;
+                }
+
+                querySnapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const docId = docSnap.id; // ເອົາ ID ສຳລັບອັບເດດ
+                    const stock = data.stockQuantity || 0;
+                    const cat = data.category || '';
+                    const name = data.itemName || '';
+                    
+                    total++;
+                    
+                    // ດຶງຄ່າ "ຈຸດແຈ້ງເຕືອນ" ຈາກຖານຂໍ້ມູນ (ຖ້າບໍ່ມີໃຫ້ເລີ່ມຕົ້ນທີ່ 15)
+                    const minThreshold = data.minThreshold !== undefined ? data.minThreshold : 15;
+
+                    // ກຳນົດສະຖານະ ແລະ CSS
+                    let statusKey = 'ready';
+                    let qtyColor = 'text-slate-800';
+                    let statusBg = 'bg-emerald-100 text-emerald-700 border-emerald-200';
+                    let statusText = 'ພ້ອມໃຊ້ງານ';
+                    let rowClass = 'hover:bg-slate-50';
+
+                    if (stock === 0) {
+                        out++;
+                        statusKey = 'out';
+                        qtyColor = 'text-rose-600';
+                        statusBg = 'bg-rose-100 text-rose-700 border-rose-200';
+                        statusText = 'ໝົດສະຕັອກ';
+                        rowClass = 'hover:bg-rose-50/40 bg-rose-50/20';
+                    } else if (stock <= minThreshold) { 
+                        low++;
+                        statusKey = 'low';
+                        qtyColor = 'text-amber-600';
+                        statusBg = 'bg-amber-100 text-amber-700 border-amber-200';
+                        statusText = `ໃກ້ໝົດ (≤ ${minThreshold})`; 
+                    }
+
+                    const tr = document.createElement('tr');
+                    tr.className = `${rowClass} transition-all duration-200 inventory-row`;
+                    tr.setAttribute('data-status', statusKey);
+                    
+                    // 🟢 ສ້າງປຸ່ມ Action (ແອດມິນຈະເຫັນປຸ່ມກະດິ່ງເພີ່ມຂຶ້ນມາ)
+                    let actionButtons = `
+                        <button onclick="openEditMock('${data.itemCode}', '${name}', ${stock})" class="p-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-100 active:scale-90 transition-all" title="ແກ້ໄຂຍອດ"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
+                    `;
+                    if (isAdmin) {
+                        actionButtons += `
+                        <button onclick="openAlertConfig('${docId}', '${name}', ${minThreshold})" class="p-2 bg-violet-50 text-violet-600 rounded-lg hover:bg-violet-100 active:scale-90 transition-all ml-1" title="ຕັ້ງຄ່າແຈ້ງເຕືອນ"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg></button>
+                        `;
+                    }
+
+                    tr.innerHTML = `
+                        <td class="p-4 font-bold text-indigo-600">${data.itemCode || '-'}</td>
+                        <td class="p-4 font-medium text-slate-800">${name} <span class="block text-xs text-slate-500 font-normal">${cat}</span></td>
+                        <td class="p-4 text-center"><span class="font-bold ${qtyColor}">${stock}</span> <span class="text-slate-600">${data.unit}</span></td>
+                        <td class="p-4 text-center"><span class="px-3 py-1 ${statusBg} rounded-full text-[11px] font-bold border whitespace-nowrap">${statusText}</span></td>
+                        <td class="p-4 text-center">
+                            <div class="flex justify-center items-center">
+                                ${actionButtons}
+                            </div>
+                        </td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+
+                document.getElementById('countTotal').innerText = total;
+                document.getElementById('countLow').innerText = low;
+                document.getElementById('countOut').innerText = out;
+
+            } catch (error) {
+                console.error("Error loading inventory:", error);
+                tableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-rose-500">ເກີດຂໍ້ຜິດພາດ: ${error.message}</td></tr>`;
+            }
+        }
+
+        // 🟢 ຟັງຊັນບັນທຶກວັດຖຸໃໝ່ (ບໍ່ຕ້ອງມີຫ້ອງແຈ້ງເຕືອນແລ້ວ) 🟢
+        window.saveMaterial = async function() {
+            if (!isAdmin) return alert("⛔ ຂໍອະໄພ, ສະເພາະ Admin ເທົ່ານັ້ນ!");
+
+            const btn = document.getElementById('btnSaveMaterial');
+            const code = document.getElementById('matCode').value.trim().toUpperCase();
+            const name = document.getElementById('matName').value.trim();
+            const category = document.getElementById('matCategory').value;
+            const unit = document.getElementById('matUnit').value.trim();
+
+            if (!code || !name || !unit) return alert("ກະລຸນາປ້ອນ ລະຫັດ, ຊື່ ແລະ ຫົວໜ່ວຍ ໃຫ້ຄົບ!");
+
+            btn.disabled = true; btn.innerHTML = 'ກຳລັງບັນທຶກ...';
+
+            try {
+                // ບັນທຶກຂໍ້ມູນທັງໝົດ ໂດຍໃຫ້ minThreshold ເປັນ 15 ຄ່າເລີ່ມຕົ້ນ
+                await addDoc(collection(db, "materials"), {
+                    itemCode: code,
+                    itemName: name,
+                    category: category,
+                    unit: unit,
+                    minThreshold: 15, 
+                    stockQuantity: 0, 
+                    createdAt: serverTimestamp()
+                });
+                toggleModal('materialModal', false);
+                alert("✅ ເພີ່ມວັດຖຸເຂົ້າໃນຖານຂໍ້ມູນຫຼັກສຳເລັດແລ້ວ!");
+                
+                // ລ້າງຄ່າໃນຟອມ
+                document.getElementById('matCode').value = '';
+                document.getElementById('matName').value = '';
+                document.getElementById('matUnit').value = '';
+                
+                window.loadInventory(); 
+            } catch (error) {
+                console.error("Error adding:", error);
+                alert("❌ ເກີດຂໍ້ຜິດພາດ: " + error.message);
+            } finally {
+                btn.disabled = false; btn.innerHTML = 'ບັນທຶກຂໍ້ມູນ';
+            }
+        }
+
+        // 🟢 ຟັງຊັນບັນທຶກການຕັ້ງຄ່າຈຸດແຈ້ງເຕືອນໃໝ່ 🟢
+        window.saveAlertConfig = async function() {
+            if (!isAdmin || !currentAlertDocId) return;
+
+            const btn = document.getElementById('btnSaveConfig');
+            const minStockStr = document.getElementById('configMinStock').value;
+            const minStock = minStockStr !== "" ? parseInt(minStockStr) : 15;
+
+            btn.disabled = true; btn.innerHTML = 'ກຳລັງບັນທຶກ...';
+
+            try {
+                // ອັບເດດສະເພາະ field "minThreshold" ຂອງ document ນັ້ນໆ
+                const docRef = doc(db, "materials", currentAlertDocId);
+                await updateDoc(docRef, { minThreshold: minStock });
+                
+                toggleModal('alertConfigModal', false);
+                // ໂຫຼດຕາຕະລາງໃໝ່ເພື່ອໃຫ້ເຫັນຜົນການປ່ຽນແປງທັນທີ
+                window.loadInventory(); 
+            } catch (error) {
+                console.error("Error updating config:", error);
+                alert("❌ ເກີດຂໍ້ຜິດພາດ: " + error.message);
+            } finally {
+                btn.disabled = false; btn.innerHTML = 'ບັນທຶກ';
+            }
+        }
+
+        // ເອີ້ນໂຫຼດຂໍ້ມູນຕອນເປີດໜ້າເວັບ
+        window.loadInventory();
+    </script>
 </body>
 </html>
