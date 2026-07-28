@@ -42,7 +42,12 @@
     <main class="flex-1 p-8 ml-64 overflow-y-auto space-y-6 page-animate">
         
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 pb-5">
-            <div class="flex items-start space-x-4">
+            <div class="flex items-center space-x-4">
+                
+                <a href="receive-items.html" class="p-2.5 bg-white border border-slate-200 text-slate-500 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50 rounded-xl shadow-sm transition-all flex items-center justify-center cursor-pointer active:scale-95" title="ກັບຄືນໜ້າກ່ອນໜ້າ">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
+                </a>
+
                 <div class="bg-gradient-to-br from-blue-500 to-indigo-600 p-3 rounded-2xl text-white shadow-lg shadow-blue-500/30">
                     <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                 </div>
@@ -51,9 +56,10 @@
                     <p class="text-slate-500 mt-1 text-sm">ກວດສອບ ແລະ ຕິດຕາມປະຫວັດການນຳເຄື່ອງເຂົ້າສາງທັງໝົດ</p>
                 </div>
             </div>
-            <a href="receive-items.html" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold py-2.5 px-6 rounded-xl shadow-lg active:scale-95 transition-all flex items-center">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
-                ຮັບເຄື່ອງເຂົ້າໃໝ່
+            
+            <a href="receive-items.html" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-sm font-bold py-2.5 px-5 rounded-xl shadow-sm active:scale-95 transition-all flex items-center">
+                <svg class="w-5 h-5 mr-2 text-slate-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                ກັບຄືນໜ້າຮັບເຄື່ອງ
             </a>
         </div>
 
@@ -161,7 +167,7 @@
                                 </tr>
                             </thead>
                             <tbody id="receiptItemsTable">
-                                </tbody>
+                            </tbody>
                         </table>
                     </div>
 
@@ -214,10 +220,8 @@
         import { db } from '../../firebase-config.js';
         import { collection, getDocs, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // ຕົວແປເກັບຂໍ້ມູນທັງໝົດໄວ້ໃນ Memory ເພື່ອບໍ່ຕ້ອງໂຫຼດໃໝ່ຕອນກົດເບິ່ງລາຍລະອຽດ
         let allReceiptHistory = [];
 
-        // 🟢 ຟັງຊັນໂຫຼດຂໍ້ມູນປະຫວັດ 🟢
         window.loadHistoryData = async function() {
             const tableBody = document.getElementById('historyTableBody');
             const startDate = document.getElementById('filterStartDate').value;
@@ -226,19 +230,17 @@
             try {
                 tableBody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400">ກຳລັງໂຫຼດຂໍ້ມູນ...</td></tr>';
                 
-                // ສ້າງ Query ເລີ່ມຕົ້ນ (ລຽງຕາມວັນທີຫຼ້າສຸດ)
                 let q = query(collection(db, "receipt_history"), orderBy("receiveDate", "desc"));
                 const querySnapshot = await getDocs(q);
                 
-                allReceiptHistory = []; // ລ້າງຂໍ້ມູນເກົ່າ
+                allReceiptHistory = []; 
                 tableBody.innerHTML = '';
                 
                 let totalReceiptsMonth = 0;
                 let totalItemsTypesMonth = 0;
                 let totalQtyMonth = 0;
 
-                // ດຶງເດືອນ ແລະ ປີ ປະຈຸບັນ ເພື່ອເຮັດບັດສະຫຼຸບ
-                const currentMonthStr = new Date().toISOString().substring(0, 7); // ໄດ້ຄ່າ 'YYYY-MM'
+                const currentMonthStr = new Date().toISOString().substring(0, 7); 
 
                 if (querySnapshot.empty) {
                     tableBody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400">ຍັງບໍ່ມີປະຫວັດການຮັບເຄື່ອງ.</td></tr>';
@@ -247,15 +249,13 @@
                 let index = 1;
                 querySnapshot.forEach((docSnap) => {
                     const data = docSnap.data();
-                    const rDate = data.receiveDate || ''; // YYYY-MM-DD
+                    const rDate = data.receiveDate || ''; 
                     
-                    // 🧠 ລະບົບກັ່ນຕອງວັນທີ (Date Range Filter) 🧠
-                    if (startDate && rDate < startDate) return; // ຖ້າວັນທີໜ້ອຍກວ່າເລີ່ມຕົ້ນ ໃຫ້ຂ້າມ
-                    if (endDate && rDate > endDate) return;     // ຖ້າວັນທີຫຼາຍກວ່າສິ້ນສຸດ ໃຫ້ຂ້າມ
+                    if (startDate && rDate < startDate) return; 
+                    if (endDate && rDate > endDate) return;     
 
                     allReceiptHistory.push({ id: docSnap.id, ...data });
 
-                    // ຄິດໄລ່ບັດສະຫຼຸບ (ສະເພາະເດືອນນີ້)
                     if (rDate.startsWith(currentMonthStr)) {
                         totalReceiptsMonth++;
                         const itemsArr = data.items || [];
@@ -265,11 +265,9 @@
                         });
                     }
 
-                    // ສ້າງແຖວຕາຕະລາງ
                     const tr = document.createElement('tr');
                     tr.className = `hover:bg-slate-50 transition-colors border-b border-slate-50 history-row`;
                     
-                    // ແປງວັນທີໃຫ້ອ່ານງ່າຍ ຂຶ້ນ (DD/MM/YYYY)
                     const dateObj = new Date(rDate);
                     const formattedDate = !isNaN(dateObj) ? dateObj.toLocaleDateString('en-GB') : rDate;
 
@@ -289,12 +287,10 @@
                     tableBody.appendChild(tr);
                 });
 
-                // ຖ້າກັ່ນຕອງແລ້ວບໍ່ມີຂໍ້ມູນ
                 if (index === 1) {
                     tableBody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400">ບໍ່ພົບຂໍ້ມູນໃນຊ່ວງວັນທີທີ່ເລືອກ.</td></tr>';
                 }
 
-                // ອັບເດດຕົວເລກໃນບັດສະຫຼຸບ
                 document.getElementById('countReceiptsMonth').innerText = totalReceiptsMonth;
                 document.getElementById('countItemsMonth').innerText = totalItemsTypesMonth;
                 document.getElementById('countQtyMonth').innerText = totalQtyMonth;
@@ -305,13 +301,10 @@
             }
         };
 
-        // 🟢 ຟັງຊັນສະແດງລາຍລະອຽດໃບບິນ 🟢
         window.viewReceiptDetails = function(docId) {
-            // ຊອກຫາຂໍ້ມູນບິນຈາກ Array ທີ່ໂຫຼດໄວ້ແລ້ວ
             const receipt = allReceiptHistory.find(r => r.id === docId);
             if (!receipt) return;
 
-            // ເອົາຂໍ້ມູນໄປປ້ອນໃສ່ Modal (ເພື່ອປຣິ້ນ)
             document.getElementById('lblDocRef').innerText = receipt.documentRef || '-';
             
             const dateObj = new Date(receipt.receiveDate);
@@ -320,7 +313,6 @@
             document.getElementById('lblSupplier').innerText = receipt.supplier || '-';
             document.getElementById('lblReceiver').innerText = receipt.receiverName || '-';
 
-            // ສ້າງຕາຕະລາງລາຍການເຄື່ອງໃນບິນນັ້ນ
             const tbody = document.getElementById('receiptItemsTable');
             tbody.innerHTML = '';
             
@@ -341,11 +333,9 @@
                 });
             }
 
-            // ເປີດ Modal
             toggleModal('detailsModal', true);
         };
 
-        // ເອີ້ນໃຊ້ຕອນໂຫຼດໜ້າເວັບ
         window.loadHistoryData();
 
     </script>
