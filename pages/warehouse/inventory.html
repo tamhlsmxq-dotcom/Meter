@@ -66,7 +66,7 @@
                 
                 <button id="btnAutoImport" onclick="autoImportData()" style="display: none;" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold py-2.5 px-4 rounded-xl shadow-[0_4px_14px_0_rgb(16,185,129,0.39)] hover:shadow-[0_6px_20px_rgba(16,185,129,0.23)] active:scale-95 transition-all duration-200 items-center">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                    ດຶງຂໍ້ມູນຕົວຈິງເຂົ້າລະບົບ
+                    <span id="txtAutoImport">ດຶງລາຍຊື່ອຸປະກອນທັງໝົດເຂົ້າລະບົບ (230 ລາຍການ)</span>
                 </button>
 
                 <button id="btnAddMaterial" onclick="toggleModal('materialModal', true)" style="display: none;" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold py-2.5 px-5 rounded-xl shadow-[0_4px_14px_0_rgb(79,70,229,0.39)] hover:shadow-[0_6px_20px_rgba(79,70,229,0.23)] active:scale-95 transition-all duration-200 items-center">
@@ -189,6 +189,29 @@
         </div>
     </div>
 
+    <div id="editModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4 modal-backdrop">
+        <div class="bg-white rounded-2xl w-full max-w-md flex flex-col shadow-2xl modal-animate border border-slate-200 overflow-hidden">
+            <div class="bg-gradient-to-r from-amber-500 to-orange-500 p-4 flex justify-between items-center text-white">
+                <h3 class="font-bold text-lg flex items-center"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg> ປັບປຸງຍອດສະຕັອກ (Manual Edit)</h3>
+                <button onclick="toggleModal('editModal', false)" class="hover:bg-white/20 p-1.5 rounded-lg transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                    <p class="text-xs text-slate-500 font-bold">ລາຍການອຸປະກອນ:</p>
+                    <p class="font-bold text-slate-800 text-lg" id="editItemName">WM-15M</p>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">ຍອດປັດຈຸບັນ</label><input type="text" id="editCurrentStock" disabled class="w-full p-2.5 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 font-bold text-center"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1 text-indigo-600">ຍອດໃໝ່ <span class="text-red-500">*</span></label><input type="number" id="editNewStock" placeholder="0" class="w-full p-2.5 border-2 border-indigo-200 rounded-xl focus:outline-none focus:border-indigo-500 font-bold text-center text-indigo-700 transition-colors"></div>
+                </div>
+            </div>
+            <div class="bg-slate-50 p-4 border-t border-slate-200 flex justify-end space-x-3">
+                <button onclick="toggleModal('editModal', false)" class="px-5 py-2.5 rounded-xl font-bold text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 text-sm">ຍົກເລີກ</button>
+                <button id="btnSaveStockManual" onclick="saveManualStock()" class="px-5 py-2.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 text-sm">ບັນທຶກການປ່ຽນແປງ</button>
+            </div>
+        </div>
+    </div>
+
     <div id="monthlyReportModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-start justify-center p-4 overflow-y-auto modal-backdrop transition-all duration-300">
         <div class="bg-slate-200 rounded-xl w-full max-w-6xl my-8 flex flex-col shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] border-[6px] border-slate-400 modal-animate">
             <div class="bg-slate-800 p-4 rounded-t-sm flex flex-wrap gap-4 justify-between items-center text-white sticky top-0 z-10 shadow-lg">
@@ -221,29 +244,6 @@
                     <div class="text-center mb-6"><h2 class="text-base font-bold">ສາທາລະນະລັດ ປະຊາທິປະໄຕ ປະຊາຊົນລາວ</h2></div>
                     <div class="text-center mb-8"><h1 class="text-xl font-extrabold">ໃບລາຍງານສະຫຼຸບສະຕັອກສິນຄ້າ (Inventory Report)</h1></div>
                 </div>
-            </div>
-        </div>
-    </div>
-    
-    <div id="editModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4 modal-backdrop">
-        <div class="bg-white rounded-2xl w-full max-w-md flex flex-col shadow-2xl modal-animate border border-slate-200 overflow-hidden">
-            <div class="bg-gradient-to-r from-amber-500 to-orange-500 p-4 flex justify-between items-center text-white">
-                <h3 class="font-bold text-lg flex items-center"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg> ປັບປຸງຍອດສະຕັອກ (Manual Edit)</h3>
-                <button onclick="toggleModal('editModal', false)" class="hover:bg-white/20 p-1.5 rounded-lg transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg></button>
-            </div>
-            <div class="p-6 space-y-4">
-                <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                    <p class="text-xs text-slate-500 font-bold">ລາຍການອຸປະກອນ:</p>
-                    <p class="font-bold text-slate-800 text-lg" id="editItemName">WM-15M</p>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">ຍອດປັດຈຸບັນ</label><input type="text" id="editCurrentStock" disabled class="w-full p-2.5 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 font-bold text-center"></div>
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1 text-indigo-600">ຍອດໃໝ່ <span class="text-red-500">*</span></label><input type="number" placeholder="0" class="w-full p-2.5 border-2 border-indigo-200 rounded-xl focus:outline-none focus:border-indigo-500 font-bold text-center text-indigo-700 transition-colors"></div>
-                </div>
-            </div>
-            <div class="bg-slate-50 p-4 border-t border-slate-200 flex justify-end space-x-3">
-                <button onclick="toggleModal('editModal', false)" class="px-5 py-2.5 rounded-xl font-bold text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 text-sm">ຍົກເລີກ</button>
-                <button class="px-5 py-2.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 text-sm">ບັນທຶກ</button>
             </div>
         </div>
     </div>
@@ -282,9 +282,13 @@
             window.print();
         }
 
-        function openEditMock(code, name, stock) {
+        // ຕົວແປສຳລັບ Modal ແກ້ໄຂຍອດ (Manual Edit)
+        let currentEditDocId = null;
+        function openEditMock(docId, code, name, stock) {
+            currentEditDocId = docId;
             document.getElementById('editItemName').innerText = `${code} - ${name}`;
             document.getElementById('editCurrentStock').value = stock;
+            document.getElementById('editNewStock').value = '';
             toggleModal('editModal', true);
         }
 
@@ -299,16 +303,20 @@
 
     <script type="module">
         import { db } from '../../firebase-config.js';
-        import { collection, addDoc, getDocs, query, orderBy, serverTimestamp, doc, updateDoc, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { collection, addDoc, getDocs, query, orderBy, serverTimestamp, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // 🟢 ດຶງຂໍ້ມູນຈາກໄຟລ໌ materials.js ທີ່ເຮົາແຍກໄວ້ 🟢
+        import { rawMaterialsCSV } from '../../js/data/materials.js';
 
         // 🔒 RBAC: ກວດສອບສິດທິແອດມິນ
         const userDataStr = localStorage.getItem('wm_user_data');
         const userData = userDataStr ? JSON.parse(userDataStr) : {};
         const isAdmin = userData.role === 'system_manager' || userData.role === 'super_admin' || (userData.email || '').includes('admin');
 
+        // ສະແດງປຸ່ມສະເພາະ Admin
         if (isAdmin) {
             document.getElementById('btnAddMaterial').style.display = 'flex';
-            document.getElementById('btnAutoImport').style.display = 'flex'; // ເປີດປຸ່ມນຳເຂົ້າຂໍ້ມູນສະເພາະ Admin
+            document.getElementById('btnAutoImport').style.display = 'flex'; 
         }
 
         // 🟢 ໂຫຼດຂໍ້ມູນວັດຖຸຈາກ Firebase 🟢
@@ -324,6 +332,8 @@
                 if (querySnapshot.empty) {
                     tableBody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-400">ຍັງບໍ່ມີລາຍການອຸປະກອນໃນລະບົບ. ກະລຸນາກົດປຸ່ມ "ດຶງຂໍ້ມູນຕົວຈິງເຂົ້າລະບົບ" ດ້ານເທິງ.</td></tr>';
                     document.getElementById('countTotal').innerText = '0';
+                    document.getElementById('countLow').innerText = '0';
+                    document.getElementById('countOut').innerText = '0';
                     return;
                 }
 
@@ -363,13 +373,9 @@
                     tr.setAttribute('data-status', statusKey);
                     
                     let actionButtons = `
-                        <button onclick="openEditMock('${data.itemCode}', '${name}', ${stock})" class="p-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-100 active:scale-90 transition-all" title="ແກ້ໄຂຍອດ"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
-                    `;
-                    if (isAdmin) {
-                        actionButtons += `
+                        <button onclick="openEditMock('${docId}', '${data.itemCode}', '${name}', ${stock})" class="p-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-100 active:scale-90 transition-all" title="ແກ້ໄຂຍອດ"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
                         <button onclick="openAlertConfig('${docId}', '${name}', ${minThreshold})" class="p-2 bg-violet-50 text-violet-600 rounded-lg hover:bg-violet-100 active:scale-90 transition-all ml-1" title="ຕັ້ງຄ່າແຈ້ງເຕືອນ"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg></button>
-                        `;
-                    }
+                    `;
 
                     tr.innerHTML = `
                         <td class="p-4 font-bold text-indigo-600">${data.itemCode || '-'}</td>
@@ -388,6 +394,31 @@
             } catch (error) {
                 console.error("Error loading inventory:", error);
                 tableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-rose-500">ເກີດຂໍ້ຜິດພາດ: ${error.message}</td></tr>`;
+            }
+        }
+
+        // 🟢 ຟັງຊັນບັນທຶກການແກ້ໄຂສະຕັອກດ້ວຍມື (Manual Edit Update) 🟢
+        window.saveManualStock = async function() {
+            if (!isAdmin) return alert("⛔ ຂໍອະໄພ, ສະເພາະ Admin ເທົ່ານັ້ນທີ່ສາມາດແກ້ໄຂຍອດສະຕັອກໄດ້!");
+            if (!currentEditDocId) return;
+
+            const btn = document.getElementById('btnSaveStockManual');
+            const newStockStr = document.getElementById('editNewStock').value;
+            
+            if (newStockStr === "") return alert("ກະລຸນາປ້ອນຍອດໃໝ່ທີ່ຕ້ອງການແກ້ໄຂ!");
+            const newStock = parseInt(newStockStr);
+
+            btn.disabled = true; btn.innerHTML = 'ກຳລັງບັນທຶກ...';
+
+            try {
+                await updateDoc(doc(db, "materials", currentEditDocId), { stockQuantity: newStock });
+                toggleModal('editModal', false);
+                window.loadInventory(); 
+                alert("✅ ແກ້ໄຂຍອດສະຕັອກສຳເລັດແລ້ວ!");
+            } catch (error) {
+                console.error("Error updating stock:", error); alert("❌ ເກີດຂໍ້ຜິດພາດ: " + error.message);
+            } finally {
+                btn.disabled = false; btn.innerHTML = 'ບັນທຶກການປ່ຽນແປງ';
             }
         }
 
@@ -423,7 +454,7 @@
 
         // 🟢 ຟັງຊັນບັນທຶກການຕັ້ງຄ່າຈຸດແຈ້ງເຕືອນໃໝ່ 🟢
         window.saveAlertConfig = async function() {
-            if (!isAdmin || !currentAlertDocId) return;
+            if (!currentAlertDocId) return;
 
             const btn = document.getElementById('btnSaveConfig');
             const minStockStr = document.getElementById('configMinStock').value;
@@ -442,95 +473,93 @@
             }
         }
 
-        // 🚀 ຟັງຊັນນຳເຂົ້າຂໍ້ມູນຕົວຢ່າງອັດຕະໂນມັດ (Seed Data ຈິງຈາກໄຟລ໌ Excel ຂອງທ່ານ) 🚀
+        // 🚀 ຟັງຊັນ: ລ້າງຂໍ້ມູນເກົ່າ + ນຳເຂົ້າຂໍ້ມູນຕົວຢ່າງອັດຕະໂນມັດ 🚀
         window.autoImportData = async function() {
             if (!isAdmin) return alert("ສະເພາະ Admin ເທົ່ານັ້ນ!");
-            if (!confirm("ລະບົບຈະທຳການດຶງລາຍຊື່ວັດຖຸຕົວຈິງ (ຈຳນວນຫຼາຍ) ເຂົ້າຖານຂໍ້ມູນ. ຕ້ອງການດຳເນີນການຕໍ່ຫຼືບໍ່?")) return;
+            
+            const confirmMsg = "⚠️ ຄຳເຕືອນ: ລະບົບຈະທຳການ 'ລຶບຂໍ້ມູນອຸປະກອນເກົ່າທັງໝົດ' ອອກຈາກຖານຂໍ້ມູນ ແລ້ວດຶງລາຍຊື່ວັດຖຸ 230 ລາຍການຕົວຈິງ ຈາກໄຟລ໌ materials.js ເຂົ້າໄປແທນ ໂດຍຍອດສະຕັອກຈະເລີ່ມທີ່ 0 ທັງໝົດ. ຕ້ອງການດຳເນີນການຕໍ່ຫຼືບໍ່?";
+            if (!confirm(confirmMsg)) return;
 
             const btn = document.getElementById('btnAutoImport');
-            const originalText = btn.innerHTML;
-            btn.disabled = true; btn.innerHTML = 'ກຳລັງນຳເຂົ້າ... ລໍຖ້າຈັກໜ່ອຍ...';
-
-            // ຂໍ້ມູນຕົວຈິງທີ່ດຶງມາຈາກຮູບພາບ ແລະ CSV ທີ່ທ່ານສົ່ງມາ
-            const realItemsData = [
-                // === ໝວດທໍ່ນ້ຳ (Min 12) ===
-                { code: "03.005.0001", name: "ທໍ່ນ້ຳເຫຼັກເຄືອບ (GSP) Ø 15", category: "ທໍ່ນ້ຳ", unit: "ແມັດ", min: 12 },
-                { code: "03.005.0002", name: "ທໍ່ນ້ຳເຫຼັກເຄືອບ (GSP) Ø 20", category: "ທໍ່ນ້ຳ", unit: "ແມັດ", min: 12 },
-                { code: "03.005.0003", name: "ທໍ່ນ້ຳເຫຼັກເຄືອບ (GSP) Ø 25", category: "ທໍ່ນ້ຳ", unit: "ແມັດ", min: 12 },
-                { code: "03.005.0004", name: "ທໍ່ນ້ຳເຫຼັກເຄືອບ (GSP) Ø 30", category: "ທໍ່ນ້ຳ", unit: "ແມັດ", min: 12 },
-                { code: "03.005.0005", name: "ທໍ່ນ້ຳເຫຼັກເຄືອບ (GSP) Ø 40", category: "ທໍ່ນ້ຳ", unit: "ແມັດ", min: 12 },
-                { code: "03.005.0006", name: "ທໍ່ນ້ຳເຫຼັກເຄືອບ (GSP) Ø 50", category: "ທໍ່ນ້ຳ", unit: "ແມັດ", min: 12 },
-                { code: "03.005.0008", name: "ທໍ່ນ້ຳເຫຼັກເຄືອບ (GSP) Ø 75", category: "ທໍ່ນ້ຳ", unit: "ແມັດ", min: 12 },
-                { code: "03.005.0009", name: "ທໍ່ນ້ຳເຫຼັກເຄືອບ (GSP) Ø 100", category: "ທໍ່ນ້ຳ", unit: "ແມັດ", min: 12 },
-                { code: "03.011.0001", name: "ທໍ່ນ້ຳຢາງ (PVC) Ø 18", category: "ທໍ່ນ້ຳ", unit: "ແມັດ", min: 12 },
-                { code: "03.011.0002", name: "ທໍ່ນ້ຳຢາງ (PVC) Ø 20", category: "ທໍ່ນ້ຳ", unit: "ແມັດ", min: 12 },
-
-                // === ໝວດຂໍ້ຕໍ່ / ວາວ (Min 40) ===
-                { code: "26.138.0002", name: "ຂໍ້ຕໍ່ຊື່ຢາງ (PE) Ø 20", category: "ຂໍ້ຕໍ່ / ວາວ", unit: "ອັນ", min: 40 },
-                { code: "26.138.0003", name: "ຂໍ້ຕໍ່ຊື່ຢາງ (PE) Ø 25", category: "ຂໍ້ຕໍ່ / ວາວ", unit: "ອັນ", min: 40 },
-                { code: "26.138.0004", name: "ຂໍ້ຕໍ່ຊື່ຢາງ (PE) Ø 32", category: "ຂໍ້ຕໍ່ / ວາວ", unit: "ອັນ", min: 40 },
-                { code: "26.138.0006", name: "ຂໍ້ຕໍ່ຊື່ຢາງ (PE) Ø 50", category: "ຂໍ້ຕໍ່ / ວາວ", unit: "ອັນ", min: 40 },
-                { code: "26.138.0007", name: "ຂໍ້ຕໍ່ຊື່ຢາງ (PE) Ø 63", category: "ຂໍ້ຕໍ່ / ວາວ", unit: "ອັນ", min: 40 },
-                { code: "26.140.0002", name: "ຂໍ້ຕໍ່ກຽວນອກຢາງ (PE) Ø 20", category: "ຂໍ້ຕໍ່ / ວາວ", unit: "ອັນ", min: 40 },
-                { code: "26.140.0003", name: "ຂໍ້ຕໍ່ກຽວນອກຢາງ (PE) Ø 25", category: "ຂໍ້ຕໍ່ / ວາວ", unit: "ອັນ", min: 40 },
-                { code: "26.140.0006", name: "ຂໍ້ຕໍ່ກຽວນອກຢາງ (PE) Ø 50", category: "ຂໍ້ຕໍ່ / ວາວ", unit: "ອັນ", min: 40 },
-                { code: "26.140.0007", name: "ຂໍ້ຕໍ່ກຽວນອກຢາງ (PE) Ø 63", category: "ຂໍ້ຕໍ່ / ວາວ", unit: "ອັນ", min: 40 },
-                { code: "26.141.0002", name: "ຂໍ້ຕໍ່ກຽວໃນຢາງ (PE) Ø 20", category: "ຂໍ້ຕໍ່ / ວາວ", unit: "ອັນ", min: 40 },
-                { code: "26.141.0003", name: "ຂໍ້ຕໍ່ກຽວໃນຢາງ (PE) Ø 25", category: "ຂໍ້ຕໍ່ / ວາວ", unit: "ອັນ", min: 40 },
-                { code: "26.141.0004", name: "ຂໍ້ຕໍ່ກຽວໃນຢາງ (PE) Ø 32", category: "ຂໍ້ຕໍ່ / ວາວ", unit: "ອັນ", min: 40 },
-                { code: "27.141.0002", name: "ຂໍ້ງໍ 90 ຢາງ (PE) Ø 20", category: "ຂໍ້ຕໍ່ / ວາວ", unit: "ອັນ", min: 40 },
-
-                // === ໝວດມິເຕີ (ຕັ້ງ Min ຕາມຂະໜາດ) ===
-                { code: "WM-15M", name: "ໝໍ້ແທກນ້ຳ ຂະໜາດ 15mm", category: "ມິເຕີ ແລະ ອຸປະກອນ", unit: "ໜ່ວຍ", min: 150 },
-                { code: "WM-20M", name: "ໝໍ້ແທກນ້ຳ ຂະໜາດ 20mm", category: "ມິເຕີ ແລະ ອຸປະກອນ", unit: "ໜ່ວຍ", min: 150 },
-                { code: "WM-25M", name: "ໝໍ້ແທກນ້ຳ ຂະໜາດ 25mm", category: "ມິເຕີ ແລະ ອຸປະກອນ", unit: "ໜ່ວຍ", min: 200 },
-                { code: "WM-40M", name: "ໝໍ້ແທກນ້ຳ ຂະໜາດ 40mm", category: "ມິເຕີ ແລະ ອຸປະກອນ", unit: "ໜ່ວຍ", min: 100 },
-                { code: "WM-50M", name: "ໝໍ້ແທກນ້ຳ ຂະໜາດ 50mm", category: "ມິເຕີ ແລະ ອຸປະກອນ", unit: "ໜ່ວຍ", min: 10 },
-                { code: "WM-80M", name: "ໝໍ້ແທກນ້ຳ ຂະໜາດ 80mm", category: "ມິເຕີ ແລະ ອຸປະກອນ", unit: "ໜ່ວຍ", min: 10 },
-                { code: "WM-100M", name: "ໝໍ້ແທກນ້ຳ ຂະໜາດ 100mm", category: "ມິເຕີ ແລະ ອຸປະກອນ", unit: "ໜ່ວຍ", min: 10 },
-                { code: "WM-150M", name: "ໝໍ້ແທກນ້ຳ ຂະໜາດ 150mm", category: "ມິເຕີ ແລະ ອຸປະກອນ", unit: "ໜ່ວຍ", min: 10 },
-                { code: "WM-200M", name: "ໝໍ້ແທກນ້ຳ ຂະໜາດ 200mm", category: "ມິເຕີ ແລະ ອຸປະກອນ", unit: "ໜ່ວຍ", min: 10 },
-                { code: "WM-250M", name: "ໝໍ້ແທກນ້ຳ ຂະໜາດ 250mm", category: "ມິເຕີ ແລະ ອຸປະກອນ", unit: "ໜ່ວຍ", min: 10 },
-                { code: "WM-400M", name: "ໝໍ້ແທກນ້ຳ ຂະໜາດ 400mm", category: "ມິເຕີ ແລະ ອຸປະກອນ", unit: "ໜ່ວຍ", min: 10 },
-
-                // === ໝວດອື່ນໆ ===
-                { code: "TP-01", name: "ສະກັອດພັນກຽວທໍ່ນ້ຳ", category: "ອຸປະກອນຊ່າງ", unit: "ມ້ວນ", min: 15 },
-                { code: "GL-01", name: "ກາວທາທໍ່ນ້ຳ PVC", category: "ອຸປະກອນຊ່າງ", unit: "ກະປ໋ອງ", min: 15 },
-                { code: "VA-15", name: "ວາວປິດ-ເປີດນ້ຳ 15mm", category: "ຂໍ້ຕໍ່ / ວາວ", unit: "ອັນ", min: 40 }
-            ];
+            const txt = document.getElementById('txtAutoImport');
+            const originalText = txt.innerHTML;
+            btn.disabled = true; txt.innerHTML = 'ກຳລັງລ້າງຂໍ້ມູນເກົ່າ... (ກະລຸນາລໍຖ້າ)';
 
             try {
+                // 1. ລຶບຂໍ້ມູນໃນ Collection "materials" ຖິ້ມທັງໝົດກ່ອນ
+                const existingDocs = await getDocs(collection(db, "materials"));
+                const deletePromises = [];
+                existingDocs.forEach((d) => {
+                    deletePromises.push(deleteDoc(doc(db, "materials", d.id)));
+                });
+                await Promise.all(deletePromises);
+
+                txt.innerHTML = 'ກຳລັງລົງຂໍ້ມູນໃໝ່... (ຫ້າມປິດໜ້າຈໍ)';
+
+                // 2. ດຶງຂໍ້ມູນຈາກໄຟລ໌ແຍກ (ຮອງຮັບການ Copy ຈາກ Excel ທີ່ເປັນ Tab ແລະ Comma)
+                const lines = rawMaterialsCSV.trim().split('\n');
                 let count = 0;
-                for (const item of realItemsData) {
-                    // ກວດສອບກ່ອນວ່າມີລະຫັດນີ້ແລ້ວຫຼືຍັງ (ປ້ອງກັນການເພີ່ມຊ້ຳ)
-                    const q = query(collection(db, "materials"), where("itemCode", "==", item.code));
-                    const snap = await getDocs(q);
+
+                for (const line of lines) {
+                    if(!line || line.trim() === "" || line.includes("ລະຫັດອຸປະກອນ") || line.includes("ລາຍຊື່ອຸປະກອນ")) continue; 
                     
-                    if (snap.empty) {
+                    // 🌟 ຮອງຮັບທັງການ Copy ຈາກ Excel (Tab) ແລະ ແບບຈຸດ (,)
+                    const delimiter = line.includes('\t') ? '\t' : ',';
+                    const parts = line.split(delimiter);
+                    
+                    if (parts.length >= 2) {
+                        const code = parts[0].trim();
+                        const name = parts[1].trim();
+                        const unit = parts[2] ? parts[2].trim() : 'ອັນ';
+
+                        // 🧠 ໂລຈິກກຳນົດ ໝວດໝູ່ ແລະ ຈຸດແຈ້ງເຕືອນ ອັດຕະໂນມັດ 🧠
+                        let cat = "ອື່ນໆ";
+                        let min = 15; 
+
+                        if (name.includes("ທໍ່") && !name.includes("ຂໍ້") && !name.includes("ປອກ")) {
+                            cat = "ທໍ່ນ້ຳ";
+                            min = 12;
+                        } else if (name.includes("ຂໍ້") || name.includes("ວາວ") || name.includes("ສາມຕາ") || name.includes("ລວມສູນ") || name.includes("ດອນອັດ") || name.includes("ຝາອັດ") || name.includes("ປະຕູນ້ຳ") || name.includes("ກ໋ອກ") || name.includes("ປອກຈັບ") || name.includes("ໜ້າແປນ") || name.includes("ຫົວເຈາະ")) {
+                            cat = "ຂໍ້ຕໍ່ / ວາວ";
+                            min = 40;
+                        } else if (name.includes("ແທກນ້ຳ") || name.includes("ອາໄຫຼ່ Insert") || name.includes("ຊຸດຂາ") || name.includes("ຂາໝໍ້")) {
+                            cat = "ມິເຕີ ແລະ ອຸປະກອນ";
+                            if (/\b(13|15|18|20)\b/.test(name) || name.includes("15mm") || name.includes("20mm") || name.includes("DN 15") || name.includes("DN 20")) {
+                                min = 150;
+                            } else if (/\b(25|30)\b/.test(name) || name.includes("25mm") || name.includes("DN 25")) {
+                                min = 200;
+                            } else if (/\b(32|35|40)\b/.test(name) || name.includes("40mm")) {
+                                min = 100;
+                            } else if (/\b(50|55|63|75|80|100|150|200|250|400)\b/.test(name) || name.includes("50mm") || name.match(/(50|80|100|150|200|250|400)mm/)) {
+                                min = 10;
+                            }
+                        } else {
+                            cat = "ອຸປະກອນຊ່າງ";
+                        }
+
+                        // 🟢 ຕັ້ງຍອດສະຕັອກເປັນ 0 ທັງໝົດ 🟢
                         await addDoc(collection(db, "materials"), {
-                            itemCode: item.code, 
-                            itemName: item.name, 
-                            category: item.category, 
-                            unit: item.unit,
-                            minThreshold: item.min, 
-                            stockQuantity: 0, 
+                            itemCode: code, 
+                            itemName: name, 
+                            category: cat, 
+                            unit: unit,
+                            minThreshold: min, 
+                            stockQuantity: 0, // <--- ສຳຄັນ: ເລີ່ມຕົ້ນທີ່ 0
                             createdAt: serverTimestamp()
                         });
                         count++;
+                        txt.innerHTML = `ກຳລັງລົງຂໍ້ມູນໃໝ່... (${count} ລາຍການ)`;
                     }
                 }
                 
-                if(count > 0) {
-                    alert(`✅ ນຳເຂົ້າຂໍ້ມູນສຳເລັດແລ້ວ ຈຳນວນ ${count} ລາຍການ!`);
-                    window.loadInventory();
-                } else {
-                    alert(`⚠️ ຂໍ້ມູນຕົວຈິງເຫຼົ່ານີ້ມີໃນລະບົບໝົດແລ້ວ (ບໍ່ມີການເພີ່ມຊ້ຳ).`);
-                }
+                alert(`✅ ສຳເລັດການລ້າງສະຕັອກ ແລະ ດຶງຂໍ້ມູນຈິງເຂົ້າຖານຂໍ້ມູນ! (ເພີ່ມໃໝ່ ${count} ລາຍການ ຍອດ=0)`);
+                window.loadInventory();
+                
             } catch (error) {
                 console.error("Import error:", error);
                 alert("❌ ເກີດຂໍ້ຜິດພາດ: " + error.message);
             } finally {
-                btn.disabled = false; btn.innerHTML = originalText;
+                btn.disabled = false; txt.innerHTML = originalText;
             }
         }
 
