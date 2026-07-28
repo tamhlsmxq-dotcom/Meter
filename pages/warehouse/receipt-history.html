@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ປະຫວັດການຮັບເຄື່ອງ - Water Meter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <style> 
+        * { font-family: 'Times New Roman', 'Phetsarath OT', serif; }
+        body { background-color: #f8fafc; overflow-x: hidden; }
+
+        .page-animate { animation: pageEnter 0.5s ease-out forwards; }
+        @keyframes pageEnter { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        .hover-float { transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .hover-float:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border-color: #e2e8f0; }
+
+        .modal-backdrop { animation: fadeInBg 0.3s ease-out forwards; }
+        @keyframes fadeInBg { from { opacity: 0; backdrop-filter: blur(0px); } to { opacity: 1; backdrop-filter: blur(8px); } }
+        
+        .modal-animate { animation: smoothPop 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes smoothPop { from { opacity: 0; transform: scale(0.95) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        
+        .report-table th, .report-table td { border: 1px solid #000000; padding: 8px; color: #000000; }
+        .report-table th { background-color: #f8fafc; text-align: center; font-weight: bold; }
+        
+        @media print {
+            body * { visibility: hidden; }
+            .print-active-area, .print-active-area * { visibility: visible; }
+            .print-active-area { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; background: white; box-shadow: none !important; border: none !important; }
+        }
+    </style>
+</head>
+<body class="flex min-h-screen relative">
+    
+    <div id="sidebar-container" class="w-64 flex-shrink-0 z-50 relative"></div>
+    <script src="../../js/components/sidebar.js" defer></script>
+    <script type="module" src="../../js/components/auth-guard.js"></script>
+
+    <main class="flex-1 p-8 ml-64 overflow-y-auto space-y-6 page-animate">
+        
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 pb-5">
+            <div class="flex items-start space-x-4">
+                <div class="bg-gradient-to-br from-blue-500 to-indigo-600 p-3 rounded-2xl text-white shadow-lg shadow-blue-500/30">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-extrabold text-slate-800 tracking-wide">ປະຫວັດການຮັບເຄື່ອງ (Receipt History)</h2>
+                    <p class="text-slate-500 mt-1 text-sm">ກວດສອບ ແລະ ຕິດຕາມປະຫວັດການນຳເຄື່ອງເຂົ້າສາງທັງໝົດ</p>
+                </div>
+            </div>
+            <a href="receive-items.html" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold py-2.5 px-6 rounded-xl shadow-lg active:scale-95 transition-all flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
+                ຮັບເຄື່ອງເຂົ້າໃໝ່
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex items-center justify-between hover-float">
+                <div><p class="text-slate-500 text-sm font-semibold mb-1">ບິນຮັບເຄື່ອງເດືອນນີ້</p><h3 class="text-3xl font-bold text-indigo-600"><span id="countReceiptsMonth">0</span> <span class="text-sm font-normal text-slate-500">ໃບ</span></h3></div>
+                <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg></div>
+            </div>
+            <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex items-center justify-between hover-float">
+                <div><p class="text-slate-500 text-sm font-semibold mb-1">ລາຍການອຸປະກອນທີ່ຮັບເດືອນນີ້</p><h3 class="text-3xl font-bold text-emerald-500"><span id="countItemsMonth">0</span> <span class="text-sm font-normal text-slate-500">ລາຍການ</span></h3></div>
+                <div class="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg></div>
+            </div>
+            <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex items-center justify-between hover-float">
+                <div><p class="text-slate-500 text-sm font-semibold mb-1">ຈຳນວນຊິ້ນສ່ວນທັງໝົດເດືອນນີ້</p><h3 class="text-3xl font-bold text-blue-500"><span id="countQtyMonth">0</span> <span class="text-sm font-normal text-slate-500">ຊິ້ນ</span></h3></div>
+                <div class="w-12 h-12 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg></div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mt-6 transition-all">
+            <div class="p-4 border-b border-slate-100 flex flex-wrap gap-4 justify-between items-center bg-slate-50/50">
+                <div class="relative w-full md:w-64 group">
+                    <svg class="w-5 h-5 absolute left-3 top-2.5 text-slate-400 group-focus-within:text-indigo-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="ຄົ້ນຫາເລກບິນ ຫຼື ຜູ້ສະໜອງ..." class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm transition-all duration-300">
+                </div>
+                
+                <div class="flex flex-wrap gap-2 items-center">
+                    <div class="flex items-center space-x-2 bg-white border border-slate-200 rounded-xl px-2 py-1 shadow-sm">
+                        <span class="text-xs font-bold text-slate-500 pl-2">ຈາກ:</span>
+                        <input type="date" id="filterStartDate" class="focus:outline-none text-sm text-slate-700 cursor-pointer bg-transparent p-1">
+                        <span class="text-xs font-bold text-slate-500">ຫາ:</span>
+                        <input type="date" id="filterEndDate" class="focus:outline-none text-sm text-slate-700 cursor-pointer bg-transparent p-1">
+                    </div>
+                    <button onclick="loadHistoryData()" class="bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold py-2 px-4 rounded-xl shadow-sm active:scale-95 transition-all flex items-center">
+                        ຄົ້ນຫາວັນທີ
+                    </button>
+                    <button onclick="clearFilter()" class="border border-slate-300 hover:bg-slate-100 text-slate-600 text-sm font-bold py-2 px-4 rounded-xl active:scale-95 transition-all">
+                        ລ້າງຄ່າ
+                    </button>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto max-h-[60vh]">
+                <table class="w-full text-left border-collapse whitespace-nowrap">
+                    <thead class="sticky top-0 z-10 shadow-sm">
+                        <tr class="bg-slate-50 border-b border-slate-100 text-slate-500 text-sm">
+                            <th class="p-4 font-semibold text-center w-16">ລ/ດ</th>
+                            <th class="p-4 font-semibold w-32">ວັນທີຮັບເຄື່ອງ</th>
+                            <th class="p-4 font-semibold w-40">ເລກທີໃບຮັບ (Doc Ref)</th>
+                            <th class="p-4 font-semibold">ຜູ້ສະໜອງ / ບໍລິສັດ</th>
+                            <th class="p-4 font-semibold text-center w-32">ຈຳນວນລາຍການ</th>
+                            <th class="p-4 font-semibold text-center w-32">ຜູ້ຮັບເຄື່ອງ</th>
+                            <th class="p-4 font-semibold text-center w-32">ລາຍລະອຽດ</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50 text-sm text-slate-700" id="historyTableBody">
+                        <tr><td colspan="7" class="p-8 text-center text-slate-400">ກຳລັງໂຫຼດຂໍ້ມູນຈາກຖານຂໍ້ມູນ...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div id="detailsModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-start justify-center p-4 overflow-y-auto modal-backdrop transition-all duration-300">
+        <div class="bg-slate-200 rounded-xl w-full max-w-4xl my-8 flex flex-col shadow-2xl border-[6px] border-slate-400 modal-animate">
+            <div class="bg-slate-800 p-4 rounded-t-sm flex justify-between items-center text-white sticky top-0 z-10 shadow-lg">
+                <h3 class="font-bold text-base flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    ລາຍລະອຽດໃບຮັບເຄື່ອງ
+                </h3>
+                <div class="flex items-center space-x-2">
+                    <button onclick="printSection('printable-receipt')" class="bg-slate-600 hover:bg-slate-500 border border-slate-500 text-white px-4 py-2 rounded font-bold flex items-center text-xs shadow-sm hover:shadow-md active:scale-95 transition-all">ພິມເອກະສານ (Print)</button>
+                    <button onclick="toggleModal('detailsModal', false)" class="hover:bg-rose-500 p-2 rounded transition-colors bg-slate-700 active:scale-90"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                </div>
+            </div>
+            
+            <div class="p-8 pb-16 bg-slate-200">
+                <div id="printable-receipt" class="bg-white mx-auto shadow-2xl p-10 rounded-sm text-black relative" style="min-height: 297mm; max-width: 210mm;">
+                    
+                    <div class="text-center mb-6 border-b-2 border-slate-800 pb-4">
+                        <h2 class="text-2xl font-extrabold mb-1">ໃບຮັບເຄື່ອງເຂົ້າສາງ (Goods Receipt)</h2>
+                        <h3 class="text-sm font-bold text-slate-600">ລັດວິສາຫະກິດ ນ້ຳປະປາ ນະຄອນຫຼວງ</h3>
+                        <p class="text-xs">ພະແນກຄຸ້ມຄອງໝໍ້ແທກນ້ຳ ແລະ ຫລຸດຜ່່ອນນ້ຳສູນເສຍ (ພາກສ່ວນສາງ)</p>
+                    </div>
+
+                    <div class="flex justify-between items-start mb-8 text-sm">
+                        <div class="space-y-2">
+                            <p><strong>ຜູ້ສະໜອງ / ບໍລິສັດ:</strong> <span id="lblSupplier" class="border-b border-dotted border-slate-400 pb-0.5">-</span></p>
+                            <p><strong>ຜູ້ຮັບເຄື່ອງ:</strong> <span id="lblReceiver" class="border-b border-dotted border-slate-400 pb-0.5">-</span></p>
+                        </div>
+                        <div class="text-right space-y-2">
+                            <p><strong>ເລກທີໃບຮັບ:</strong> <span id="lblDocRef" class="border-b border-dotted border-slate-400 pb-0.5">-</span></p>
+                            <p><strong>ວັນທີຮັບເຄື່ອງ:</strong> <span id="lblDate" class="border-b border-dotted border-slate-400 pb-0.5">-</span></p>
+                        </div>
+                    </div>
+
+                    <div class="mb-8">
+                        <table class="w-full text-xs report-table border-collapse">
+                            <thead>
+                                <tr>
+                                    <th class="w-10">ລ/ດ</th>
+                                    <th class="w-24 text-left px-2">ລະຫັດວັດຖຸ</th>
+                                    <th class="text-left px-2">ລາຍການອຸປະກອນ</th>
+                                    <th class="w-24">ຈຳນວນຮັບ</th>
+                                    <th class="w-32">ໝາຍເຫດ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="receiptItemsTable">
+                                </tbody>
+                        </table>
+                    </div>
+
+                    <div class="flex justify-between items-start text-xs font-bold text-center px-4 mt-20">
+                        <div class="space-y-16">
+                            <p>ຜູ້ສົ່ງເຄື່ອງ / ຜູ້ສະໜອງ</p>
+                            <p>.......................................</p>
+                        </div>
+                        <div class="space-y-16">
+                            <p>ຜູ້ຮັບເຄື່ອງ (ນາຍສາງ)</p>
+                            <p>.......................................</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleModal(modalId, show) {
+            const modal = document.getElementById(modalId);
+            if (show) modal.classList.remove('hidden');
+            else modal.classList.add('hidden');
+        }
+
+        function searchTable() {
+            const input = document.getElementById("searchInput").value.toUpperCase();
+            const rows = document.querySelectorAll('.history-row');
+            rows.forEach(row => {
+                const text = row.innerText.toUpperCase();
+                row.style.display = text.includes(input) ? '' : 'none';
+            });
+        }
+
+        function printSection(elementId) {
+            document.querySelectorAll('.print-active-area').forEach(el => el.classList.remove('print-active-area'));
+            document.getElementById(elementId).classList.add('print-active-area');
+            window.print();
+        }
+
+        function clearFilter() {
+            document.getElementById('filterStartDate').value = '';
+            document.getElementById('filterEndDate').value = '';
+            window.loadHistoryData();
+        }
+    </script>
+
+    <script type="module">
+        import { db } from '../../firebase-config.js';
+        import { collection, getDocs, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // ຕົວແປເກັບຂໍ້ມູນທັງໝົດໄວ້ໃນ Memory ເພື່ອບໍ່ຕ້ອງໂຫຼດໃໝ່ຕອນກົດເບິ່ງລາຍລະອຽດ
+        let allReceiptHistory = [];
+
+        // 🟢 ຟັງຊັນໂຫຼດຂໍ້ມູນປະຫວັດ 🟢
+        window.loadHistoryData = async function() {
+            const tableBody = document.getElementById('historyTableBody');
+            const startDate = document.getElementById('filterStartDate').value;
+            const endDate = document.getElementById('filterEndDate').value;
+
+            try {
+                tableBody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400">ກຳລັງໂຫຼດຂໍ້ມູນ...</td></tr>';
+                
+                // ສ້າງ Query ເລີ່ມຕົ້ນ (ລຽງຕາມວັນທີຫຼ້າສຸດ)
+                let q = query(collection(db, "receipt_history"), orderBy("receiveDate", "desc"));
+                const querySnapshot = await getDocs(q);
+                
+                allReceiptHistory = []; // ລ້າງຂໍ້ມູນເກົ່າ
+                tableBody.innerHTML = '';
+                
+                let totalReceiptsMonth = 0;
+                let totalItemsTypesMonth = 0;
+                let totalQtyMonth = 0;
+
+                // ດຶງເດືອນ ແລະ ປີ ປະຈຸບັນ ເພື່ອເຮັດບັດສະຫຼຸບ
+                const currentMonthStr = new Date().toISOString().substring(0, 7); // ໄດ້ຄ່າ 'YYYY-MM'
+
+                if (querySnapshot.empty) {
+                    tableBody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400">ຍັງບໍ່ມີປະຫວັດການຮັບເຄື່ອງ.</td></tr>';
+                }
+
+                let index = 1;
+                querySnapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const rDate = data.receiveDate || ''; // YYYY-MM-DD
+                    
+                    // 🧠 ລະບົບກັ່ນຕອງວັນທີ (Date Range Filter) 🧠
+                    if (startDate && rDate < startDate) return; // ຖ້າວັນທີໜ້ອຍກວ່າເລີ່ມຕົ້ນ ໃຫ້ຂ້າມ
+                    if (endDate && rDate > endDate) return;     // ຖ້າວັນທີຫຼາຍກວ່າສິ້ນສຸດ ໃຫ້ຂ້າມ
+
+                    allReceiptHistory.push({ id: docSnap.id, ...data });
+
+                    // ຄິດໄລ່ບັດສະຫຼຸບ (ສະເພາະເດືອນນີ້)
+                    if (rDate.startsWith(currentMonthStr)) {
+                        totalReceiptsMonth++;
+                        const itemsArr = data.items || [];
+                        totalItemsTypesMonth += itemsArr.length;
+                        itemsArr.forEach(item => {
+                            totalQtyMonth += (item.quantity || 0);
+                        });
+                    }
+
+                    // ສ້າງແຖວຕາຕະລາງ
+                    const tr = document.createElement('tr');
+                    tr.className = `hover:bg-slate-50 transition-colors border-b border-slate-50 history-row`;
+                    
+                    // ແປງວັນທີໃຫ້ອ່ານງ່າຍ ຂຶ້ນ (DD/MM/YYYY)
+                    const dateObj = new Date(rDate);
+                    const formattedDate = !isNaN(dateObj) ? dateObj.toLocaleDateString('en-GB') : rDate;
+
+                    tr.innerHTML = `
+                        <td class="p-4 text-center font-bold text-slate-400">${index++}</td>
+                        <td class="p-4 font-bold text-slate-800">${formattedDate}</td>
+                        <td class="p-4 font-bold text-indigo-600">${data.documentRef || '-'}</td>
+                        <td class="p-4 font-medium text-slate-700">${data.supplier || '-'}</td>
+                        <td class="p-4 text-center"><span class="bg-slate-100 text-slate-600 px-3 py-1 rounded-lg font-bold">${data.totalItems || 0}</span></td>
+                        <td class="p-4 text-center text-slate-600 text-sm">${data.receiverName || '-'}</td>
+                        <td class="p-4 text-center">
+                            <button onclick="viewReceiptDetails('${docSnap.id}')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-xs font-bold py-2 px-4 rounded-lg active:scale-95 transition-colors">
+                                ເບິ່ງລາຍລະອຽດ
+                            </button>
+                        </td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+
+                // ຖ້າກັ່ນຕອງແລ້ວບໍ່ມີຂໍ້ມູນ
+                if (index === 1) {
+                    tableBody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400">ບໍ່ພົບຂໍ້ມູນໃນຊ່ວງວັນທີທີ່ເລືອກ.</td></tr>';
+                }
+
+                // ອັບເດດຕົວເລກໃນບັດສະຫຼຸບ
+                document.getElementById('countReceiptsMonth').innerText = totalReceiptsMonth;
+                document.getElementById('countItemsMonth').innerText = totalItemsTypesMonth;
+                document.getElementById('countQtyMonth').innerText = totalQtyMonth;
+
+            } catch (error) {
+                console.error("Error loading history:", error);
+                tableBody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-rose-500">ເກີດຂໍ້ຜິດພາດ: ${error.message}</td></tr>`;
+            }
+        };
+
+        // 🟢 ຟັງຊັນສະແດງລາຍລະອຽດໃບບິນ 🟢
+        window.viewReceiptDetails = function(docId) {
+            // ຊອກຫາຂໍ້ມູນບິນຈາກ Array ທີ່ໂຫຼດໄວ້ແລ້ວ
+            const receipt = allReceiptHistory.find(r => r.id === docId);
+            if (!receipt) return;
+
+            // ເອົາຂໍ້ມູນໄປປ້ອນໃສ່ Modal (ເພື່ອປຣິ້ນ)
+            document.getElementById('lblDocRef').innerText = receipt.documentRef || '-';
+            
+            const dateObj = new Date(receipt.receiveDate);
+            document.getElementById('lblDate').innerText = !isNaN(dateObj) ? dateObj.toLocaleDateString('en-GB') : receipt.receiveDate;
+            
+            document.getElementById('lblSupplier').innerText = receipt.supplier || '-';
+            document.getElementById('lblReceiver').innerText = receipt.receiverName || '-';
+
+            // ສ້າງຕາຕະລາງລາຍການເຄື່ອງໃນບິນນັ້ນ
+            const tbody = document.getElementById('receiptItemsTable');
+            tbody.innerHTML = '';
+            
+            const items = receipt.items || [];
+            if (items.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4">ບໍ່ມີລາຍການອຸປະກອນ</td></tr>';
+            } else {
+                items.forEach((item, idx) => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="text-center">${idx + 1}</td>
+                        <td class="px-2 font-bold">${item.itemCode || '-'}</td>
+                        <td class="px-2">${item.itemName || '-'}</td>
+                        <td class="text-center font-bold text-lg">${item.quantity || 0}</td>
+                        <td class="px-2 text-xs text-slate-500">${item.note || ''}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            // ເປີດ Modal
+            toggleModal('detailsModal', true);
+        };
+
+        // ເອີ້ນໃຊ້ຕອນໂຫຼດໜ້າເວັບ
+        window.loadHistoryData();
+
+    </script>
+</body>
+</html>
