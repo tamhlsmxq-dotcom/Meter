@@ -3,245 +3,329 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ຮັບອຸປະກອນເຂົ້າສາງ - Water Meter</title>
+    <title>ຮັບເຄື່ອງເຂົ້າສາງ - Water Meter</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style> 
         * { font-family: 'Times New Roman', 'Phetsarath OT', serif; }
         body { background-color: #f8fafc; overflow-x: hidden; }
-        .page-animate { animation: pageEnter 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        @keyframes pageEnter { from { opacity: 0; transform: translateY(25px); } to { opacity: 1; transform: translateY(0); } }
-        
-        /* Custom Scrollbar ສຳລັບຕາຕະລາງລາຍການ */
-        .custom-scroll::-webkit-scrollbar { height: 6px; width: 6px; }
-        .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .page-animate { animation: pageEnter 0.5s ease-out forwards; }
+        @keyframes pageEnter { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="flex min-h-screen relative">
     
-    <!-- 🟢 ປ່ຽນການເອີ້ນ Sidebar ມາໄວ້ບ່ອນນີ້ ແລະ ຊີ້ Path ໃຫ້ຖືກ (../../) 🟢 -->
     <div id="sidebar-container" class="w-64 flex-shrink-0 z-50 relative"></div>
     <script src="../../js/components/sidebar.js" defer></script>
+    <script type="module" src="../../js/components/auth-guard.js"></script>
 
     <main class="flex-1 p-8 ml-64 overflow-y-auto space-y-6 page-animate">
         
-        <!-- Header -->
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 pb-5">
             <div class="flex items-start space-x-4">
-                <div class="bg-gradient-to-br from-emerald-500 to-teal-600 p-3 rounded-2xl text-white shadow-lg shadow-emerald-500/30 transition-transform duration-500 hover:rotate-6 hover:scale-110 cursor-default">
-                    <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                <div class="bg-gradient-to-br from-emerald-500 to-teal-600 p-3 rounded-2xl text-white shadow-lg shadow-emerald-500/30">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
                 </div>
                 <div>
-                    <h2 class="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-800 to-emerald-800 tracking-wide">ຮັບອຸປະກອນເຂົ້າສາງ (Goods Receipt)</h2>
-                    <p class="text-slate-500 mt-1 text-sm">ສ້າງໃບຮັບເຄື່ອງ ແລະ ເພີ່ມຍອດສະຕັອກເຂົ້າລະບົບ</p>
+                    <h2 class="text-2xl font-extrabold text-slate-800 tracking-wide">ຮັບເຄື່ອງເຂົ້າສາງ (Receive)</h2>
+                    <p class="text-slate-500 mt-1 text-sm">ບັນທຶກການຮັບອຸປະກອນໃໝ່ເຂົ້າສູ່ລະບົບສະຕັອກ</p>
                 </div>
             </div>
             
             <div class="flex gap-3">
-                <a href="inventory.html" class="bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-sm font-bold py-2.5 px-4 rounded-xl shadow-sm hover:shadow-md active:scale-95 transition-all flex items-center z-10 relative">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                    ກັບຄືນໜ້າສະຕັອກ
-                </a>
+                <button class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-sm font-bold py-2.5 px-4 rounded-xl shadow-sm transition-all flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    ປະຫວັດການຮັບເຄື່ອງ
+                </button>
+                <button id="btnSaveReceive" onclick="saveReceiveData()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold py-2.5 px-6 rounded-xl shadow-lg shadow-emerald-500/30 active:scale-95 transition-all flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                    ບັນທຶກຮັບເຄື່ອງ
+                </button>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+            <h3 class="text-base font-bold text-slate-800 mb-4 border-l-4 border-emerald-500 pl-3">ຂໍ້ມູນເອກະສານອ້າງອີງ</h3>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-2">ເລກທີໃບຮັບເຄື່ອງ <span class="text-rose-500">*</span></label>
+                    <input type="text" id="docRef" placeholder="ຕົວຢ່າງ: REC-2607-001" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/50 outline-none uppercase font-bold text-slate-700">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-2">ວັນທີຮັບເຄື່ອງ <span class="text-rose-500">*</span></label>
+                    <input type="date" id="receiveDate" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/50 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-2">ຜູ້ສະໜອງ / ບໍລິສັດ <span class="text-rose-500">*</span></label>
+                    <input type="text" id="supplierName" placeholder="ຊື່ຮ້ານຄ້າ ຫຼື ບໍລິສັດທີ່ສົ່ງເຄື່ອງ" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/50 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-2">ຜູ້ຮັບເຄື່ອງ (ພະນັກງານ)</label>
+                    <input type="text" id="receiverName" disabled class="w-full p-2.5 border border-slate-200 bg-slate-50 rounded-xl text-sm font-bold text-emerald-700 cursor-not-allowed">
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                <h3 class="text-base font-bold text-slate-800 border-l-4 border-emerald-500 pl-3">ລາຍການອຸປະກອນ</h3>
+                <button onclick="addTableRow()" class="text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-4 py-2 rounded-lg text-xs font-bold flex items-center transition-colors">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
+                    ເພີ່ມລາຍການ
+                </button>
+            </div>
             
-            <!-- 🟢 ພາກສ່ວນທີ 1: ຂໍ້ມູນໃບຮັບ (Document Info) 🟢 -->
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 lg:col-span-1 h-fit">
-                <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center border-b border-slate-100 pb-3">
-                    <svg class="w-5 h-5 mr-2 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                    ຂໍ້ມູນໃບຮັບເຄື່ອງ
-                </h3>
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1">ເລກທີໃບຮັບ / PO No. <span class="text-rose-500">*</span></label>
-                        <input type="text" value="RCV-260719-001" class="w-full p-2.5 border border-slate-200 rounded-xl bg-slate-50 font-bold text-slate-700 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1">ວັນທີຮັບເຄື່ອງ <span class="text-rose-500">*</span></label>
-                        <input type="date" id="receiptDate" class="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 text-sm text-slate-700 cursor-pointer">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1">ຜູ້ສະໜອງ (Supplier)</label>
-                        <input type="text" placeholder="ຕົວຢ່າງ: ບໍລິສັດ ABC ຈຳກັດ..." class="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1">ໝາຍເຫດ</label>
-                        <textarea rows="2" placeholder="ລາຍລະອຽດເພີ່ມເຕີມ..." class="w-full p-2.5 border border-slate-200 rounded-xl resize-none focus:outline-none focus:border-emerald-500 text-sm"></textarea>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 🟢 ພາກສ່ວນທີ 2: ເພີ່ມລາຍການອຸປະກອນ (Add Items Area) 🟢 -->
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 lg:col-span-2 flex flex-col h-full">
-                <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center border-b border-slate-100 pb-3">
-                    <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
-                    ລາຍການອຸປະກອນທີ່ນຳເຂົ້າ
-                </h3>
-                
-                <!-- ຟອມປ້ອນເພີ່ມລົງຕາຕະລາງ -->
-                <div class="flex flex-wrap md:flex-nowrap gap-3 mb-6 bg-slate-50 p-4 rounded-xl border border-slate-200 z-10 relative">
-                    <div class="w-full md:w-1/2">
-                        <label class="block text-xs font-bold text-slate-600 mb-1">ເລືອກອຸປະກອນ</label>
-                        <select id="itemSelect" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 bg-white cursor-pointer relative z-20">
-                            <option value="">-- ຄົ້ນຫາ ຫຼື ເລືອກອຸປະກອນ --</option>
-                            <option value="WM-15M|ໝໍ້ແທກນ້ຳ ຂະໜາດ 15mm|ໜ່ວຍ">WM-15M - ໝໍ້ແທກນ້ຳ 15mm</option>
-                            <option value="PVC-20|ທໍ່ນ້ຳ PVC 20mm ຊັ້ນ 8.5|ເສັ້ນ">PVC-20 - ທໍ່ນ້ຳ PVC 20mm</option>
-                            <option value="FIT-90|ຂ້ອງໍ 90 ອົງສາ PVC 15mm|ອັນ">FIT-90 - ຂ້ອງໍ 90 ອົງສາ 15mm</option>
-                            <option value="GL-01|ກາວທາທໍ່ນ້ຳ PVC|ກະປ໋ອງ">GL-01 - ກາວທາທໍ່ນ້ຳ PVC</option>
-                        </select>
-                    </div>
-                    <div class="w-full md:w-1/4">
-                        <label class="block text-xs font-bold text-slate-600 mb-1">ຈຳນວນ</label>
-                        <input type="number" id="itemQty" placeholder="0" min="1" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm text-center font-bold focus:outline-none focus:border-indigo-500 relative z-20">
-                    </div>
-                    <div class="w-full md:w-1/4 flex items-end">
-                        <button onclick="addItemToTable()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-xl shadow-sm active:scale-95 transition-all flex justify-center items-center relative z-20">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg> ເພີ່ມລົງບິນ
-                        </button>
-                    </div>
-                </div>
-
-                <!-- ຕາຕະລາງລາຍການ (Dynamic Table) -->
-                <div class="flex-1 border border-slate-200 rounded-xl overflow-hidden flex flex-col z-0 relative">
-                    <div class="overflow-x-auto custom-scroll flex-1 max-h-[300px]">
-                        <table class="w-full text-left whitespace-nowrap text-sm">
-                            <thead class="bg-slate-100 sticky top-0 z-10 shadow-sm">
-                                <tr>
-                                    <th class="p-3 font-bold text-slate-600 w-12 text-center">ລ/ດ</th>
-                                    <th class="p-3 font-bold text-slate-600">ລະຫັດອຸປະກອນ</th>
-                                    <th class="p-3 font-bold text-slate-600">ຊື່ລາຍການ</th>
-                                    <th class="p-3 font-bold text-slate-600 text-center w-24">ຈຳນວນ</th>
-                                    <th class="p-3 font-bold text-slate-600 text-center w-24">ຫົວໜ່ວຍ</th>
-                                    <th class="p-3 font-bold text-slate-600 text-center w-20">ລຶບ</th>
-                                </tr>
-                            </thead>
-                            <tbody id="receiptTableBody" class="divide-y divide-slate-100 text-slate-700">
-                                <!-- ລາຍການຈະຖືກເພີ່ມລົງບ່ອນນີ້ດ້ວຍ JavaScript -->
-                                <tr id="emptyRow" class="bg-white">
-                                    <td colspan="6" class="p-8 text-center text-slate-400 font-medium">
-                                        <svg class="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
-                                        ຍັງບໍ່ມີລາຍການອຸປະກອນໃນບິນນີ້
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <!-- ແຖບສະຫຼຸບລຸ່ມຕາຕະລາງ -->
-                    <div class="bg-slate-50 p-3 border-t border-slate-200 flex justify-between items-center text-sm">
-                        <span class="font-bold text-slate-600">ລວມລາຍການທັງໝົດ: <span id="totalItems" class="text-indigo-600 text-lg">0</span> ລາຍການ</span>
-                    </div>
-                </div>
-
-                <!-- ປຸ່ມບັນທຶກໃບຮັບ -->
-                <div class="mt-6 flex justify-end">
-                    <button onclick="saveReceipt()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-base font-bold py-3 px-8 rounded-xl shadow-[0_4px_14px_0_rgb(16,185,129,0.39)] hover:shadow-[0_6px_20px_rgba(16,185,129,0.23)] active:scale-95 transition-all flex items-center z-10 relative">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
-                        ບັນທຶກໃບຮັບເຄື່ອງເຂົ້າສາງ
-                    </button>
-                </div>
-
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse whitespace-nowrap">
+                    <thead class="bg-slate-100/50">
+                        <tr class="text-slate-500 text-xs border-b border-slate-200">
+                            <th class="p-3 font-semibold text-center w-12">ລ/ດ</th>
+                            <th class="p-3 font-semibold w-64">ລະຫັດວັດຖຸ (ພິມ ຫຼື ເລືອກ) <span class="text-rose-500">*</span></th>
+                            <th class="p-3 font-semibold">ຊື່ອຸປະກອນ (ອັດຕະໂນມັດ)</th>
+                            <th class="p-3 font-semibold text-center w-32">ຈຳນວນຮັບ <span class="text-rose-500">*</span></th>
+                            <th class="p-3 font-semibold w-48">ໝາຍເຫດ</th>
+                            <th class="p-3 font-semibold text-center w-16">ລຶບ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="receiveTableBody" class="divide-y divide-slate-100">
+                        </tbody>
+                </table>
             </div>
         </div>
-
+        
     </main>
 
-    <!-- 🟢 Scripts ສຳລັບຈັດການຕາຕະລາງໃບຮັບ 🟢 -->
-    <script>
-        // ຕັ້ງຄ່າວັນທີປັດຈຸບັນໃຫ້ຊ່ອງ Input
-        document.getElementById('receiptDate').valueAsDate = new Date();
+    <datalist id="materialsList"></datalist>
 
-        let rowCount = 0;
+    <script type="module">
+        import { db } from '../../firebase-config.js';
+        import { collection, getDocs, doc, writeBatch, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        function addItemToTable() {
-            const select = document.getElementById('itemSelect');
-            const qtyInput = document.getElementById('itemQty');
-            
-            if (!select.value) {
-                alert('ກະລຸນາເລືອກອຸປະກອນກ່ອນ!');
-                return;
+        // 1. ຕັ້ງຄ່າຂໍ້ມູນຜູ້ຮັບເຄື່ອງ (ດຶງຈາກຜູ້ລັອກອິນ)
+        const userDataStr = localStorage.getItem('wm_user_data');
+        const userData = userDataStr ? JSON.parse(userDataStr) : {};
+        document.getElementById('receiverName').value = userData.fullName || 'ແອດມິນລະບົບ';
+        
+        // ຕັ້ງຄ່າວັນທີເລີ່ມຕົ້ນໃຫ້ເປັນມື້ນີ້
+        document.getElementById('receiveDate').valueAsDate = new Date();
+
+        // 2. ຕົວແປເກັບຂໍ້ມູນ Master Data ຈາກສະຕັອກ
+        let masterMaterials = [];
+
+        // 3. ດຶງຂໍ້ມູນລາຍຊື່ອຸປະກອນຈາກ Firebase
+        async function loadMaterialsForAutocomplete() {
+            try {
+                const snap = await getDocs(collection(db, "materials"));
+                const datalist = document.getElementById('materialsList');
+                datalist.innerHTML = ''; // ລ້າງຂໍ້ມູນເກົ່າ
+
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    // ເກັບໄວ້ໃນ Array ເພື່ອເອົາໄວ້ຄົ້ນຫາຊື່
+                    masterMaterials.push({
+                        id: doc.id,
+                        itemCode: data.itemCode,
+                        itemName: data.itemName,
+                        unit: data.unit || 'ອັນ'
+                    });
+
+                    // ສ້າງຕົວເລືອກໃຫ້ Datalist (ເວລາພິມລະຫັດຈະເຫັນຊື່ນຳ)
+                    const option = document.createElement('option');
+                    option.value = data.itemCode;
+                    option.textContent = data.itemName;
+                    datalist.appendChild(option);
+                });
+
+                // ເມື່ອໂຫຼດຂໍ້ມູນສຳເລັດ ໃຫ້ສ້າງແຖວທຳອິດຖ້າຫາກຍັງບໍ່ມີ
+                if(document.getElementById('receiveTableBody').children.length === 0) {
+                    addTableRow();
+                }
+
+            } catch (error) {
+                console.error("Error loading materials: ", error);
+                alert("ບໍ່ສາມາດໂຫຼດລາຍຊື່ວັດຖຸໄດ້. ກະລຸນາກວດສອບອິນເຕີເນັດ.");
             }
-            if (!qtyInput.value || qtyInput.value <= 0) {
-                alert('ກະລຸນາປ້ອນຈຳນວນໃຫ້ຖືກຕ້ອງ!');
-                return;
-            }
+        }
 
-            // ແຍກຂໍ້ມູນຈາກ value (ລະຫັດ|ຊື່|ຫົວໜ່ວຍ)
-            const [code, name, unit] = select.value.split('|');
-            const qty = qtyInput.value;
-
-            const tbody = document.getElementById('receiptTableBody');
-            
-            // ເອົາແຖວຫວ່າງເປົ່າອອກ (ຖ້າມີ)
-            const emptyRow = document.getElementById('emptyRow');
-            if (emptyRow) { emptyRow.remove(); }
-
-            rowCount++;
-
-            // ສ້າງແຖວໃໝ່
+        // 4. ຟັງຊັນສ້າງແຖວໃໝ່
+        window.addTableRow = function() {
+            const tbody = document.getElementById('receiveTableBody');
+            const rowCount = tbody.children.length + 1;
             const tr = document.createElement('tr');
-            tr.className = "hover:bg-slate-50 transition-colors bg-white border-b border-slate-50 group";
+            tr.className = "hover:bg-slate-50 transition-colors receive-row";
+            
+            // ສັງເກດ input ລະຫັດວັດຖຸ ຈະໃຊ້ list="materialsList" ເພື່ອດຶງ Auto-complete
             tr.innerHTML = `
-                <td class="p-3 text-center text-slate-500 font-medium row-number">${rowCount}</td>
-                <td class="p-3 font-bold text-indigo-600">${code}</td>
-                <td class="p-3 font-medium text-slate-800">${name}</td>
-                <td class="p-3 text-center font-bold text-lg text-emerald-600">${qty}</td>
-                <td class="p-3 text-center text-slate-500">${unit}</td>
+                <td class="p-3 text-center font-bold text-slate-400 row-number">${rowCount}</td>
+                <td class="p-3">
+                    <input type="text" list="materialsList" onchange="autoFillItemDetails(this)" placeholder="ພິມລະຫັດ..." class="input-code w-full p-2 border border-slate-300 rounded-lg text-sm focus:ring-1 focus:ring-emerald-500 outline-none uppercase font-bold text-indigo-600">
+                    <input type="hidden" class="input-doc-id"> </td>
+                <td class="p-3">
+                    <div class="flex items-center">
+                        <input type="text" disabled placeholder="ເລືອກລະຫັດກ່ອນ" class="input-name w-full p-2 border border-transparent bg-transparent text-sm font-medium text-slate-700">
+                        <span class="input-unit text-xs text-slate-400 ml-2 w-12">-</span>
+                    </div>
+                </td>
                 <td class="p-3 text-center">
-                    <button onclick="removeRow(this)" class="p-1.5 bg-rose-50 text-rose-500 rounded-lg hover:bg-rose-500 hover:text-white transition-colors opacity-50 group-hover:opacity-100 active:scale-90 relative z-20">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    <input type="number" min="1" placeholder="0" class="input-qty w-full p-2 border border-slate-300 rounded-lg text-sm focus:ring-1 focus:ring-emerald-500 outline-none text-center font-bold">
+                </td>
+                <td class="p-3">
+                    <input type="text" placeholder="..." class="input-note w-full p-2 border border-slate-300 rounded-lg text-sm focus:ring-1 focus:ring-emerald-500 outline-none">
+                </td>
+                <td class="p-3 text-center">
+                    <button onclick="removeTableRow(this)" class="text-slate-400 hover:text-rose-500 transition-colors p-1.5 rounded-lg hover:bg-rose-50">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                     </button>
                 </td>
             `;
-
             tbody.appendChild(tr);
-            updateTotalItems();
+            updateRowNumbers();
+        };
 
-            // Clear Input
-            select.value = "";
-            qtyInput.value = "";
+        // 5. ຟັງຊັນ Auto Fill (ດຶງຊື່ມາໃສ່ອັດຕະໂນມັດເມື່ອພິມລະຫັດ)
+        window.autoFillItemDetails = function(inputElement) {
+            const row = inputElement.closest('tr');
+            const code = inputElement.value.trim().toUpperCase();
+            
+            const nameInput = row.querySelector('.input-name');
+            const unitSpan = row.querySelector('.input-unit');
+            const docIdInput = row.querySelector('.input-doc-id');
+
+            // ຊອກຫາລະຫັດໃນ Master Data ທີ່ເຮົາໂຫຼດມາໄວ້
+            const matchedItem = masterMaterials.find(m => m.itemCode.toUpperCase() === code);
+
+            if (matchedItem) {
+                // ຖ້າພົບ ກໍດຶງຊື່ ແລະ ຫົວໜ່ວຍມາສະແດງ
+                nameInput.value = matchedItem.itemName;
+                unitSpan.textContent = matchedItem.unit;
+                docIdInput.value = matchedItem.id; // ສຳຄັນ: ເກັບ ID ເພື່ອເອົາໄປຕັດສະຕັອກ
+                inputElement.classList.remove('border-rose-400', 'text-rose-500');
+                inputElement.classList.add('border-emerald-400', 'text-emerald-700');
+            } else {
+                // ຖ້າບໍ່ພົບ (ພິມຜິດ)
+                nameInput.value = 'ບໍ່ພົບລະຫັດນີ້ໃນລະບົບ!';
+                unitSpan.textContent = '-';
+                docIdInput.value = '';
+                inputElement.classList.add('border-rose-400', 'text-rose-500');
+            }
+        };
+
+        // 6. ຟັງຊັນລຶບແຖວ ແລະ ຈັດລຽງເລກລຳດັບໃໝ່
+        window.removeTableRow = function(btn) {
+            const tbody = document.getElementById('receiveTableBody');
+            if(tbody.children.length > 1) {
+                btn.closest('tr').remove();
+                updateRowNumbers();
+            } else {
+                alert("ຕ້ອງມີຢ່າງໜ້ອຍ 1 ລາຍການ");
+            }
+        };
+
+        function updateRowNumbers() {
+            const rows = document.querySelectorAll('.receive-row');
+            rows.forEach((row, index) => {
+                row.querySelector('.row-number').textContent = index + 1;
+            });
         }
 
-        function removeRow(btn) {
-            const row = btn.closest('tr');
-            row.remove();
-            
-            // ອັບເດດລຳດັບໃໝ່
-            const rows = document.querySelectorAll('#receiptTableBody tr:not(#emptyRow)');
-            rowCount = 0;
-            rows.forEach((tr, index) => {
-                rowCount++;
-                tr.querySelector('.row-number').textContent = rowCount;
+        // 7. 🟢 ຟັງຊັນບັນທຶກ ແລະ ຕັດສະຕັອກ (Batch Write) 🟢
+        window.saveReceiveData = async function() {
+            const btn = document.getElementById('btnSaveReceive');
+            const docRefVal = document.getElementById('docRef').value.trim();
+            const dateVal = document.getElementById('receiveDate').value;
+            const supplierVal = document.getElementById('supplierName').value.trim();
+            const receiverVal = document.getElementById('receiverName').value;
+
+            // ກວດສອບຂໍ້ມູນເອກະສານ
+            if (!docRefVal || !dateVal || !supplierVal) {
+                return alert("ກະລຸນາປ້ອນ ຂໍ້ມູນເອກະສານອ້າງອີງ ໃຫ້ຄົບຖ້ວນ!");
+            }
+
+            const rows = document.querySelectorAll('.receive-row');
+            let itemsToReceive = [];
+            let hasError = false;
+
+            // ກວດສອບຂໍ້ມູນແຕ່ລະແຖວ
+            rows.forEach(row => {
+                const code = row.querySelector('.input-code').value.trim();
+                const docId = row.querySelector('.input-doc-id').value;
+                const qtyStr = row.querySelector('.input-qty').value;
+                const qty = parseInt(qtyStr);
+                const note = row.querySelector('.input-note').value.trim();
+
+                if (code !== "") {
+                    if (!docId) {
+                        alert(`ລະຫັດອຸປະກອນ "${code}" ບໍ່ຖືກຕ້ອງ! ກະລຸນາເລືອກຈາກລາຍຊື່.`);
+                        hasError = true;
+                    } else if (isNaN(qty) || qty <= 0) {
+                        alert(`ກະລຸນາປ້ອນຈຳນວນຮັບ ສຳລັບລະຫັດ "${code}" ໃຫ້ຖືກຕ້ອງ (>0).`);
+                        hasError = true;
+                    } else {
+                        itemsToReceive.push({
+                            materialDocId: docId,
+                            itemCode: code,
+                            itemName: row.querySelector('.input-name').value,
+                            quantity: qty,
+                            note: note
+                        });
+                    }
+                }
             });
 
-            // ຖ້າລຶບໝົດແລ້ວ ໃຫ້ໂຊແຖວຫວ່າງເປົ່າ
-            if (rowCount === 0) {
-                document.getElementById('receiptTableBody').innerHTML = `
-                <tr id="emptyRow" class="bg-white">
-                    <td colspan="6" class="p-8 text-center text-slate-400 font-medium">
-                        <svg class="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
-                        ຍັງບໍ່ມີລາຍການອຸປະກອນໃນບິນນີ້
-                    </td>
-                </tr>`;
+            if (hasError) return;
+            if (itemsToReceive.length === 0) return alert("ກະລຸນາເພີ່ມຢ່າງໜ້ອຍ 1 ລາຍການອຸປະກອນ!");
+
+            // 🟢 ເລີ່ມບັນທຶກລົງ Firebase 🟢
+            btn.disabled = true;
+            btn.innerHTML = 'ກຳລັງບັນທຶກ...';
+
+            try {
+                // ໃຊ້ WriteBatch ເພື່ອບັນທຶກປະຫວັດ + ອັບເດດສະຕັອກ ໄປພ້ອມກັນ
+                const batch = writeBatch(db);
+
+                // 1. ສ້າງປະຫວັດການຮັບເຄື່ອງ (Receipt History)
+                const receiptRef = doc(collection(db, "receipt_history"));
+                batch.set(receiptRef, {
+                    documentRef: docRefVal,
+                    receiveDate: dateVal,
+                    supplier: supplierVal,
+                    receiverName: receiverVal,
+                    totalItems: itemsToReceive.length,
+                    items: itemsToReceive,
+                    createdAt: serverTimestamp()
+                });
+
+                // 2. ອັບເດດຍອດສະຕັອກ (Inventory)
+                itemsToReceive.forEach(item => {
+                    const materialRef = doc(db, "materials", item.materialDocId);
+                    // ໃຊ້ຄຳສັ່ງ increment ເພື່ອບວກຍອດເຂົ້າໄປໃນຂອງເກົ່າຢ່າງປອດໄພ
+                    batch.update(materialRef, { 
+                        stockQuantity: increment(item.quantity) 
+                    });
+                });
+
+                // 3. ຢືນຢັນການບັນທຶກ
+                await batch.commit();
+
+                alert("✅ ບັນທຶກການຮັບເຄື່ອງເຂົ້າສາງ ສຳເລັດແລ້ວ! (ຍອດສະຕັອກຖືກອັບເດດອັດຕະໂນມັດ)");
+                
+                // ລ້າງໜ້າຈໍເພື່ອກຽມຮັບບິນໃໝ່
+                document.getElementById('docRef').value = '';
+                document.getElementById('supplierName').value = '';
+                document.getElementById('receiveTableBody').innerHTML = '';
+                addTableRow();
+
+            } catch (error) {
+                console.error("Error saving receive data: ", error);
+                alert("❌ ເກີດຂໍ້ຜິດພາດໃນການບັນທຶກ: " + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg> ບັນທຶກຮັບເຄື່ອງ`;
             }
+        };
 
-            updateTotalItems();
-        }
+        // ໂຫຼດລາຍຊື່ສິນຄ້າທັນທີທີ່ເປີດໜ້ານີ້
+        loadMaterialsForAutocomplete();
 
-        function updateTotalItems() {
-            document.getElementById('totalItems').textContent = rowCount;
-        }
-
-        function saveReceipt() {
-            if(rowCount === 0) {
-                alert("ກະລຸນາເພີ່ມອຸປະກອນລົງໃນບິນກ່ອນບັນທຶກ!");
-                return;
-            }
-            alert("✅ ບັນທຶກໃບຮັບເຄື່ອງສຳເລັດແລ້ວ! ຍອດສະຕັອກຖືກອັບເດດແລ້ວ.");
-            window.location.href = "inventory.html";
-        }
     </script>
 </body>
 </html>
