@@ -56,7 +56,7 @@
             
             <div class="flex flex-wrap gap-3">
                 <button onclick="toggleModal('monthlyReportModal', true)" class="bg-violet-50 hover:bg-violet-100 border border-violet-200 text-violet-700 text-sm font-bold py-2.5 px-4 rounded-xl shadow-sm hover:shadow-md active:scale-95 transition-all duration-200 flex items-center group">
-                    <svg class="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                    <svg class="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
                     ລາຍງານແກ້ໄຂ
                 </button>
                 <button onclick="toggleModal('summaryModal', true)" class="bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-sm font-bold py-2.5 px-4 rounded-xl shadow-sm hover:shadow-md active:scale-95 transition-all duration-200 flex items-center group">
@@ -282,7 +282,6 @@
             window.print();
         }
 
-        // ຕົວແປສຳລັບ Modal ແກ້ໄຂຍອດ (Manual Edit)
         let currentEditDocId = null;
         function openEditMock(docId, code, name, stock) {
             currentEditDocId = docId;
@@ -305,7 +304,7 @@
         import { db } from '../../firebase-config.js';
         import { collection, addDoc, getDocs, query, orderBy, serverTimestamp, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // 🟢 ດຶງຂໍ້ມູນຈາກໄຟລ໌ materials.js ທີ່ເຮົາແຍກໄວ້ 🟢
+        // 🟢 1. ດຶງຂໍ້ມູນຈາກໄຟລ໌ materials.js ທີ່ເຮົາແຍກໄວ້ 🟢
         import { rawMaterialsCSV } from '../../js/data/materials.js';
 
         // 🔒 RBAC: ກວດສອບສິດທິແອດມິນ
@@ -497,14 +496,13 @@
 
                 txt.innerHTML = 'ກຳລັງລົງຂໍ້ມູນໃໝ່... (ຫ້າມປິດໜ້າຈໍ)';
 
-                // 2. ດຶງຂໍ້ມູນຈາກໄຟລ໌ແຍກ (ຮອງຮັບການ Copy ຈາກ Excel ທີ່ເປັນ Tab ແລະ Comma)
+                // 🟢 2. ດຶງຂໍ້ມູນຈາກໄຟລ໌ແຍກທີ່ Import ມາ (materials.js) 🟢
                 const lines = rawMaterialsCSV.trim().split('\n');
                 let count = 0;
 
                 for (const line of lines) {
                     if(!line || line.trim() === "" || line.includes("ລະຫັດອຸປະກອນ") || line.includes("ລາຍຊື່ອຸປະກອນ")) continue; 
                     
-                    // 🌟 ຮອງຮັບທັງການ Copy ຈາກ Excel (Tab) ແລະ ແບບຈຸດ (,)
                     const delimiter = line.includes('\t') ? '\t' : ',';
                     const parts = line.split(delimiter);
                     
