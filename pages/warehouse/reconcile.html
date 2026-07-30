@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ສົມທຽບ ແລະ ຕັດສະຕັອກ - Water Meter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style> 
+        * { font-family: 'Times New Roman', 'Phetsarath OT', serif; }
+        body { background-color: #f8fafc; overflow-x: hidden; }
+        .page-animate { animation: pageEnter 0.5s ease-out forwards; }
+        @keyframes pageEnter { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .modal-backdrop { animation: fadeInBg 0.3s ease-out forwards; }
+        @keyframes fadeInBg { from { opacity: 0; backdrop-filter: blur(0px); } to { opacity: 1; backdrop-filter: blur(8px); } }
+        .modal-animate { animation: smoothPop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes smoothPop { from { opacity: 0; transform: scale(0.95) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+    </style>
+</head>
+<body class="flex min-h-screen relative">
+    
+    <div id="sidebar-container" class="w-64 flex-shrink-0 z-50 relative"></div>
+    <script src="../../js/components/sidebar.js" defer></script>
+    <script type="module" src="../../js/components/auth-guard.js"></script>
+
+    <main class="flex-1 p-8 ml-64 overflow-y-auto space-y-6 page-animate">
+        
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 pb-5">
+            <div class="flex items-start space-x-4">
+                <div class="bg-gradient-to-br from-rose-500 to-red-600 p-3 rounded-2xl text-white shadow-lg shadow-rose-500/30">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-extrabold text-slate-800 tracking-wide">ສົມທຽບ ແລະ ຕັດສະຕັອກ (Reconciliation)</h2>
+                    <p class="text-slate-500 mt-1 text-sm">ກວດສອບຄວາມຖືກຕ້ອງລະຫວ່າງການເບີກຂອງຊ່າງ ກັບ ການປົດເຄື່ອງຈາກສາງຈິງ</p>
+                </div>
+            </div>
+            
+            <button onclick="openNewTicketModal()" class="bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold py-2.5 px-6 rounded-xl shadow-lg shadow-rose-500/30 active:scale-95 transition-all flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
+                ສ້າງໃບສົມທຽບໃໝ່
+            </button>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                <h3 class="text-base font-bold text-slate-800 border-l-4 border-rose-500 pl-3">ລາຍການໃບເບີກ-ຈ່າຍ ທີ່ລໍຖ້າການຕັດສະຕັອກ</h3>
+            </div>
+            
+            <div class="overflow-x-auto min-h-[50vh]">
+                <table class="w-full text-left border-collapse whitespace-nowrap">
+                    <thead class="bg-slate-100/50">
+                        <tr class="text-slate-500 text-xs border-b border-slate-200">
+                            <th class="p-4 font-semibold text-center w-16">ລ/ດ</th>
+                            <th class="p-4 font-semibold w-40">ເລກທີໃບເບີກ/ປ່ຽນຖ່າຍ</th>
+                            <th class="p-4 font-semibold w-40">ວັນທີ</th>
+                            <th class="p-4 font-semibold">ພາກສ່ວນ / ຊ່າງຜູ້ເບີກ</th>
+                            <th class="p-4 font-semibold text-center w-32">ຈຳນວນລາຍການ</th>
+                            <th class="p-4 font-semibold text-center w-40">ສະຖານະ</th>
+                            <th class="p-4 font-semibold text-center w-32">ຈັດການ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ticketsTableBody" class="divide-y divide-slate-100 text-sm text-slate-700">
+                        <tr><td colspan="7" class="p-8 text-center text-slate-400">ກຳລັງໂຫຼດຂໍ້ມູນ...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div id="newTicketModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 modal-backdrop">
+        <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden border border-slate-200 modal-animate">
+            <div class="bg-slate-800 p-4 flex justify-between items-center text-white">
+                <h3 class="font-bold text-lg">ສ້າງໃບສົມທຽບໃໝ່ (ຮັບເອກະສານຈາກຊ່າງ)</h3>
+                <button onclick="toggleModal('newTicketModal', false)" class="hover:text-rose-400 transition-colors">✕</button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">ເລກທີໃບເບີກ / ໃບປ່ຽນຖ່າຍ <span class="text-rose-500">*</span></label>
+                    <input type="text" id="ntRef" placeholder="ຕົວຢ່າງ: ISS-2607-001" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm font-bold uppercase focus:ring-2 focus:ring-rose-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">ຊື່ຊ່າງ ຫຼື ພາກສ່ວນ <span class="text-rose-500">*</span></label>
+                    <input type="text" id="ntTeam" placeholder="ຕົວຢ່າງ: ທ້າວ ສົມຊາຍ (ໜ່ວຍປ່ຽນຖ່າຍ 1)" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 outline-none">
+                </div>
+                <p class="text-xs text-slate-500 bg-slate-50 p-2 rounded border border-slate-200">
+                    * ຫຼັງຈາກສ້າງໃບນີ້ແລ້ວ ລະບົບຈະພາໄປໜ້າສົມທຽບລາຍການອຸປະກອນລະຫວ່າງສາງກັບຊ່າງ.
+                </p>
+            </div>
+            <div class="bg-slate-50 p-4 border-t border-slate-200 flex justify-end space-x-3">
+                <button onclick="toggleModal('newTicketModal', false)" class="px-4 py-2 rounded-lg font-bold text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 text-sm">ຍົກເລີກ</button>
+                <button onclick="createNewTicket()" class="px-4 py-2 rounded-lg font-bold text-white bg-slate-800 hover:bg-slate-900 text-sm">ສ້າງເອກະສານ</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="reconcileModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-start justify-center p-4 overflow-y-auto modal-backdrop transition-all duration-300">
+        <div class="bg-slate-100 rounded-xl w-full max-w-6xl my-4 flex flex-col shadow-2xl border-[4px] border-slate-400 modal-animate">
+            <div class="bg-slate-800 p-4 rounded-t-sm flex justify-between items-center text-white sticky top-0 z-10 shadow-lg">
+                <h3 class="font-bold text-lg flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-rose-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                    ສົມທຽບລາຍການຕັດສະຕັອກ: <span id="recDocRef" class="ml-2 text-rose-300 font-extrabold">-</span>
+                </h3>
+                <button onclick="toggleModal('reconcileModal', false)" class="hover:bg-rose-500 p-2 rounded transition-colors bg-slate-700"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
+            
+            <div class="p-6 space-y-4">
+                
+                <div id="statusBanner" class="p-4 rounded-xl border font-bold text-center text-lg flex items-center justify-center transition-colors">
+                    ກຳລັງກວດສອບຂໍ້ມູນ...
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="p-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                        <span class="font-bold text-slate-700 text-sm">ລາຍການອຸປະກອນທັງໝົດໃນບິນນີ້</span>
+                        <button onclick="addReconcileRow()" class="text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded text-xs font-bold flex items-center">
+                            + ເພີ່ມອຸປະກອນໃສ່ບິນ
+                        </button>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse whitespace-nowrap text-sm">
+                            <thead class="bg-slate-100 border-b-2 border-slate-300 text-slate-600">
+                                <tr>
+                                    <th class="p-3 font-bold w-48">ລະຫັດວັດຖຸ</th>
+                                    <th class="p-3 font-bold">ຊື່ອຸປະກອນ</th>
+                                    <th class="p-3 font-bold text-center w-32 bg-amber-50 text-amber-700 border-l border-r border-amber-200">ຈຳນວນ(ຊ່າງເບີກ)</th>
+                                    <th class="p-3 font-bold text-center w-32 bg-emerald-50 text-emerald-700 border-r border-emerald-200">ຈຳນວນ(ສາງປົດ)</th>
+                                    <th class="p-3 font-bold text-center w-24">ຜົນສົມທຽບ</th>
+                                    <th class="p-3 font-bold text-center w-16">ລຶບ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reconcileTableBody" class="divide-y divide-slate-200">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+            
+            <div class="bg-slate-300 p-4 border-t border-slate-400 flex justify-between items-center rounded-b-lg">
+                <span class="text-xs text-slate-600 font-bold">* ລະບົບຈະອະນຸຍາດໃຫ້ຕັດສະຕັອກໄດ້ ກໍຕໍ່ເມື່ອຍອດຂອງຊ່າງ ແລະ ສາງ ຕົງກັນທຸກລາຍການເທົ່ານັ້ນ.</span>
+                <div class="space-x-3 flex">
+                    <button onclick="saveDraft()" class="px-5 py-2.5 rounded-lg font-bold text-slate-700 bg-white border border-slate-400 hover:bg-slate-50 text-sm">ບັນທຶກໄວ້ກ່ອນ (Draft)</button>
+                    <button id="btnExecuteDeduct" onclick="executeDeduction()" disabled class="px-6 py-2.5 rounded-lg font-bold text-white bg-slate-400 cursor-not-allowed text-sm flex items-center shadow-lg transition-all">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        ຢືນຢັນການຕັດສະຕັອກ
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <datalist id="materialsList"></datalist>
+
+    <script type="module">
+        import { db } from '../../firebase-config.js';
+        import { collection, addDoc, getDocs, doc, updateDoc, writeBatch, increment, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // 1. ຕົວແປ Global
+        let masterMaterials = [];
+        let currentTicketId = null; 
+
+        // 2. ຟັງຊັນປິດ-ເປີດ Modal
+        window.toggleModal = function(modalId, show) {
+            const modal = document.getElementById(modalId);
+            if (show) modal.classList.remove('hidden');
+            else modal.classList.add('hidden');
+        };
+
+        // 3. ໂຫຼດ Master Data (ສຳລັບ Autocomplete)
+        async function loadMasterMaterials() {
+            try {
+                const snap = await getDocs(collection(db, "materials"));
+                const datalist = document.getElementById('materialsList');
+                datalist.innerHTML = ''; 
+
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    masterMaterials.push({
+                        id: doc.id,
+                        itemCode: data.itemCode,
+                        itemName: data.itemName,
+                        stock: data.stockQuantity || 0
+                    });
+                    const option = document.createElement('option');
+                    option.value = data.itemCode;
+                    option.textContent = data.itemName;
+                    datalist.appendChild(option);
+                });
+            } catch (error) { console.error("Error loading master data:", error); }
+        }
+
+        // 4. ໂຫຼດລາຍການໃບສົມທຽບທັງໝົດ
+        window.loadTickets = async function() {
+            const tbody = document.getElementById('ticketsTableBody');
+            try {
+                tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400">ກຳລັງໂຫຼດຂໍ້ມູນ...</td></tr>';
+                const q = query(collection(db, "reconcile_tickets"), orderBy("createdAt", "desc"));
+                const snap = await getDocs(q);
+                
+                tbody.innerHTML = '';
+                if(snap.empty) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400">ບໍ່ມີລາຍການລໍຖ້າສົມທຽບ.</td></tr>';
+                    return;
+                }
+
+                let idx = 1;
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    
+                    // ຈັດການສະຖານະ (ສີ)
+                    let statusHtml = '';
+                    let actionHtml = '';
+                    
+                    if(data.status === 'completed') {
+                        statusHtml = '<span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[11px] font-bold border border-emerald-200">✅ ຕັດສະຕັອກສຳເລັດ</span>';
+                        actionHtml = `<button onclick="openReconcileModal('${doc.id}', '${data.docRef}', true)" class="text-slate-500 hover:text-slate-800 font-bold text-xs underline">ເບິ່ງຂໍ້ມູນ</button>`;
+                    } else {
+                        statusHtml = '<span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-[11px] font-bold border border-amber-200">⏳ ລໍຖ້າສົມທຽບ</span>';
+                        actionHtml = `<button onclick="openReconcileModal('${doc.id}', '${data.docRef}', false)" class="bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-colors">ສົມທຽບ-ຕັດສະຕັອກ</button>`;
+                    }
+
+                    const dateStr = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('en-GB') : '-';
+
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-50 border-b border-slate-100 transition-colors";
+                    tr.innerHTML = `
+                        <td class="p-4 text-center font-bold text-slate-400">${idx++}</td>
+                        <td class="p-4 font-bold text-slate-800">${data.docRef}</td>
+                        <td class="p-4 text-slate-600">${dateStr}</td>
+                        <td class="p-4 text-slate-600">${data.teamName}</td>
+                        <td class="p-4 text-center font-bold">${(data.items || []).length}</td>
+                        <td class="p-4 text-center">${statusHtml}</td>
+                        <td class="p-4 text-center">${actionHtml}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) { console.error("Error loading tickets:", error); }
+        };
+
+        // 5. ສ້າງໃບສົມທຽບໃໝ່
+        window.openNewTicketModal = () => {
+            document.getElementById('ntRef').value = '';
+            document.getElementById('ntTeam').value = '';
+            toggleModal('newTicketModal', true);
+        };
+
+        window.createNewTicket = async function() {
+            const ref = document.getElementById('ntRef').value.trim().toUpperCase();
+            const team = document.getElementById('ntTeam').value.trim();
+            if(!ref || !team) return alert("ກະລຸນາປ້ອນຂໍ້ມູນໃຫ້ຄົບ!");
+
+            try {
+                const newDoc = await addDoc(collection(db, "reconcile_tickets"), {
+                    docRef: ref,
+                    teamName: team,
+                    status: 'pending',
+                    items: [], // ເລີ່ມຕົ້ນຍັງບໍ່ມີລາຍການອຸປະກອນ
+                    createdAt: serverTimestamp()
+                });
+                toggleModal('newTicketModal', false);
+                loadTickets();
+                // ຫຼັງຈາກສ້າງແລ້ວ ເປີດໜ້າສົມທຽບຂຶ້ນມາເລີຍ
+                openReconcileModal(newDoc.id, ref, false);
+            } catch (error) { alert("Error: " + error.message); }
+        };
+
+        // 6. 🟢 ເປີດໜ້າສົມທຽບ (The Core UI) 🟢
+        window.openReconcileModal = async function(docId, ref, isReadOnly) {
+            currentTicketId = docId;
+            document.getElementById('recDocRef').innerText = ref;
+            
+            const tbody = document.getElementById('reconcileTableBody');
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center p-4">ໂຫຼດຂໍ້ມູນ...</td></tr>';
+            toggleModal('reconcileModal', true);
+
+            try {
+                // ດຶງຂໍ້ມູນໃບນີ້ຈາກ Firestore
+                const q = query(collection(db, "reconcile_tickets"));
+                const snap = await getDocs(q);
+                let ticketData = null;
+                snap.forEach(d => { if(d.id === docId) ticketData = d.data(); });
+
+                tbody.innerHTML = '';
+                const items = ticketData.items || [];
+
+                if(items.length === 0 && !isReadOnly) {
+                    addReconcileRow(); // ເພີ່ມແຖວວ່າງຖ້າບໍ່ມີເຄື່ອງ
+                } else {
+                    items.forEach(item => addReconcileRow(item, isReadOnly));
+                }
+
+                checkAllMatches(); // ກວດສອບຄວາມຖືກຕ້ອງທັນທີ
+
+            } catch(e) { console.error(e); }
+        };
+
+        // 7. ສ້າງແຖວສົມທຽບ
+        window.addReconcileRow = function(data = null, isReadOnly = false) {
+            const tbody = document.getElementById('reconcileTableBody');
+            const tr = document.createElement('tr');
+            tr.className = "hover:bg-slate-50 transition-colors rec-row";
+            
+            const code = data ? data.itemCode : '';
+            const name = data ? data.itemName : '';
+            const mId = data ? data.materialDocId : '';
+            const qtyField = data ? (data.qtyField || 0) : 0; // ຊ່າງ
+            const qtyWh = data ? (data.qtyWarehouse || 0) : 0; // ສາງ
+            
+            const disabledAttr = isReadOnly ? 'disabled' : '';
+
+            tr.innerHTML = `
+                <td class="p-2">
+                    <input type="text" list="materialsList" onchange="autoFillRec(this)" value="${code}" ${disabledAttr} placeholder="ລະຫັດ..." class="rec-code w-full p-2 border border-slate-300 rounded text-sm uppercase font-bold text-indigo-700 outline-none focus:border-rose-400">
+                    <input type="hidden" class="rec-doc-id" value="${mId}">
+                </td>
+                <td class="p-2">
+                    <input type="text" disabled value="${name}" class="rec-name w-full p-2 bg-transparent text-sm font-medium text-slate-600 truncate">
+                </td>
+                <td class="p-2 bg-amber-50 border-l border-amber-200">
+                    <input type="number" min="0" value="${qtyField}" oninput="checkAllMatches()" ${disabledAttr} class="rec-qty-f w-full p-2 border border-amber-300 rounded text-sm text-center font-bold text-amber-700 outline-none focus:ring-1 focus:ring-amber-500">
+                </td>
+                <td class="p-2 bg-emerald-50 border-r border-emerald-200">
+                    <input type="number" min="0" value="${qtyWh}" oninput="checkAllMatches()" ${disabledAttr} class="rec-qty-w w-full p-2 border border-emerald-300 rounded text-sm text-center font-bold text-emerald-700 outline-none focus:ring-1 focus:ring-emerald-500">
+                </td>
+                <td class="p-2 text-center rec-status font-bold text-lg">
+                    </td>
+                <td class="p-2 text-center">
+                    <button onclick="this.closest('tr').remove(); checkAllMatches();" ${disabledAttr} class="text-slate-400 hover:text-rose-500">🗑️</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+            if(data) checkAllMatches();
+        };
+
+        // 8. Auto-fill ຕອນພິມລະຫັດໃນໜ້າສົມທຽບ
+        window.autoFillRec = function(inputEl) {
+            const row = inputEl.closest('tr');
+            const code = inputEl.value.trim().toUpperCase();
+            const nameInput = row.querySelector('.rec-name');
+            const idInput = row.querySelector('.rec-doc-id');
+
+            const matched = masterMaterials.find(m => m.itemCode.toUpperCase() === code);
+            if(matched) {
+                nameInput.value = matched.itemName;
+                idInput.value = matched.id;
+            } else {
+                nameInput.value = "ບໍ່ພົບຂໍ້ມູນ!";
+                idInput.value = "";
+            }
+            checkAllMatches();
+        };
+
+        // 9. 🧠 ຫົວໃຈຫຼັກ: ຟັງຊັນກວດສອບຄວາມຖືກຕ້ອງ (Two-Way Match Checker) 🧠
+        window.checkAllMatches = function() {
+            const rows = document.querySelectorAll('.rec-row');
+            let allMatched = true;
+            let hasItems = false;
+
+            rows.forEach(row => {
+                hasItems = true;
+                const code = row.querySelector('.rec-code').value.trim();
+                const qF = parseInt(row.querySelector('.rec-qty-f').value) || 0;
+                const qW = parseInt(row.querySelector('.rec-qty-w').value) || 0;
+                const statusTd = row.querySelector('.rec-status');
+
+                if(!code) {
+                    statusTd.innerHTML = '-';
+                    allMatched = false;
+                } else if(qF === qW && qF > 0) {
+                    statusTd.innerHTML = '✅';
+                } else {
+                    statusTd.innerHTML = '❌';
+                    allMatched = false;
+                }
+            });
+
+            const banner = document.getElementById('statusBanner');
+            const btnDeduct = document.getElementById('btnExecuteDeduct');
+
+            if(!hasItems) {
+                banner.className = "p-3 rounded-xl border-2 font-bold text-center text-sm bg-slate-100 text-slate-500 border-slate-300";
+                banner.innerText = "ກະລຸນາເພີ່ມລາຍການອຸປະກອນເພື່ອສົມທຽບ";
+                btnDeduct.disabled = true;
+                btnDeduct.className = "px-6 py-2.5 rounded-lg font-bold text-white bg-slate-400 cursor-not-allowed text-sm flex items-center shadow-lg transition-all";
+            }
+            else if(allMatched) {
+                banner.className = "p-3 rounded-xl border-2 font-bold text-center text-sm bg-emerald-100 text-emerald-700 border-emerald-400 shadow-sm animate-pulse";
+                banner.innerText = "✅ ຍອດເບີກຂອງຊ່າງ ແລະ ຍອດປົດຈາກສາງ ຕົງກັນທຸກລາຍການແລ້ວ! (ພ້ອມຕັດສະຕັອກ)";
+                btnDeduct.disabled = false;
+                btnDeduct.className = "px-6 py-2.5 rounded-lg font-bold text-white bg-emerald-600 hover:bg-emerald-700 text-sm flex items-center shadow-lg shadow-emerald-500/30 active:scale-95 transition-all";
+            } else {
+                banner.className = "p-3 rounded-xl border-2 font-bold text-center text-sm bg-rose-100 text-rose-700 border-rose-400 shadow-sm";
+                banner.innerText = "❌ ຂໍ້ມູນຍັງບໍ່ຕົງກັນ ຫຼື ມີບາງຫ້ອງເປັນ 0. ລະບົບບໍ່ອະນຸຍາດໃຫ້ຕັດສະຕັອກ!";
+                btnDeduct.disabled = true;
+                btnDeduct.className = "px-6 py-2.5 rounded-lg font-bold text-white bg-slate-400 cursor-not-allowed text-sm flex items-center shadow-lg transition-all";
+            }
+        };
+
+        // 10. ດຶງຂໍ້ມູນຈາກຕາຕະລາງມາລວມເປັນ Array
+        function collectItemsFromTable() {
+            const rows = document.querySelectorAll('.rec-row');
+            let items = [];
+            rows.forEach(row => {
+                const code = row.querySelector('.rec-code').value.trim();
+                const mId = row.querySelector('.rec-doc-id').value;
+                if(code && mId) {
+                    items.push({
+                        itemCode: code,
+                        itemName: row.querySelector('.rec-name').value,
+                        materialDocId: mId,
+                        qtyField: parseInt(row.querySelector('.rec-qty-f').value) || 0,
+                        qtyWarehouse: parseInt(row.querySelector('.rec-qty-w').value) || 0
+                    });
+                }
+            });
+            return items;
+        }
+
+        // 11. ບັນທຶກໄວ້ກ່ອນ (Draft)
+        window.saveDraft = async function() {
+            if(!currentTicketId) return;
+            const items = collectItemsFromTable();
+            try {
+                await updateDoc(doc(db, "reconcile_tickets", currentTicketId), { items: items });
+                alert("ບັນທຶກສະຖານະປະຈຸບັນໄວ້ແລ້ວ (ຍັງບໍ່ຕັດສະຕັອກ).");
+                toggleModal('reconcileModal', false);
+                loadTickets();
+            } catch(e) { alert(e.message); }
+        };
+
+        // 12. 🚀 ຢືນຢັນການຕັດສະຕັອກຈິງ (Execute Deduction) 🚀
+        window.executeDeduction = async function() {
+            if(!currentTicketId) return;
+            if(!confirm("⚠️ ຢືນຢັນການຕັດສະຕັອກແທ້ບໍ່? ການກະທຳນີ້ຈະລົບຈຳນວນໃນສາງຫຼັກທັນທີ!")) return;
+
+            const items = collectItemsFromTable();
+            const btn = document.getElementById('btnExecuteDeduct');
+            btn.disabled = true; btn.innerHTML = "ກຳລັງຕັດສະຕັອກ...";
+
+            try {
+                const batch = writeBatch(db);
+
+                // ກ. ອັບເດດສະຖານະໃບເບີກເປັນ Completed
+                const ticketRef = doc(db, "reconcile_tickets", currentTicketId);
+                batch.update(ticketRef, { 
+                    items: items, 
+                    status: 'completed',
+                    completedAt: serverTimestamp() 
+                });
+
+                // ຂ. ຕັດຍອດສະຕັອກໃນ Collection ຫຼັກ (materials)
+                items.forEach(item => {
+                    const matRef = doc(db, "materials", item.materialDocId);
+                    // ໃຊ້ -item.qtyWarehouse ເພື່ອລົບສະຕັອກອອກ
+                    batch.update(matRef, { stockQuantity: increment(-item.qtyWarehouse) });
+                });
+
+                await batch.commit();
+
+                alert("✅ ຕັດສະຕັອກສຳເລັດສົມບູນ!");
+                toggleModal('reconcileModal', false);
+                loadTickets(); // ໂຫຼດໜ້າຫຼັກໃໝ່
+
+            } catch(e) { 
+                console.error(e); alert("❌ ເກີດຂໍ້ຜິດພາດ: " + e.message); 
+                btn.disabled = false; btn.innerHTML = "ຢືນຢັນການຕັດສະຕັອກ";
+            }
+        };
+
+        // ເລີ່ມຕົ້ນໂຫຼດຂໍ້ມູນ
+        loadMasterMaterials().then(() => loadTickets());
+
+    </script>
+</body>
+</html>

@@ -5,17 +5,21 @@ const userDataStr = localStorage.getItem('wm_user_data');
 const userData = userDataStr ? JSON.parse(userDataStr) : { fullName: 'ແອດມິນລະບົບ', email: 'admin@meter.com', role: 'system_manager', permissions: {} };
 
 const userName = userData.fullName || 'ແອດມິນລະບົບ';
-const userEmail = userData.email || 'admin@meter.com';
+const userEmail = (userData.email || 'admin@meter.com').toLowerCase();
 const role = userData.role || 'system_manager';
 
+// 🟢 1. ກວດສອບສິດທິ (Role) 🟢
 const isAdmin = userEmail.includes('admin') || role === 'system_manager' || role === 'super_admin';
+const isWarehouse = userEmail.includes('warehouse') || role === 'warehouse_staff';
+const isField = userEmail.includes('field') || role === 'field_staff';
 
 // ປ່ຽນຊື່ Role ເປັນພາສາລາວຕາມທີ່ຕັ້ງຄ່າ
 let userRole = 'ພະນັກງານວິຊາການ';
-if (role === 'system_manager' || isAdmin) userRole = 'ຜູ້ບໍລິຫານລະບົບ (Super Admin)';
+if (isAdmin) userRole = 'ຜູ້ບໍລິຫານລະບົບ (Super Admin)';
+else if (isWarehouse) userRole = 'ພະນັກງານສາງ / ຜູ້ຈັດການສາງ';
+else if (isField) userRole = 'ໜ່ວຍງານປ່ຽນຖ່າຍ (ຊ່າງ)';
 else if (role === 'department_head') userRole = 'ຫົວໜ້າພະແນກ';
 else if (role === 'section_head') userRole = 'ຫົວໜ້າພາກສ່ວນ';
-else if (role === 'warehouse_manager') userRole = 'ຜູ້ຈັດການສາງ';
 
 const avatarText = userName.charAt(0).toUpperCase();
 
@@ -27,8 +31,93 @@ const adminBadge = isAdmin
 const currentPath = window.location.pathname;
 const base = currentPath.includes('/pages/') ? '../..' : '.';
 
+// =========================================================================
+// 🟢 2. ສ້າງເມນູແບບ Dynamic (ປະກອບຕາມ Role ຂອງຜູ້ໃຊ້) 🟢
+// =========================================================================
+
+let dynamicMenuHTML = `
+    <p class="px-3 text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mb-3">ເມນູຫຼັກ (Main Menu)</p>
+
+    <a href="${base}/index.html" class="nav-link flex items-center px-4 py-3.5 rounded-xl text-slate-400 transition-all duration-300 group active:scale-[0.98] border border-transparent" data-path="/index.html">
+        <svg class="w-5 h-5 mr-3 group-hover:translate-x-1 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+        <span class="font-bold text-sm">ໜ້າຫຼັກ (Dashboard)</span>
+    </a>
+`;
+
+// 📦 ສະແດງສະເພາະ ສາງ ແລະ Admin
+if (isAdmin || isWarehouse) {
+    dynamicMenuHTML += `
+    <p class="px-3 text-[11px] font-extrabold text-emerald-500 uppercase tracking-widest mb-3 mt-6">📦 ພາກສ່ວນ: ສາງ</p>
+    
+    <a href="${base}/pages/warehouse/inventory.html" class="nav-link flex items-center px-4 py-3.5 rounded-xl text-slate-400 transition-all duration-300 group active:scale-[0.98] border border-transparent" data-path="/inventory.html">
+        <svg class="w-5 h-5 mr-3 group-hover:translate-x-1 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+        <span class="font-bold text-sm">ສະຕັອກສິນຄ້າ</span>
+    </a>
+
+    <a href="${base}/pages/warehouse/receive-items.html" class="nav-link flex items-center px-4 py-3.5 rounded-xl text-slate-400 transition-all duration-300 group active:scale-[0.98] border border-transparent" data-path="/receive-items.html">
+        <svg class="w-5 h-5 mr-3 group-hover:translate-x-1 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
+        <span class="font-bold text-sm">ຮັບເຄື່ອງເຂົ້າສາງ</span>
+    </a>
+
+    <a href="${base}/pages/warehouse/create-issue.html" class="nav-link flex items-center px-4 py-3.5 rounded-xl text-slate-400 transition-all duration-300 group active:scale-[0.98] border border-transparent" data-path="/create-issue.html">
+        <svg class="w-5 h-5 mr-3 group-hover:translate-x-1 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+        <span class="font-bold text-sm">ເບີກເຄື່ອງໃຫ້ຊ່າງ</span>
+    </a>
+    `;
+}
+
+// 🔧 ສະແດງສະເພາະ ຊ່າງ ແລະ Admin
+if (isAdmin || isField) {
+    dynamicMenuHTML += `
+    <p class="px-3 text-[11px] font-extrabold text-amber-500 uppercase tracking-widest mb-3 mt-6">🔧 ພາກສ່ວນ: ປ່ຽນຖ່າຍ</p>
+    
+    <a href="${base}/pages/warehouse/field-report.html" class="nav-link flex items-center px-4 py-3.5 rounded-xl text-slate-400 transition-all duration-300 group active:scale-[0.98] border border-transparent" data-path="/field-report.html">
+        <svg class="w-5 h-5 mr-3 group-hover:translate-x-1 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+        <span class="font-bold text-sm">ລາຍງານການປົດເຄື່ອງ</span>
+    </a>
+    `;
+}
+
+// ⚖️ ສະແດງໃຫ້ທຸກຄົນເຫັນ (ສາງ, ຊ່າງ, Admin ຕ້ອງໃຊ້ຮ່ວມກັນ)
+dynamicMenuHTML += `
+    <p class="px-3 text-[11px] font-extrabold text-rose-400 uppercase tracking-widest mb-3 mt-6">⚖️ ພາກສ່ວນ: ກວດສອບ</p>
+    
+    <a href="${base}/pages/warehouse/issue-items.html" class="nav-link flex items-center px-4 py-3.5 rounded-xl text-slate-400 transition-all duration-300 group active:scale-[0.98] border border-transparent" data-path="/issue-items.html">
+        <svg class="w-5 h-5 mr-3 group-hover:translate-x-1 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+        <span class="font-bold text-sm">ສົມທຽບ-ຕັດສະຕັອກ</span>
+    </a>
+`;
+
+// ⚙️ ສະແດງສະເພາະ Admin ເທົ່ານັ້ນ
+if (isAdmin) {
+    dynamicMenuHTML += `
+    <p class="px-3 text-[11px] font-extrabold text-indigo-400 uppercase tracking-widest mb-3 mt-6">ສຳລັບຜູ້ບໍລິຫານ (Admin)</p>
+    <a href="${base}/pages/admin/manage-users.html" class="nav-link flex items-center px-4 py-3.5 rounded-xl text-slate-400 transition-all duration-300 group active:scale-[0.98] border border-transparent" data-path="/manage-users.html">
+        <svg class="w-5 h-5 mr-3 group-hover:translate-x-1 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+        <span class="font-bold text-sm">ຈັດການຜູ້ໃຊ້ລະບົບ</span>
+    </a>
+    `;
+}
+
+// 🟢 3. ປະກອບເຂົ້າ Sidebar Container (ພ້ອມ Custom CSS ແຖບເລື່ອນ) 🟢
 document.getElementById('sidebar-container').innerHTML = `
-<!-- ແຖບ Sidebar ຫຼັກ -->
+<style>
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 8px; /* ຂະໜາດຄວາມກວ້າງ */
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: rgba(30, 41, 59, 0.4); /* ສີພື້ນຫຼັງແຖບເລື່ອນ */
+        border-radius: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(99, 102, 241, 0.6); /* ສີແຖບເລື່ອນ (ສີມ່ວງ/ຟ້າ) */
+        border-radius: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(99, 102, 241, 1); /* ສີຕອນເອົາເມົາສ໌ໄປຊີ້ */
+    }
+</style>
+
 <aside class="w-64 h-screen bg-slate-900 text-slate-300 fixed left-0 top-0 flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.15)] z-40">
     
     <div class="h-20 flex items-center px-6 border-b border-slate-700/50 bg-slate-900 relative overflow-hidden">
@@ -45,39 +134,9 @@ document.getElementById('sidebar-container').innerHTML = `
         </div>
     </div>
 
-    <!-- ເມນູຕ່າງໆ -->
     <nav class="flex-1 overflow-y-auto py-6 px-3 space-y-1 custom-scrollbar">
-        <p class="px-3 text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mb-3">ເມນູຫຼັກ (Main Menu)</p>
+        ${dynamicMenuHTML}
 
-        <a href="${base}/index.html" class="nav-link flex items-center px-4 py-3.5 rounded-xl text-slate-400 transition-all duration-300 group active:scale-[0.98] border border-transparent" data-path="/index.html">
-            <svg class="w-5 h-5 mr-3 group-hover:translate-x-1 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-            <span class="font-bold text-sm">ໜ້າຫຼັກ (Dashboard)</span>
-        </a>
-
-        <a href="${base}/pages/warehouse/inventory.html" class="nav-link flex items-center px-4 py-3.5 rounded-xl text-slate-400 transition-all duration-300 group active:scale-[0.98] border border-transparent" data-path="/inventory.html">
-            <svg class="w-5 h-5 mr-3 group-hover:translate-x-1 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
-            <span class="font-bold text-sm">ສະຕັອກສິນຄ້າ</span>
-        </a>
-
-        <a href="${base}/pages/warehouse/receive-items.html" class="nav-link flex items-center px-4 py-3.5 rounded-xl text-slate-400 transition-all duration-300 group active:scale-[0.98] border border-transparent" data-path="/receive-items.html">
-            <svg class="w-5 h-5 mr-3 group-hover:translate-x-1 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
-            <span class="font-bold text-sm">ຮັບເຄື່ອງເຂົ້າສາງ</span>
-        </a>
-
-        ${isAdmin ? `
-        <p class="px-3 text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mb-3 mt-6">ສຳລັບຜູ້ບໍລິຫານ (Admin)</p>
-        <a href="${base}/pages/admin/manage-users.html" class="nav-link flex items-center px-4 py-3.5 rounded-xl text-slate-400 transition-all duration-300 group active:scale-[0.98] border border-transparent" data-path="/manage-users.html">
-            <svg class="w-5 h-5 mr-3 group-hover:translate-x-1 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-            <span class="font-bold text-sm">ຈັດການຜູ້ໃຊ້ລະບົບ</span>
-        </a>
-        ` : ''}
-
-        <a href="${base}/pages/warehouse/issue-items.html" class="nav-link flex items-center px-4 py-3.5 rounded-xl text-slate-400 transition-all duration-300 group active:scale-[0.98] border border-transparent" data-path="/issue-items.html">
-            <svg class="w-5 h-5 mr-3 group-hover:translate-x-1 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
-            <span class="font-bold text-sm">ເບີກຈ່າຍອຸປະກອນ</span>
-        </a>
-
-        <!-- 🟢 ລາຍຊື່ເພື່ອນຮ່ວມງານທີ່ Online (ດຶງຈາກຕົວຈິງ) 🟢 -->
         <div class="mt-8 mb-2">
             <div class="flex items-center justify-between px-3 mb-3">
                 <p class="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest">ທີມງານທີ່ອອນໄລນ໌</p>
@@ -92,7 +151,6 @@ document.getElementById('sidebar-container').innerHTML = `
         </div>
     </nav>
 
-    <!-- 🟢 ສ່ວນຜູ້ໃຊ້ ແລະ ປຸ່ມອອກຈາກລະບົບ 🟢 -->
     <div class="p-4 border-t border-slate-700/50 bg-slate-800/30">
         <div class="flex items-center mb-4 px-2 hover:bg-slate-700/30 p-2 rounded-xl transition-colors cursor-pointer group">
             
@@ -146,19 +204,17 @@ document.getElementById('sidebar-container').innerHTML = `
 // =========================================================================
 // 🚀 ລະບົບຈັດການສະຖານະ Online ຕົວຈິງ ແລະ Auto Logout
 // =========================================================================
-let updateStatusToOffline = async () => {}; // ຟັງຊັນສຳຮອງ
+let updateStatusToOffline = async () => {}; 
 
 async function initRealtimePresence() {
     try {
-        // Dynamic Import ເພື່ອບໍ່ໃຫ້ກະທົບກັບໂຄງສ້າງໜ້າເວັບເກົ່າທີ່ໃຊ້ <script defer>
         const { db } = await import(base + '/firebase-config.js');
         const { collection, query, where, getDocs, updateDoc, doc, onSnapshot, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
         
         const usersRef = collection(db, 'users');
         let currentUserDocId = null;
 
-        // 1️⃣ ອັບເດດສະຖານະຕົວເອງໃຫ້ເປັນ Online (isOnline: true)
-        if (userEmail && userEmail !== 'admin@meter.com') { // ຂ້າມໄອດີ Admin ທີ່ເປັນ Default
+        if (userEmail && !userEmail.includes('admin')) { 
             const myQ = query(usersRef, where('email', '==', userEmail));
             const mySnapshot = await getDocs(myQ);
             
@@ -168,14 +224,12 @@ async function initRealtimePresence() {
                 
                 await updateDoc(myDocRef, { isOnline: true, lastActive: serverTimestamp() });
 
-                // ເມື່ອຜູ້ໃຊ້ປິດໜ້າເວັບ (ແຖບ/ບຣາວເຊີ) ພະຍາຍາມປ່ຽນສະຖານະເປັນ Offline
                 window.addEventListener('beforeunload', () => {
                     updateDoc(myDocRef, { isOnline: false });
                 });
             }
         }
 
-        // 2️⃣ ດຶງຂໍ້ມູນຄົນອື່ນທີ່ອອນໄລນ໌ແບບ Real-time ມາສະແດງ
         const onlineQ = query(usersRef, where('isOnline', '==', true));
         onSnapshot(onlineQ, (snapshot) => {
             const listContainer = document.getElementById('online-users-list');
@@ -188,14 +242,12 @@ async function initRealtimePresence() {
             snapshot.forEach(docSnap => {
                 const user = docSnap.data();
                 
-                // ບໍ່ສະແດງຊື່ຕົວເອງໃນລາຍຊື່
                 if (user.email === userEmail) return;
 
                 count++;
                 const name = user.fullName || 'User';
                 const firstChar = name.charAt(0).toUpperCase();
 
-                // ສຸ່ມສີ Avatar ໃຫ້ແຕ່ລະຄົນຕາມຊື່ (Color generator)
                 const colors = ['bg-blue-900 text-blue-200','bg-purple-900 text-purple-200','bg-amber-900 text-amber-200','bg-rose-900 text-rose-200','bg-indigo-900 text-indigo-200'];
                 const colorClass = colors[name.charCodeAt(0) % colors.length];
 
@@ -227,7 +279,6 @@ async function initRealtimePresence() {
             }
         });
 
-        // ສົ່ງຟັງຊັນສຳລັບການປ່ຽນສະຖານະເປັນ Offline ອອກໄປໃຊ້ງານຂ້າງນອກ
         return async function() {
             if (currentUserDocId) {
                 await updateDoc(doc(db, 'users', currentUserDocId), { isOnline: false });
@@ -240,31 +291,28 @@ async function initRealtimePresence() {
     }
 }
 
-// ເລີ່ມຕົ້ນລະບົບ Presence
 initRealtimePresence().then(fn => {
     if(fn) updateStatusToOffline = fn;
 });
 
-// 🟢 ຈັດການປຸ່ມ Logout ໃໝ່ (ໃຫ້ອັບເດດສະຖານະກ່ອນອອກ)
 document.getElementById('btn-logout').addEventListener('click', async (e) => {
     e.preventDefault();
     if (confirm('ທ່ານຕ້ອງການອອກຈາກລະບົບແທ້ບໍ່?')) {
         document.getElementById('btn-logout').innerHTML = '<span class="font-bold text-sm">ກຳລັງອອກ...</span>';
-        await updateStatusToOffline(); // ສັ່ງໃຫ້ອອຟໄລນ໌ໃນຖານຂໍ້ມູນ
+        await updateStatusToOffline(); 
         localStorage.removeItem('wm_user_data');
         window.location.href = `${base}/login.html`;
     }
 });
 
-// 🔒 ລະບົບ Auto Logout (Idle Timeout 5 ນາທີ)
 (function() {
     let idleTimer;
-    const idleTimeLimit = 5 * 60 * 1000; // 5 ນາທີ 
+    const idleTimeLimit = 5 * 60 * 1000; 
     
     function resetIdleTimer() {
         clearTimeout(idleTimer);
         idleTimer = setTimeout(async () => {
-            await updateStatusToOffline(); // ສັ່ງໃຫ້ອອຟໄລນ໌ໃນຖານຂໍ້ມູນກ່ອນເຕະອອກ
+            await updateStatusToOffline(); 
             localStorage.removeItem('wm_user_data');
             alert("🔒 ໝົດເວລາການໃຊ້ງານ 5 ນາທີ! ລະບົບໄດ້ລັອກເອົາອັດຕະໂນມັດເພື່ອຄວາມປອດໄພ.");
             window.location.replace(`${base}/login.html`);

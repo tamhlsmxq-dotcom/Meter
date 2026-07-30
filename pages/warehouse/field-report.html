@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ລາຍການເຄື່ອງທີ່ເບີກ-ຈ່າຍ (ຊ່າງ) - Water Meter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style> 
+        * { font-family: 'Times New Roman', 'Phetsarath OT', serif; }
+        body { background-color: #f8fafc; overflow-x: hidden; }
+        .page-animate { animation: pageEnter 0.5s ease-out forwards; }
+        @keyframes pageEnter { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .modal-backdrop { animation: fadeInBg 0.3s ease-out forwards; }
+        @keyframes fadeInBg { from { opacity: 0; backdrop-filter: blur(0px); } to { opacity: 1; backdrop-filter: blur(8px); } }
+        .modal-animate { animation: smoothPop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes smoothPop { from { opacity: 0; transform: scale(0.95) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+    </style>
+</head>
+<body class="flex min-h-screen relative">
+    
+    <div id="sidebar-container" class="w-64 flex-shrink-0 z-50 relative"></div>
+    <script src="../../js/components/sidebar.js" defer></script>
+    <script type="module" src="../../js/components/auth-guard.js"></script>
+
+    <main class="flex-1 p-8 ml-64 overflow-y-auto space-y-6 page-animate">
+        
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 pb-5">
+            <div class="flex items-start space-x-4">
+                <div class="bg-gradient-to-br from-blue-500 to-indigo-600 p-3 rounded-2xl text-white shadow-lg shadow-blue-500/30">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-extrabold text-slate-800 tracking-wide">ລາຍການເຄື່ອງທີ່ເບີກ-ຈ່າຍ (ໜ່ວຍງານປ່ຽນຖ່າຍ)</h2>
+                    <p class="text-slate-500 mt-1 text-sm">ບັນທຶກຈຳນວນອຸປະກອນທີ່ນຳໃຊ້ຈິງ ແລະ ປົດກັບຄືນສາງ</p>
+                </div>
+            </div>
+            
+            <button onclick="loadTickets()" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-sm font-bold py-2.5 px-4 rounded-xl shadow-sm transition-all flex items-center">
+                <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                ໂຫຼດຂໍ້ມູນໃໝ່ (Refresh)
+            </button>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                <h3 class="text-base font-bold text-slate-800 border-l-4 border-blue-500 pl-3">ລາຍການໃບເບີກ ທີ່ມອບໝາຍໃຫ້ຊ່າງ</h3>
+                
+                <div class="relative w-64">
+                    <svg class="w-5 h-5 absolute left-3 top-2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="ຄົ້ນຫາເລກໃບເບີກ..." class="w-full pl-10 pr-4 py-1.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm">
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto min-h-[50vh]">
+                <table class="w-full text-left border-collapse whitespace-nowrap">
+                    <thead class="bg-slate-100/50">
+                        <tr class="text-slate-500 text-xs border-b border-slate-200">
+                            <th class="p-4 font-semibold text-center w-16">ລ/ດ</th>
+                            <th class="p-4 font-semibold w-40">ເລກທີໃບເບີກ/ປ່ຽນຖ່າຍ</th>
+                            <th class="p-4 font-semibold w-32">ວັນທີເບີກ</th>
+                            <th class="p-4 font-semibold">ພາກສ່ວນ / ຊ່າງຜູ້ເບີກ</th>
+                            <th class="p-4 font-semibold text-center w-32">ຈຳນວນລາຍການ</th>
+                            <th class="p-4 font-semibold text-center w-40">ສະຖານະ</th>
+                            <th class="p-4 font-semibold text-center w-40">ຈັດການ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ticketsTableBody" class="divide-y divide-slate-100 text-sm text-slate-700">
+                        <tr><td colspan="7" class="p-8 text-center text-slate-400">ກຳລັງໂຫຼດຂໍ້ມູນ...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div id="reportModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-start justify-center p-4 overflow-y-auto modal-backdrop transition-all duration-300">
+        <div class="bg-white rounded-2xl w-full max-w-4xl my-8 flex flex-col shadow-2xl border-[4px] border-blue-400 modal-animate">
+            <div class="bg-slate-800 p-4 rounded-t-lg flex justify-between items-center text-white sticky top-0 z-10 shadow-md">
+                <h3 class="font-bold text-lg flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-blue-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    ລາຍງານການນຳໃຊ້ອຸປະກອນ: <span id="lblDocRef" class="ml-2 text-blue-300 font-extrabold">-</span>
+                </h3>
+                <button onclick="toggleModal('reportModal', false)" class="hover:bg-rose-500 p-2 rounded-lg transition-colors bg-slate-700"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
+            
+            <div class="p-6 space-y-4 bg-slate-50">
+                
+                <div class="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-xl text-sm mb-4">
+                    <p class="font-bold mb-1">📌 ຄຳແນະນຳສຳລັບຊ່າງ:</p>
+                    <p>ກະລຸນາກວດສອບລາຍການເຄື່ອງທີ່ສາງຈ່າຍໃຫ້ ແລ້ວປ້ອນ <b>"ຈຳນວນທີ່ນຳໃຊ້/ປົດຈິງ"</b> ໃສ່ໃນຫ້ອງສີສົ້ມໃຫ້ຄົບຖ້ວນ ກ່ອນກົດບັນທຶກສົ່ງໃຫ້ສາງ.</p>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse whitespace-nowrap text-sm">
+                            <thead class="bg-slate-800 text-white">
+                                <tr>
+                                    <th class="p-3 font-bold w-12 text-center">ລ/ດ</th>
+                                    <th class="p-3 font-bold w-32">ລະຫັດວັດຖຸ</th>
+                                    <th class="p-3 font-bold">ຊື່ອຸປະກອນ</th>
+                                    <th class="p-3 font-bold text-center w-32 bg-emerald-700">ຈຳນວນ(ສາງຈ່າຍ)</th>
+                                    <th class="p-3 font-bold text-center w-40 bg-amber-600">ຈຳນວນ(ຊ່າງປົດ/ໃຊ້ຈິງ) <span class="text-rose-300">*</span></th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportTableBody" class="divide-y divide-slate-200">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+            
+            <div class="bg-white p-5 border-t border-slate-200 flex justify-between items-center rounded-b-2xl">
+                <span class="text-xs text-slate-500 font-medium">* ຫຼັງຈາກກົດບັນທຶກ, ຂໍ້ມູນຈະຖືກສົ່ງກັບໄປໃຫ້ສາງເພື່ອສົມທຽບຕັດສະຕັອກ.</span>
+                <div class="space-x-3 flex">
+                    <button onclick="toggleModal('reportModal', false)" class="px-5 py-2.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 text-sm transition-colors">ປິດໜ້າຈໍ</button>
+                    <button id="btnSubmitReport" onclick="submitFieldReport()" class="px-6 py-2.5 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-700 text-sm flex items-center shadow-lg shadow-blue-500/30 active:scale-95 transition-all">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                        ບັນທຶກການລາຍງານ
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleModal(modalId, show) {
+            const modal = document.getElementById(modalId);
+            if (show) modal.classList.remove('hidden');
+            else modal.classList.add('hidden');
+        }
+
+        function searchTable() {
+            const input = document.getElementById("searchInput").value.toUpperCase();
+            const rows = document.querySelectorAll('.ticket-row');
+            rows.forEach(row => {
+                const text = row.innerText.toUpperCase();
+                row.style.display = text.includes(input) ? '' : 'none';
+            });
+        }
+    </script>
+
+    <script type="module">
+        import { db } from '../../firebase-config.js';
+        import { collection, getDocs, doc, updateDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        let currentTicketId = null;
+        let currentItems = [];
+
+        // 🟢 ໂຫຼດລາຍການໃບເບີກທັງໝົດ 🟢
+        window.loadTickets = async function() {
+            const tbody = document.getElementById('ticketsTableBody');
+            try {
+                tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400">ກຳລັງໂຫຼດຂໍ້ມູນໃບເບີກ...</td></tr>';
+                
+                // ດຶງຂໍ້ມູນຈາກ reconcile_tickets ທີ່ສ້າງໂດຍສາງ
+                const q = query(collection(db, "reconcile_tickets"), orderBy("createdAt", "desc"));
+                const snap = await getDocs(q);
+                
+                tbody.innerHTML = '';
+                if(snap.empty) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400">ບໍ່ມີລາຍການໃບເບີກ.</td></tr>';
+                    return;
+                }
+
+                let idx = 1;
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    
+                    // ຈັດການສະຖານະ (ສີ ແລະ ປຸ່ມ)
+                    let statusHtml = '';
+                    let actionHtml = '';
+                    
+                    if (data.status === 'issued') {
+                        // 1. ສາງສ້າງແລ້ວ -> ຊ່າງຕ້ອງລາຍງານ
+                        statusHtml = '<span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-[11px] font-bold border border-amber-200">⏳ ລໍຖ້າຊ່າງລາຍງານ</span>';
+                        actionHtml = `<button onclick="openReportModal('${doc.id}')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-sm active:scale-95 transition-all">ລາຍງານການປົດເຄື່ອງ</button>`;
+                    } else if (data.status === 'reported') {
+                        // 2. ຊ່າງລາຍງານແລ້ວ -> ລໍຖ້າສາງສົມທຽບ (ເບິ່ງໄດ້ຢ່າງດຽວ)
+                        statusHtml = '<span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-[11px] font-bold border border-blue-200">🔍 ລໍຖ້າສາງສົມທຽບ</span>';
+                        actionHtml = `<button onclick="openReportModal('${doc.id}', true)" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded-lg text-xs font-bold transition-all">ເບິ່ງຂໍ້ມູນທີ່ລາຍງານແລ້ວ</button>`;
+                    } else if (data.status === 'completed') {
+                        // 3. ສາງສົມທຽບ ແລະ ຕັດສະຕັອກແລ້ວ
+                        statusHtml = '<span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[11px] font-bold border border-emerald-200">✅ ຕັດສະຕັອກສຳເລັດ</span>';
+                        actionHtml = `<button onclick="openReportModal('${doc.id}', true)" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded-lg text-xs font-bold transition-all">ເບິ່ງຂໍ້ມູນ</button>`;
+                    }
+
+                    const dateStr = data.issueDate || (data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('en-GB') : '-');
+
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-50 border-b border-slate-100 transition-colors ticket-row";
+                    tr.innerHTML = `
+                        <td class="p-4 text-center font-bold text-slate-400">${idx++}</td>
+                        <td class="p-4 font-bold text-indigo-600">${data.docRef}</td>
+                        <td class="p-4 text-slate-600 font-medium">${dateStr}</td>
+                        <td class="p-4 text-slate-800 font-bold">${data.teamName}</td>
+                        <td class="p-4 text-center font-bold text-lg">${(data.items || []).length}</td>
+                        <td class="p-4 text-center">${statusHtml}</td>
+                        <td class="p-4 text-center">${actionHtml}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+            } catch (error) { console.error("Error:", error); }
+        };
+
+        // 🟢 ເປີດ Modal ລາຍງານ (ໂຫຼດລາຍການອຸປະກອນໃນໃບເບີກນັ້ນ) 🟢
+        window.openReportModal = async function(docId, isReadOnly = false) {
+            currentTicketId = docId;
+            const tbody = document.getElementById('reportTableBody');
+            const btnSubmit = document.getElementById('btnSubmitReport');
+            
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center p-6 text-slate-400">ໂຫຼດຂໍ້ມູນ...</td></tr>';
+            toggleModal('reportModal', true);
+
+            try {
+                // ດຶງຂໍ້ມູນໃບບິນນີ້
+                const q = query(collection(db, "reconcile_tickets"));
+                const snap = await getDocs(q);
+                let ticketData = null;
+                snap.forEach(d => { if(d.id === docId) ticketData = d.data(); });
+
+                document.getElementById('lblDocRef').innerText = ticketData.docRef;
+                currentItems = ticketData.items || [];
+                tbody.innerHTML = '';
+
+                // ປິດປຸ່ມບັນທຶກ ຖ້າເປັນໂໝດເບິ່ງຂໍ້ມູນ
+                if(isReadOnly) {
+                    btnSubmit.style.display = 'none';
+                } else {
+                    btnSubmit.style.display = 'flex';
+                }
+
+                // Render ແຕ່ລະລາຍການ
+                currentItems.forEach((item, index) => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-50 border-b border-slate-100";
+                    
+                    const disabledAttr = isReadOnly ? 'disabled' : '';
+                    const inputClass = isReadOnly ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-amber-50 text-amber-800 focus:ring-2 focus:ring-amber-500';
+
+                    tr.innerHTML = `
+                        <td class="p-3 text-center font-bold text-slate-400">${index + 1}</td>
+                        <td class="p-3 font-bold text-slate-700">${item.itemCode}</td>
+                        <td class="p-3 font-medium text-slate-600">${item.itemName}</td>
+                        <td class="p-3 text-center font-bold text-emerald-600 text-lg bg-emerald-50/50">${item.qtyWarehouse}</td>
+                        <td class="p-3 text-center bg-amber-50/30">
+                            <input type="number" min="0" value="${item.qtyField || ''}" data-index="${index}" ${disabledAttr} placeholder="0" class="input-qty-field w-full max-w-[120px] mx-auto p-2 border border-amber-300 rounded-lg text-center font-extrabold text-lg outline-none transition-all ${inputClass}">
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+            } catch(e) { console.error(e); }
+        };
+
+        // 🟢 ບັນທຶກການລາຍງານຂອງຊ່າງ 🟢
+        window.submitFieldReport = async function() {
+            const btn = document.getElementById('btnSubmitReport');
+            const inputs = document.querySelectorAll('.input-qty-field');
+            let hasError = false;
+
+            // ອັບເດດຄ່າ qtyField ເຂົ້າໄປໃນ Array currentItems
+            inputs.forEach(input => {
+                const valStr = input.value;
+                const val = parseInt(valStr);
+                const idx = input.getAttribute('data-index');
+
+                if(valStr === "" || isNaN(val) || val < 0) {
+                    input.classList.add('border-rose-500', 'bg-rose-50');
+                    hasError = true;
+                } else {
+                    input.classList.remove('border-rose-500', 'bg-rose-50');
+                    currentItems[idx].qtyField = val; // ອັບເດດຕົວເລກຂອງຊ່າງ
+                }
+            });
+
+            if(hasError) return alert("ກະລຸນາປ້ອນຈຳນວນທີ່ປົດ/ໃຊ້ຈິງ ໃຫ້ຄົບທຸກລາຍການ (ຫ້າມປະຫວ່າງ ແລະ ຫ້າມຕິດລົບ)!");
+
+            if(!confirm("ຢືນຢັນການສົ່ງລາຍງານ? ຫຼັງຈາກສົ່ງແລ້ວ ຂໍ້ມູນຈະຖືກສົ່ງໄປໃຫ້ສາງສົມທຽບເພື່ອຕັດສະຕັອກ.")) return;
+
+            btn.disabled = true; btn.innerHTML = 'ກຳລັງບັນທຶກ...';
+
+            try {
+                // ອັບເດດ Document ນີ້ ໃຫ້ເປັນສະຖານະ 'reported' (ລໍຖ້າສາງສົມທຽບ)
+                const ticketRef = doc(db, "reconcile_tickets", currentTicketId);
+                await updateDoc(ticketRef, {
+                    items: currentItems,
+                    status: 'reported',
+                    reportedAt: serverTimestamp()
+                });
+
+                alert("✅ ສົ່ງລາຍງານການປົດເຄື່ອງໃຫ້ສາງສຳເລັດແລ້ວ!");
+                toggleModal('reportModal', false);
+                loadTickets(); // Refresh ຕາຕະລາງ
+
+            } catch(e) { 
+                alert("❌ ເກີດຂໍ້ຜິດພາດ: " + e.message); 
+            } finally {
+                btn.disabled = false; btn.innerHTML = 'ບັນທຶກການລາຍງານ';
+            }
+        };
+
+        // ໂຫຼດຂໍ້ມູນທັນທີທີ່ເປີດໜ້າ
+        window.loadTickets();
+
+    </script>
+</body>
+</html>
