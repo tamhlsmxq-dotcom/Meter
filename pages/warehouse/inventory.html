@@ -300,11 +300,63 @@
         }
     </script>
 
+    <script>
+        function toggleModal(modalId, show) {
+            const modal = document.getElementById(modalId);
+            if (show) modal.classList.remove('hidden');
+            else modal.classList.add('hidden');
+        }
+
+        function filterTable(status) {
+            document.getElementById('statusSelect').value = status;
+            const rows = document.querySelectorAll('.inventory-row');
+            rows.forEach(row => {
+                if (status === 'all' || row.getAttribute('data-status') === status) {
+                    row.style.display = ''; 
+                } else {
+                    row.style.display = 'none'; 
+                }
+            });
+        }
+
+        function searchTable() {
+            const input = document.getElementById("searchInput").value.toUpperCase();
+            const rows = document.querySelectorAll('.inventory-row');
+            rows.forEach(row => {
+                const text = row.innerText.toUpperCase();
+                row.style.display = text.includes(input) ? '' : 'none';
+            });
+        }
+
+        function printSection(elementId) {
+            document.querySelectorAll('.print-active-area').forEach(el => el.classList.remove('print-active-area'));
+            document.getElementById(elementId).classList.add('print-active-area');
+            window.print();
+        }
+
+        let currentEditDocId = null;
+        function openEditMock(docId, code, name, stock) {
+            currentEditDocId = docId;
+            document.getElementById('editItemName').innerText = `${code} - ${name}`;
+            document.getElementById('editCurrentStock').value = stock;
+            document.getElementById('editNewStock').value = '';
+            toggleModal('editModal', true);
+        }
+
+        let currentAlertDocId = null;
+        function openAlertConfig(docId, itemName, currentMin) {
+            currentAlertDocId = docId;
+            document.getElementById('configItemName').innerText = itemName;
+            document.getElementById('configMinStock').value = currentMin;
+            toggleModal('alertConfigModal', true);
+        }
+    </script>
+
     <script type="module">
         import { db } from '../../firebase-config.js';
         import { collection, addDoc, getDocs, query, orderBy, serverTimestamp, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // 🟢 1. ດຶງຂໍ້ມູນຈາກໄຟລ໌ materials.js ທີ່ເຮົາແຍກໄວ້ 🟢
+        // 🟢 ດຶງຂໍ້ມູນຈາກໄຟລ໌ materials.js ທີ່ເຮົາແຍກໄວ້ 🟢
         import { rawMaterialsCSV } from '../../js/data/materials.js';
 
         // 🔒 RBAC: ກວດສອບສິດທິແອດມິນ
@@ -318,11 +370,9 @@
             document.getElementById('btnAutoImport').style.display = 'flex'; 
         }
 
-        // 🟢 ໂຫຼດຂໍ້ມູນວັດຖຸຈາກ Firebase 🟢
         window.loadInventory = async function() {
             const tableBody = document.getElementById('inventoryTable');
             try {
-                // 🟢 ປ່ຽນການລຽງລຳດັບມາເປັນລຽງຕາມລະຫັດ (itemCode) ຈາກນ້ອຍໄປໃຫຍ່ (asc) 🟢
                 const q = query(collection(db, "materials"), orderBy("itemCode", "asc"));
                 const querySnapshot = await getDocs(q);
                 
@@ -397,7 +447,6 @@
             }
         }
 
-        // 🟢 ຟັງຊັນບັນທຶກການແກ້ໄຂສະຕັອກດ້ວຍມື (Manual Edit Update) 🟢
         window.saveManualStock = async function() {
             if (!isAdmin) return alert("⛔ ຂໍອະໄພ, ສະເພາະ Admin ເທົ່ານັ້ນທີ່ສາມາດແກ້ໄຂຍອດສະຕັອກໄດ້!");
             if (!currentEditDocId) return;
@@ -422,7 +471,6 @@
             }
         }
 
-        // 🟢 ຟັງຊັນບັນທຶກວັດຖຸໃໝ່ (Manual) 🟢
         window.saveMaterial = async function() {
             if (!isAdmin) return alert("⛔ ຂໍອະໄພ, ສະເພາະ Admin ເທົ່ານັ້ນ!");
 
@@ -452,7 +500,6 @@
             }
         }
 
-        // 🟢 ຟັງຊັນບັນທຶກການຕັ້ງຄ່າຈຸດແຈ້ງເຕືອນໃໝ່ 🟢
         window.saveAlertConfig = async function() {
             if (!currentAlertDocId) return;
 
@@ -473,7 +520,6 @@
             }
         }
 
-        // 🚀 ຟັງຊັນ: ລ້າງຂໍ້ມູນເກົ່າ + ນຳເຂົ້າຂໍ້ມູນຕົວຢ່າງອັດຕະໂນມັດ 🚀
         window.autoImportData = async function() {
             if (!isAdmin) return alert("ສະເພາະ Admin ເທົ່ານັ້ນ!");
             
@@ -486,7 +532,6 @@
             btn.disabled = true; txt.innerHTML = 'ກຳລັງລ້າງຂໍ້ມູນເກົ່າ... (ກະລຸນາລໍຖ້າ)';
 
             try {
-                // 1. ລຶບຂໍ້ມູນໃນ Collection "materials" ຖິ້ມທັງໝົດກ່ອນ
                 const existingDocs = await getDocs(collection(db, "materials"));
                 const deletePromises = [];
                 existingDocs.forEach((d) => {
@@ -496,7 +541,6 @@
 
                 txt.innerHTML = 'ກຳລັງລົງຂໍ້ມູນໃໝ່... (ຫ້າມປິດໜ້າຈໍ)';
 
-                // 🟢 2. ດຶງຂໍ້ມູນຈາກໄຟລ໌ແຍກທີ່ Import ມາ (materials.js) 🟢
                 const lines = rawMaterialsCSV.trim().split('\n');
                 let count = 0;
 
@@ -511,7 +555,6 @@
                         const name = parts[1].trim();
                         const unit = parts[2] ? parts[2].trim() : 'ອັນ';
 
-                        // 🧠 ໂລຈິກກຳນົດ ໝວດໝູ່ ແລະ ຈຸດແຈ້ງເຕືອນ ອັດຕະໂນມັດ 🧠
                         let cat = "ອື່ນໆ";
                         let min = 15; 
 
@@ -536,7 +579,6 @@
                             cat = "ອຸປະກອນຊ່າງ";
                         }
 
-                        // 🟢 ຕັ້ງຍອດສະຕັອກເປັນ 0 ທັງໝົດ 🟢
                         await addDoc(collection(db, "materials"), {
                             itemCode: code, 
                             itemName: name, 
