@@ -56,7 +56,7 @@
             
             <div class="flex flex-wrap gap-3">
                 <button onclick="toggleModal('monthlyReportModal', true)" class="bg-violet-50 hover:bg-violet-100 border border-violet-200 text-violet-700 text-sm font-bold py-2.5 px-4 rounded-xl shadow-sm hover:shadow-md active:scale-95 transition-all duration-200 flex items-center group">
-                    <svg class="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                    <svg class="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
                     ລາຍງານແກ້ໄຂ
                 </button>
                 <button onclick="toggleModal('summaryModal', true)" class="bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-sm font-bold py-2.5 px-4 rounded-xl shadow-sm hover:shadow-md active:scale-95 transition-all duration-200 flex items-center group">
@@ -66,7 +66,7 @@
                 
                 <button id="btnAutoImport" onclick="autoImportData()" style="display: none;" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold py-2.5 px-4 rounded-xl shadow-[0_4px_14px_0_rgb(16,185,129,0.39)] hover:shadow-[0_6px_20px_rgba(16,185,129,0.23)] active:scale-95 transition-all duration-200 items-center">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                    <span id="txtAutoImport">ດຶງລາຍຊື່ອຸປະກອນທັງໝົດເຂົ້າລະບົບ (230 ລາຍການ)</span>
+                    <span id="txtAutoImport">ດຶງລາຍຊື່ອຸປະກອນທັງໝົດເຂົ້າລະບົບ</span>
                 </button>
 
                 <button id="btnAddMaterial" onclick="toggleModal('materialModal', true)" style="display: none;" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold py-2.5 px-5 rounded-xl shadow-[0_4px_14px_0_rgb(79,70,229,0.39)] hover:shadow-[0_6px_20px_rgba(79,70,229,0.23)] active:scale-95 transition-all duration-200 items-center">
@@ -300,58 +300,6 @@
         }
     </script>
 
-    <script>
-        function toggleModal(modalId, show) {
-            const modal = document.getElementById(modalId);
-            if (show) modal.classList.remove('hidden');
-            else modal.classList.add('hidden');
-        }
-
-        function filterTable(status) {
-            document.getElementById('statusSelect').value = status;
-            const rows = document.querySelectorAll('.inventory-row');
-            rows.forEach(row => {
-                if (status === 'all' || row.getAttribute('data-status') === status) {
-                    row.style.display = ''; 
-                } else {
-                    row.style.display = 'none'; 
-                }
-            });
-        }
-
-        function searchTable() {
-            const input = document.getElementById("searchInput").value.toUpperCase();
-            const rows = document.querySelectorAll('.inventory-row');
-            rows.forEach(row => {
-                const text = row.innerText.toUpperCase();
-                row.style.display = text.includes(input) ? '' : 'none';
-            });
-        }
-
-        function printSection(elementId) {
-            document.querySelectorAll('.print-active-area').forEach(el => el.classList.remove('print-active-area'));
-            document.getElementById(elementId).classList.add('print-active-area');
-            window.print();
-        }
-
-        let currentEditDocId = null;
-        function openEditMock(docId, code, name, stock) {
-            currentEditDocId = docId;
-            document.getElementById('editItemName').innerText = `${code} - ${name}`;
-            document.getElementById('editCurrentStock').value = stock;
-            document.getElementById('editNewStock').value = '';
-            toggleModal('editModal', true);
-        }
-
-        let currentAlertDocId = null;
-        function openAlertConfig(docId, itemName, currentMin) {
-            currentAlertDocId = docId;
-            document.getElementById('configItemName').innerText = itemName;
-            document.getElementById('configMinStock').value = currentMin;
-            toggleModal('alertConfigModal', true);
-        }
-    </script>
-
     <script type="module">
         import { db } from '../../firebase-config.js';
         import { collection, addDoc, getDocs, query, orderBy, serverTimestamp, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -370,26 +318,49 @@
             document.getElementById('btnAutoImport').style.display = 'flex'; 
         }
 
+        // 🟢 ໂຫຼດຂໍ້ມູນວັດຖຸຈາກ Firebase 🟢
         window.loadInventory = async function() {
             const tableBody = document.getElementById('inventoryTable');
             try {
-                const q = query(collection(db, "materials"), orderBy("itemCode", "asc"));
-                const querySnapshot = await getDocs(q);
+                // ດຶງຂໍ້ມູນທັງໝົດກ່ອນ
+                const querySnapshot = await getDocs(query(collection(db, "materials")));
                 
                 tableBody.innerHTML = '';
                 let total = 0, low = 0, out = 0;
 
                 if (querySnapshot.empty) {
-                    tableBody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-400">ຍັງບໍ່ມີລາຍການອຸປະກອນໃນລະບົບ. ກະລຸນາກົດປຸ່ມ "ດຶງຂໍ້ມູນຕົວຈິງເຂົ້າລະບົບ" ດ້ານເທິງ.</td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-400">ຍັງບໍ່ມີລາຍການອຸປະກອນໃນລະບົບ. ກະລຸນາກົດປຸ່ມ "ດຶງລາຍຊື່ອຸປະກອນທັງໝົດເຂົ້າລະບົບ" ດ້ານເທິງ.</td></tr>';
                     document.getElementById('countTotal').innerText = '0';
                     document.getElementById('countLow').innerText = '0';
                     document.getElementById('countOut').innerText = '0';
                     return;
                 }
 
+                // ເອົາຂໍ້ມູນມາໃສ່ Array ເພື່ອກຽມຈັດລຽງ
+                let allItems = [];
                 querySnapshot.forEach((docSnap) => {
-                    const data = docSnap.data();
-                    const docId = docSnap.id; 
+                    allItems.push({ id: docSnap.id, ...docSnap.data() });
+                });
+
+                // 🧠 ລະບົບຈັດລຽງອັດສະລິຍະ (Smart Sort) 🧠
+                const catPriority = {
+                    'ທໍ່ນ້ຳ': 1,
+                    'ຂໍ້ຕໍ່ / ວາວ': 2,
+                    'ມິເຕີ ແລະ ອຸປະກອນ': 3,
+                    'ອຸປະກອນຊ່າງ': 4,
+                    'ອື່ນໆ': 5
+                };
+
+                allItems.sort((a, b) => {
+                    let catA = catPriority[a.category] || 99;
+                    let catB = catPriority[b.category] || 99;
+                    if (catA !== catB) return catA - catB;
+                    
+                    return (a.itemCode || '').localeCompare((b.itemCode || ''), undefined, { numeric: true, sensitivity: 'base' });
+                });
+
+                allItems.forEach((data) => {
+                    const docId = data.id; 
                     const stock = data.stockQuantity || 0;
                     const cat = data.category || '';
                     const name = data.itemName || '';
@@ -445,7 +416,7 @@
                 console.error("Error loading inventory:", error);
                 tableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-rose-500">ເກີດຂໍ້ຜິດພາດ: ${error.message}</td></tr>`;
             }
-        }
+        };
 
         window.saveManualStock = async function() {
             if (!isAdmin) return alert("⛔ ຂໍອະໄພ, ສະເພາະ Admin ເທົ່ານັ້ນທີ່ສາມາດແກ້ໄຂຍອດສະຕັອກໄດ້!");
@@ -469,7 +440,7 @@
             } finally {
                 btn.disabled = false; btn.innerHTML = 'ບັນທຶກການປ່ຽນແປງ';
             }
-        }
+        };
 
         window.saveMaterial = async function() {
             if (!isAdmin) return alert("⛔ ຂໍອະໄພ, ສະເພາະ Admin ເທົ່ານັ້ນ!");
@@ -498,7 +469,7 @@
             } finally {
                 btn.disabled = false; btn.innerHTML = 'ບັນທຶກຂໍ້ມູນ';
             }
-        }
+        };
 
         window.saveAlertConfig = async function() {
             if (!currentAlertDocId) return;
@@ -518,7 +489,7 @@
             } finally {
                 btn.disabled = false; btn.innerHTML = 'ບັນທຶກ';
             }
-        }
+        };
 
         window.autoImportData = async function() {
             if (!isAdmin) return alert("ສະເພາະ Admin ເທົ່ານັ້ນ!");
@@ -602,7 +573,7 @@
             } finally {
                 btn.disabled = false; txt.innerHTML = originalText;
             }
-        }
+        };
 
         window.loadInventory();
     </script>
