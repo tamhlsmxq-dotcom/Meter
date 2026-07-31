@@ -2,72 +2,91 @@
 // 🧠 ໂລຈິກກວດສອບຜູ້ໃຊ້ & Dynamic Routing (ພ້ອມລະບົບ Real-time Online Users)
 // =========================================================================
 
+// 🟢 1. ຝັງໂຄງສ້າງເມນູໄວ້ໃນນີ້ເລີຍ (ປ້ອງກັນບັນຫາເວັບຫາໄຟລ໌ບໍ່ເຫັນ) 🟢
+window.SYSTEM_MODULES = [
+    {
+        id: 'warehouse',
+        title: '📦 ພາກສ່ວນ: ສາງ',
+        iconColor: 'text-emerald-500',
+        menus: [
+            { title: 'ສະຕັອກສິນຄ້າ', path: '/pages/warehouse/inventory.html', icon: '<svg class="w-5 h-5 mr-3 group-hover:translate-x-1 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>' },
+            { title: 'ຮັບເຄື່ອງເຂົ້າສາງ', path: '/pages/warehouse/receive-items.html', icon: '<svg class="w-5 h-5 mr-3 group-hover:translate-x-1 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>' },
+            { title: 'ເບີກເຄື່ອງໃຫ້ຊ່າງ', path: '/pages/warehouse/create-issue.html', icon: '<svg class="w-5 h-5 mr-3 group-hover:translate-x-1 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>' }
+        ]
+    },
+    {
+        id: 'field',
+        title: '🔧 ພາກສ່ວນ: ປ່ຽນຖ່າຍ',
+        iconColor: 'text-amber-500',
+        menus: [
+            { title: 'ລາຍງານການປົດເຄື່ອງ', path: '/pages/warehouse/field-report.html', icon: '<svg class="w-5 h-5 mr-3 group-hover:translate-x-1 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>' }
+        ]
+    },
+    {
+        id: 'reconcile',
+        title: '⚖️ ພາກສ່ວນ: ກວດສອບ',
+        iconColor: 'text-rose-400',
+        menus: [
+            { title: 'ສົມທຽບ-ຕັດສະຕັອກ', path: '/pages/warehouse/issue-items.html', icon: '<svg class="w-5 h-5 mr-3 group-hover:translate-x-1 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>' }
+        ]
+    }
+];
+
 document.addEventListener('DOMContentLoaded', async () => {
 
     const userDataStr = localStorage.getItem('wm_user_data');
-    const userData = userDataStr ? JSON.parse(userDataStr) : { fullName: 'ພະນັກງານ', email: 'user@meter.com', role: 'technical_staff', permissions: {} };
-
-    const userName = userData.fullName || 'ພະນັກງານ';
-    const userEmail = (userData.email || 'user@meter.com').toLowerCase();
-    const role = userData.role || 'technical_staff';
-
-    // 1. ກວດສອບສິດທິ (Role ຫຼັກ)
-    const isAdmin = userEmail.includes('admin') || role === 'system_manager' || role === 'super_admin';
-    const isWarehouse = userEmail.includes('warehouse') || role.includes('warehouse');
-    const isField = userEmail.includes('field') || role.includes('field') || role === 'technical_staff' || role.includes('head');
-
-    // ປ່ຽນຊື່ Role ເປັນພາສາລາວຕາມທີ່ຕັ້ງຄ່າ
-    let userRole = 'ພະນັກງານວິຊາການ';
-    if (isAdmin) userRole = 'ຜູ້ບໍລິຫານລະບົບ (Super Admin)';
-    else if (isWarehouse) userRole = 'ພະນັກງານສາງ / ຜູ້ຈັດການສາງ';
-    else if (isField) userRole = 'ໜ່ວຍງານປ່ຽນຖ່າຍ (ຊ່າງ)';
-
-    const avatarText = userName.charAt(0).toUpperCase();
-
-    const adminBadge = isAdmin 
-        ? `<span class="inline-flex items-center justify-center ml-2 px-1.5 py-0.5 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded text-[9px] font-extrabold tracking-wider uppercase"><svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg> Admin</span>` 
-        : '';
-
-    // 🌟 ໂລຈິກຄຳນວນ Path ປ້ອງກັນ 404 (Auto Base URL)
+    const userData = userDataStr ? JSON.parse(userDataStr) : null;
+    
     const currentPath = window.location.pathname;
     const base = currentPath.includes('/pages/') ? '../..' : '.';
 
-    // =========================================================================
-    // 🟢 2. ສ້າງເມນູແບບ Dynamic (ດຶງຈາກ menu-config.js) 🟢
-    // =========================================================================
-
-    let SYSTEM_MODULES = [];
-    try {
-        const config = await import(base + '/js/config/menu-config.js');
-        SYSTEM_MODULES = config.SYSTEM_MODULES;
-    } catch (e) {
-        console.error("Could not load menu config", e);
+    if (!userData) {
+        if (!currentPath.includes('login.html')) window.location.href = base + '/login.html';
+        return;
     }
 
-    let dynamicMenuHTML = `
-        <p class="px-3 text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mb-3">ເມນູຫຼັກ (Main Menu)</p>
+    const userName = userData.fullName || 'ພະນັກງານ';
+    const userEmail = (userData.email || '').toLowerCase();
+    const role = userData.role || 'technical_staff';
+    const perms = userData.permissions || {};
 
-        <a href="${base}/index.html" class="nav-link flex items-center px-4 py-3.5 rounded-xl text-slate-400 transition-all duration-300 group active:scale-[0.98] border border-transparent" data-path="/index.html">
-            <svg class="w-5 h-5 mr-3 group-hover:translate-x-1 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-            <span class="font-bold text-sm">ໜ້າຫຼັກ (Dashboard)</span>
-        </a>
-    `;
+    const isAdmin = userEmail.includes('admin') || role === 'system_manager' || role === 'super_admin';
+    
+    // 🌟 ການແກ້ບັກ: ກວດສອບຕຳແໜ່ງໃຫ້ກວ້າງຂຶ້ນ ເພື່ອປ້ອງກັນຜູ້ໃຊ້ທຳມະດາຖືກລັອກເມນູຕົນເອງ 🌟
+    const isWarehouse = role.includes('warehouse') || role.includes('head');
+    const isField = role.includes('field') || role.includes('technical') || role.includes('head');
 
-    // 🟢 ວົນລູບສ້າງເມນູທັງໝົດ ແຕ່ແຍກສີຕາມສິດທິ (Permissions) 🟢
-    SYSTEM_MODULES.forEach(module => {
-        let hasAccess = isAdmin;
+    let userRole = 'ພະນັກງານວິຊາການ';
+    if (isAdmin) userRole = 'ຜູ້ບໍລິຫານລະບົບ (Super Admin)';
+    else if (role.includes('warehouse')) userRole = 'ພະນັກງານສາງ / ຜູ້ຈັດການສາງ';
+    else if (isField && !role.includes('head')) userRole = 'ໜ່ວຍງານປ່ຽນຖ່າຍ (ຊ່າງ)';
+    else if (role === 'department_head') userRole = 'ຫົວໜ້າພະແນກ';
+    else if (role === 'section_head') userRole = 'ຫົວໜ້າພາກສ່ວນ';
+
+    const avatarText = userName.charAt(0).toUpperCase();
+    const adminBadge = isAdmin ? `<span class="inline-flex items-center justify-center ml-2 px-1.5 py-0.5 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded text-[9px] font-extrabold tracking-wider uppercase"><svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg> Admin</span>` : '';
+
+    let dynamicMenuHTML = `<p class="px-3 text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mb-3">ເມນູຫຼັກ (Main Menu)</p>
+    <a href="${base}/index.html" class="nav-link flex items-center px-4 py-3.5 rounded-xl text-slate-400 transition-all duration-300 group active:scale-[0.98] border border-transparent" data-path="/index.html">
+        <svg class="w-5 h-5 mr-3 group-hover:translate-x-1 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+        <span class="font-bold text-sm">ໜ້າຫຼັກ (Dashboard)</span>
+    </a>`;
+
+    window.SYSTEM_MODULES.forEach(module => {
+        let hasAccess = false;
         
-        // ເຊັກສິດທິອັດຕະໂນມັດ ຫຼື ຈາກທີ່ Admin ຕິກໃຫ້
-        if (!hasAccess) {
+        if (isAdmin) {
+            hasAccess = true;
+        } else {
+            // 🌟 ການແກ້ບັກ: ໃຫ້ສິດທິພື້ນຖານຕາມຕຳແໜ່ງສະເໝີ ເພື່ອປ້ອງກັນການຖືກລັອກຈາກ Admin ເຊັດຕິ້ງຜິດ 🌟
             if (module.id === 'warehouse' && isWarehouse) hasAccess = true;
             if (module.id === 'field' && isField) hasAccess = true;
-            if (module.id === 'reconcile') hasAccess = true; // ທຸກຄົນເຫັນໜ້າກວດສອບ
-        }
-        if (userData.permissions && userData.permissions[module.id] === true) {
-            hasAccess = true;
+            if (module.id === 'reconcile') hasAccess = true;
+            
+            // ແຕ່ຖ້າ Admin ຕິກໃຫ້ສິດທິພິເສດ ກໍເປີດໃຫ້ເຊັ່ນກັນ
+            if (perms[module.id] === true) hasAccess = true;
         }
 
-        // ຫົວຂໍ້ໝວດໝູ່ (ປ່ຽນສີຫົວຂໍ້ຖ້າຖືກລັອກ)
         const headerColor = hasAccess ? module.iconColor : 'text-slate-600 opacity-60';
         
         dynamicMenuHTML += `
@@ -79,7 +98,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         module.menus.forEach(menu => {
             if (hasAccess) {
-                // 🟢 ກໍລະນີມີສິດທິ: ເປັນເມນູປົກກະຕິ ກົດໄດ້
                 dynamicMenuHTML += `
                 <a href="${base}${menu.path}" class="nav-link flex items-center px-4 py-3.5 mb-1 rounded-xl text-slate-400 transition-all duration-300 group active:scale-[0.98] border border-transparent" data-path="${menu.path}">
                     ${menu.icon}
@@ -87,10 +105,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </a>
                 `;
             } else {
-                // 🔴 ກໍລະນີບໍ່ມີສິດທິ: ເປັນເມນູສີເທົາ, ລັອກໄວ້, ກົດບໍ່ໄດ້
+                // ເຮັດເປັນສີເທົາ ແລະ ເອົາອະນິເມຊັນອອກເພື່ອໃຫ້ຮູ້ວ່າກົດບໍ່ໄດ້
+                const staticIcon = menu.icon.replace(/group-hover:[^\s'"]+/g, '');
                 dynamicMenuHTML += `
                 <div class="flex items-center px-4 py-3.5 mb-1 rounded-xl text-slate-500 opacity-40 cursor-not-allowed bg-slate-800/30 border border-slate-800/50" title="ເຈົ້າບໍ່ມີສິດເຂົ້າເຖິງໜ້ານີ້">
-                    <div class="mr-3 opacity-60">${menu.icon.replace('group-hover:scale-110', '').replace('group-hover:translate-x-1', '')}</div>
+                    <div class="mr-3 opacity-60">${staticIcon}</div>
                     <span class="font-medium text-sm flex-1 line-through decoration-slate-600/50">${menu.title}</span>
                 </div>
                 `;
@@ -99,7 +118,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // ⚙️ ສະແດງເມນູ Admin (ລັອກໄວ້ຖ້າບໍ່ແມ່ນ Admin)
-    let hasAdminAccess = isAdmin || (userData.permissions && userData.permissions.manageUsers);
+    let hasAdminAccess = isAdmin || perms.manageUsers === true;
     
     dynamicMenuHTML += `
         <div class="flex items-center justify-between px-3 mb-2 mt-6">
