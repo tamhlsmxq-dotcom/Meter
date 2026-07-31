@@ -19,12 +19,10 @@
 </head>
 <body class="flex min-h-screen relative overflow-x-hidden">
 
-    <!-- Sidebar & Auth Guard -->
     <div id="sidebar-container" class="w-64 flex-shrink-0 z-50 relative"></div>
     <script src="../../js/components/sidebar.js" defer></script>
     <script type="module" src="../../js/components/auth-guard.js"></script>
 
-    <!-- Main Content -->
     <main class="flex-1 p-8 ml-64 overflow-y-auto space-y-6 page-animate">
         
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-2 border-b border-slate-200">
@@ -38,7 +36,6 @@
             </button>
         </div>
 
-        <!-- Table -->
         <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden relative z-0">
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse whitespace-nowrap">
@@ -60,7 +57,6 @@
         </div>
     </main>
 
-    <!-- Modal ສຳລັບເພີ່ມ/ແກ້ໄຂຜູ້ໃຊ້ -->
     <div id="userModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4 modal-backdrop">
         <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl modal-animate border border-slate-200 overflow-hidden">
             <div class="bg-slate-800 p-5 text-white flex justify-between items-center font-bold text-lg">
@@ -68,7 +64,8 @@
                 <button onclick="closeModal()" class="hover:text-rose-400 transition-colors">✕</button>
             </div>
             
-            <div class="p-6 space-y-4 max-h-[65vh] overflow-y-auto">
+            <div class="p-6 space-y-4 max-h-[65vh] overflow-y-auto custom-scrollbar">
+                <input type="hidden" id="editUserId">
                 <div>
                     <label class="block text-xs font-bold text-slate-600 mb-1">ຊື່ ແລະ ນາມສະກຸນ <span class="text-rose-500">*</span></label>
                     <input type="text" id="newUserName" class="w-full p-3 border border-slate-300 rounded-xl text-sm outline-none focus:border-indigo-500">
@@ -83,7 +80,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-600 mb-1">ຕຳແໜ່ງ (Role) <span class="text-rose-500">*</span></label>
-                    <select id="newUserRole" class="w-full p-3 border border-slate-300 rounded-xl text-sm font-bold bg-slate-50 outline-none focus:border-indigo-500">
+                    <select id="newUserRole" onchange="autoAssignPermissions(this.value)" class="w-full p-3 border border-slate-300 rounded-xl text-sm font-bold bg-slate-50 outline-none focus:border-indigo-500">
                         <option value="technical_staff">ພະນັກງານວິຊາການ</option>
                         <option value="warehouse_manager">ຜູ້ຈັດການສາງ</option>
                         <option value="section_head">ຫົວໜ້າພາກສ່ວນ</option>
@@ -94,28 +91,8 @@
 
                 <div class="border-t border-slate-200 pt-4 mt-2">
                     <label class="block text-xs font-bold text-slate-600 mb-3">ກຳນົດສິດການເຂົ້າເຖິງໜ້າວຽກ (Page Access) <span class="text-rose-500">*</span></label>
-                    <div class="grid grid-cols-2 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                        <label class="flex items-center space-x-2 cursor-pointer group">
-                            <input type="checkbox" id="permDashboard" class="custom-checkbox border-slate-300 rounded">
-                            <span class="text-sm text-slate-700 font-medium group-hover:text-indigo-600 transition-colors">ໜ້າຫຼັກ (Dashboard)</span>
-                        </label>
-                        <label class="flex items-center space-x-2 cursor-pointer group">
-                            <input type="checkbox" id="permInventory" class="custom-checkbox border-slate-300 rounded">
-                            <span class="text-sm text-slate-700 font-medium group-hover:text-indigo-600 transition-colors">ສະຕັອກສິນຄ້າ</span>
-                        </label>
-                        <label class="flex items-center space-x-2 cursor-pointer group">
-                            <input type="checkbox" id="permReceive" class="custom-checkbox border-slate-300 rounded">
-                            <span class="text-sm text-slate-700 font-medium group-hover:text-indigo-600 transition-colors">ຮັບເຄື່ອງເຂົ້າສາງ</span>
-                        </label>
-                        <label class="flex items-center space-x-2 cursor-pointer group">
-                            <input type="checkbox" id="permIssue" class="custom-checkbox border-slate-300 rounded">
-                            <span class="text-sm text-slate-700 font-medium group-hover:text-indigo-600 transition-colors">ເບີກຈ່າຍອຸປະກອນ</span>
-                        </label>
-                        <label class="flex items-center space-x-2 cursor-pointer group col-span-2 mt-2 pt-2 border-t border-slate-200">
-                            <input type="checkbox" id="permManageUsers" class="custom-checkbox border-slate-300 rounded">
-                            <span class="text-sm text-slate-700 font-bold group-hover:text-indigo-600 transition-colors">ຈັດການຜູ້ໃຊ້ (Admin Menu)</span>
-                        </label>
-                    </div>
+                    <div id="dynamicPermissionsContainer" class="grid grid-cols-2 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        </div>
                 </div>
 
             </div>
@@ -129,7 +106,6 @@
         </div>
     </div>
 
-    <!-- Modal ບັນທຶກການເຄື່ອນໄຫວ (Audit Logs) -->
     <div id="logModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4 modal-backdrop">
         <div class="bg-white rounded-2xl w-full max-w-xl shadow-2xl modal-animate border border-slate-200 overflow-hidden flex flex-col max-h-[80vh]">
             <div class="bg-slate-100 p-4 border-b border-slate-200 flex justify-between items-center">
@@ -155,14 +131,80 @@
     <script type="module">
         import { db } from '../../firebase-config.js';
         import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        
+        // ດຶງຂໍ້ມູນ Module ຈາກ Single Source of Truth
+        import { SYSTEM_MODULES } from '../../js/config/menu-config.js';
 
         let currentEditId = null;
+        let usersList = [];
 
-        async function loadUsersFromFirestore() {
+        // 🟢 ຟັງຊັນສ້າງ Checkbox ອັດຕະໂນມັດ 🟢
+        window.renderPermissions = function(userPerms = {}, role = '') {
+            const container = document.getElementById('dynamicPermissionsContainer');
+            let html = `
+                <label class="flex items-center space-x-2 cursor-pointer group col-span-2 pb-2 mb-1 border-b border-slate-200">
+                    <input type="checkbox" id="permDashboard" class="custom-checkbox border-slate-300 rounded" ${userPerms.dashboard !== false ? 'checked' : ''}>
+                    <span class="text-sm text-slate-700 font-medium group-hover:text-indigo-600 transition-colors">ໜ້າຫຼັກ (Dashboard)</span>
+                </label>
+            `;
+
+            SYSTEM_MODULES.forEach(mod => {
+                let isChecked = userPerms[mod.id] ? 'checked' : '';
+                
+                // ສະກັດເອົາສະເພາະຊື່ ໂດຍຕັດສັນຍາລັກ emoji ອອກ (ເຊັ່ນ 📦 ພາກສ່ວນ: ສາງ ຈະເຫຼືອແຕ່ ສາງ)
+                const cleanTitle = mod.title.split(':').pop().trim();
+
+                html += `
+                <label class="flex items-center space-x-2 cursor-pointer group">
+                    <input type="checkbox" class="custom-checkbox border-slate-300 rounded perm-checkbox" value="${mod.id}" ${isChecked}>
+                    <span class="text-sm text-slate-700 font-medium group-hover:text-indigo-600 transition-colors">${cleanTitle}</span>
+                </label>
+                `;
+            });
+
+            html += `
+                <label class="flex items-center space-x-2 cursor-pointer group col-span-2 mt-2 pt-2 border-t border-slate-200">
+                    <input type="checkbox" id="permManageUsers" class="custom-checkbox border-slate-300 rounded" ${userPerms.manageUsers ? 'checked' : ''}>
+                    <span class="text-sm text-slate-700 font-bold group-hover:text-indigo-600 transition-colors">ຈັດການຜູ້ໃຊ້ (Admin Menu)</span>
+                </label>
+            `;
+
+            container.innerHTML = html;
+        };
+
+        // 🟢 ຟັງຊັນຕິກ Checkbox ສິດທິອັດຕະໂນມັດ ເມື່ອເລືອກຕຳແໜ່ງ 🟢
+        window.autoAssignPermissions = function(role) {
+            let defaultPerms = { dashboard: true, manageUsers: false };
+            
+            // ກຳນົດສິດທິພື້ນຖານໃຫ້ແຕ່ລະຕຳແໜ່ງອັດຕະໂນມັດ
+            if (role === 'system_manager') {
+                defaultPerms.manageUsers = true;
+                SYSTEM_MODULES.forEach(mod => defaultPerms[mod.id] = true);
+            } 
+            else if (role === 'warehouse_manager') {
+                defaultPerms['warehouse'] = true;
+                defaultPerms['reconcile'] = true;
+            } 
+            else if (role === 'department_head') {
+                defaultPerms['warehouse'] = true;
+                defaultPerms['field'] = true;
+                defaultPerms['reconcile'] = true;
+            }
+            else { // section_head ຫຼື technical_staff (ຊ່າງ)
+                defaultPerms['field'] = true;
+                defaultPerms['reconcile'] = true;
+            }
+
+            // ສັ່ງໃຫ້ສ້າງ Checkbox ໃໝ່ຕາມສິດທິທີ່ກຳນົດ
+            renderPermissions(defaultPerms, role);
+        };
+
+        window.loadUsersFromFirestore = async function() {
             const tableBody = document.getElementById('userTableBody');
             try {
                 const querySnapshot = await getDocs(collection(db, "users"));
                 tableBody.innerHTML = '';
+                usersList = [];
                 
                 if (querySnapshot.empty) {
                     tableBody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-400">ຍັງບໍ່ມີຂໍ້ມູນຜູ້ໃຊ້ໃນລະບົບ</td></tr>';
@@ -172,6 +214,7 @@
                 querySnapshot.forEach((userDoc) => {
                     const user = userDoc.data();
                     const docId = userDoc.id; 
+                    usersList.push({ id: docId, ...user });
                     
                     const fullName = user.fullName || 'No Name';
                     const email = user.email || 'No Email';
@@ -181,7 +224,6 @@
                     
                     const firstChar = fullName.charAt(0).toUpperCase();
 
-                    // ກຳນົດສີ ແລະ ຊື່ໃຫ້ແຕ່ລະຕຳແໜ່ງໃໝ່ທັງ 5
                     let roleDisplay = '';
                     let roleBg = '';
                     let avatarBg = '';
@@ -207,7 +249,7 @@
                             roleBg = 'bg-indigo-100 text-indigo-700 border-indigo-200';
                             avatarBg = 'bg-indigo-600';
                             break;
-                        default: // technical_staff
+                        default: 
                             roleDisplay = 'ພະນັກງານວິຊາການ';
                             roleBg = 'bg-slate-100 text-slate-700 border-slate-200';
                             avatarBg = 'bg-slate-700';
@@ -216,6 +258,28 @@
                     const statusDisplay = status === 'active' 
                         ? `<span class="px-2.5 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-[11px] font-bold border border-emerald-200">ເປີດໃຊ້ງານ</span>`
                         : `<span class="px-2.5 py-1 bg-rose-50 text-rose-600 rounded-lg text-[11px] font-bold border border-rose-200">ຖືກໂຈະ</span>`;
+
+                    // 🟢 ສ້າງປ້າຍແທັກ (Badges) ສິດທິການເຂົ້າເຖິງ 🟢
+                    const perms = user.permissions || {};
+                    let permBadges = '';
+                    
+                    if (perms.dashboard) permBadges += `<span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] font-bold mr-1 mb-1 border border-slate-200 inline-block">ໜ້າຫຼັກ</span>`;
+
+                    SYSTEM_MODULES.forEach(mod => {
+                        if (perms[mod.id]) {
+                            const cleanTitle = mod.title.split(':').pop().trim();
+                            permBadges += `<span class="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded text-[10px] font-bold mr-1 mb-1 border border-indigo-100 inline-block">${cleanTitle}</span>`;
+                        }
+                    });
+
+                    if (perms.manageUsers) permBadges += `<span class="bg-rose-50 text-rose-600 px-2 py-0.5 rounded text-[10px] font-bold mr-1 mb-1 border border-rose-100 inline-block">Admin</span>`;
+
+                    // ຖ້າເປັນ Admin ເຮັດໃຫ້ໂຊອັນດຽວກວມທັງໝົດ
+                    if (role === 'system_manager' || (email && email.includes('admin'))) {
+                        permBadges = `<span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-[10px] font-bold border border-purple-200 shadow-sm inline-block">👑 ເຂົ້າເຖິງໄດ້ທຸກໜ້າ (Admin)</span>`;
+                    } else if (permBadges === '') {
+                        permBadges = `<span class="text-slate-400 text-xs">- ບໍ່ມີສິດທິ -</span>`;
+                    }
 
                     const userJson = encodeURIComponent(JSON.stringify({id: docId, ...user}));
 
@@ -252,7 +316,7 @@
             } catch (e) { 
                 console.error("Firebase Error:", e);
             }
-        }
+        };
 
         window.togglePwdView = function(docId, realPwd) {
             const span = document.getElementById(`pwdText_${docId}`);
@@ -265,7 +329,7 @@
                 span.classList.add('text-slate-400', 'text-lg', 'tracking-widest');
                 span.classList.remove('text-indigo-600', 'text-sm');
             }
-        }
+        };
 
         window.toggleStatus = async function(docId, currentStatus) {
             const newStatus = currentStatus === 'active' ? 'suspended' : 'active';
@@ -274,44 +338,40 @@
                 await updateDoc(doc(db, "users", docId), { status: newStatus });
                 loadUsersFromFirestore();
             }
-        }
+        };
 
         window.openModal = function() {
             currentEditId = null;
+            document.getElementById('editUserId').value = '';
             document.getElementById('modalTitle').innerText = 'ເພີ່ມຜູ້ໃຊ້ໃໝ່';
             document.getElementById('newUserName').value = '';
             document.getElementById('newUserEmail').value = '';
+            document.getElementById('newUserEmail').disabled = false; // ສຳຄັນ: ປົດລັອກອີເມວຕອນສ້າງໃໝ່
             document.getElementById('newUserPwd').value = '';
             document.getElementById('newUserRole').value = 'technical_staff';
             
-            document.getElementById('permDashboard').checked = true; 
-            document.getElementById('permInventory').checked = false;
-            document.getElementById('permReceive').checked = false;
-            document.getElementById('permIssue').checked = false;
-            document.getElementById('permManageUsers').checked = false;
+            // ສັ່ງໃຫ້ຕິກອັດຕະໂນມັດເມື່ອເປີດໜ້າເພີ່ມ
+            autoAssignPermissions('technical_staff');
 
             document.getElementById('userModal').classList.remove('hidden');
-        }
+        };
 
         window.editUser = function(userJsonStr) {
             const user = JSON.parse(decodeURIComponent(userJsonStr));
             currentEditId = user.id;
             
+            document.getElementById('editUserId').value = user.id;
             document.getElementById('modalTitle').innerText = 'ແກ້ໄຂຂໍ້ມູນຜູ້ໃຊ້';
             document.getElementById('newUserName').value = user.fullName;
             document.getElementById('newUserEmail').value = user.email;
+            document.getElementById('newUserEmail').disabled = true; // ສຳຄັນ: ຫ້າມແກ້ໄຂອີເມວປ້ອງກັນບັກ Auth
             document.getElementById('newUserPwd').value = user.password || '';
             document.getElementById('newUserRole').value = user.role || 'technical_staff';
             
-            const perms = user.permissions || {};
-            document.getElementById('permDashboard').checked = perms.dashboard || false;
-            document.getElementById('permInventory').checked = perms.inventory || false;
-            document.getElementById('permReceive').checked = perms.receive || false;
-            document.getElementById('permIssue').checked = perms.issue || false;
-            document.getElementById('permManageUsers').checked = perms.manageUsers || false;
+            renderPermissions(user.permissions || {}, user.role);
 
             document.getElementById('userModal').classList.remove('hidden');
-        }
+        };
 
         window.closeModal = () => document.getElementById('userModal').classList.add('hidden');
 
@@ -322,13 +382,14 @@
             const pwd = document.getElementById('newUserPwd').value.trim();
             const role = document.getElementById('newUserRole').value;
             
+            // 🟢 ກວດຈັບຄ່າຈາກ Dynamic Checkbox ທັງໝົດ 🟢
             const permissions = {
                 dashboard: document.getElementById('permDashboard').checked,
-                inventory: document.getElementById('permInventory').checked,
-                receive: document.getElementById('permReceive').checked,
-                issue: document.getElementById('permIssue').checked,
                 manageUsers: document.getElementById('permManageUsers').checked
             };
+            document.querySelectorAll('.perm-checkbox').forEach(cb => {
+                permissions[cb.value] = cb.checked;
+            });
 
             if(!name || !email || !pwd) {
                 alert("ກະລຸນາປ້ອນຂໍ້ມູນໃຫ້ຄົບຖ້ວນ (ລວມທັງລະຫັດຜ່ານ)!");
@@ -345,7 +406,7 @@
 
             try {
                 if (currentEditId) {
-                    // ກໍລະນີແກ້ໄຂ: ອັບເດດຂໍ້ມູນລົງ Firestore ໂດຍກົງຄືເກົ່າ
+                    // ກໍລະນີແກ້ໄຂ
                     await updateDoc(doc(db, "users", currentEditId), {
                         fullName: name,
                         password: pwd, 
@@ -356,7 +417,7 @@
                     loadUsersFromFirestore();
                     alert("✅ ອັບເດດຂໍ້ມູນສຳເລັດ!");
                 } else {
-                    // 🟢 ກໍລະນີສ້າງຜູ້ໃຊ້ໃໝ່: ຍິງ API ໄປຫາ Node.js Backend ທີ່ເຮົາຫາກໍ່ສ້າງ!
+                    // ກໍລະນີສ້າງໃໝ່ (ຍິງຜ່ານ API Node.js ທີ່ເຈົ້າເຄີຍເຮັດໄວ້)
                     const response = await fetch('http://localhost:5000/api/users', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -376,8 +437,8 @@
                     }
 
                     closeModal();
-                    loadUsersFromFirestore(); // ໂຫຼດຕາຕະລາງໃໝ່
-                    alert("✅ ສ້າງຜູ້ໃຊ້ໃໝ່ສຳເລັດແລ້ວ! (Admin ຍັງຢູ່ໃນລະບົບປົກກະຕິ ບໍ່ຖືກເຕະອອກແລ້ວ 🎉)");
+                    loadUsersFromFirestore(); 
+                    alert("✅ ສ້າງຜູ້ໃຊ້ໃໝ່ສຳເລັດແລ້ວ!");
                 }
             } catch (e) {
                 console.error("API Error: ", e);
@@ -386,12 +447,12 @@
                 btn.disabled = false;
                 btn.innerHTML = 'ບັນທຶກຂໍ້ມູນ';
             }
-        }
+        };
 
         window.openLogModal = function(userName) {
             document.getElementById('logUserName').innerText = userName;
             document.getElementById('logModal').classList.remove('hidden');
-        }
+        };
         window.closeLogModal = () => document.getElementById('logModal').classList.add('hidden');
         
         loadUsersFromFirestore();
