@@ -18,11 +18,42 @@ const auth = getAuth();
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({ origin: process.env.FRONTEND_ORIGIN || true }));
 app.use(express.json());
 
+async function requireAdmin(req, res, next) {
+    const authorization = req.get('Authorization') || '';
+    const token = authorization.startsWith('Bearer ')
+        ? authorization.slice('Bearer '.length)
+        : '';
+
+    if (!token) {
+        return res.status(401).json({ error: 'ບໍ່ພົບ Firebase ID token' });
+    }
+
+    try {
+        const decodedToken = await auth.verifyIdToken(token);
+        const userSnapshot = await db.collection('users').doc(decodedToken.uid).get();
+        const userData = userSnapshot.exists ? userSnapshot.data() : {};
+        const email = (decodedToken.email || userData.email || '').toLowerCase();
+        const isAdmin = email.includes('admin') ||
+            userData.role === 'system_manager' ||
+            userData.role === 'super_admin';
+
+        if (!isAdmin) {
+            return res.status(403).json({ error: 'ບັນຊີນີ້ບໍ່ມີສິດ Admin' });
+        }
+
+        req.user = decodedToken;
+        next();
+    } catch (error) {
+        console.error('Authentication error:', error);
+        return res.status(401).json({ error: 'Firebase ID token ບໍ່ຖືກຕ້ອງ ຫຼື ໝົດອາຍຸ' });
+    }
+}
+
 // API Endpoint: Create User
-app.post('/api/users', async (req, res) => {
+app.post('/api/users', requireAdmin, async (req, res) => {
     const { fullName, email, password, role, permissions } = req.body;
 
     if (!email || !password || !fullName) {

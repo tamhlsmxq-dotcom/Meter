@@ -76,7 +76,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-600 mb-1">ລະຫັດຜ່ານ <span class="text-rose-500">*</span></label>
-                    <input type="text" id="newUserPwd" class="w-full p-3 border border-slate-300 rounded-xl text-sm outline-none focus:border-indigo-500" placeholder="ກຳນົດລະຫັດຜ່ານໃໝ່...">
+                    <input type="password" id="newUserPwd" autocomplete="new-password" class="w-full p-3 border border-slate-300 rounded-xl text-sm outline-none focus:border-indigo-500" placeholder="ກຳນົດລະຫັດຜ່ານໃໝ່...">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-600 mb-1">ຕຳແໜ່ງ (Role) <span class="text-rose-500">*</span></label>
@@ -128,7 +128,7 @@
     </div>
 
     <script type="module">
-        import { db } from '../../firebase-config.js';
+        import { auth, db } from '../../firebase-config.js';
         import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         let currentEditId = null;
@@ -225,7 +225,6 @@
                     const email = user.email || 'No Email';
                     const role = user.role || 'technical_staff';
                     const status = user.status || 'active';
-                    const pwd = user.password || 'ບໍ່ໄດ້ຕັ້ງລະຫັດ';
                     
                     const firstChar = fullName.charAt(0).toUpperCase();
 
@@ -292,12 +291,7 @@
                     tr.innerHTML = `
                         <td class="p-4"><div class="flex items-center"><div class="w-10 h-10 rounded-full ${avatarBg} text-white flex items-center justify-center font-bold mr-3 shadow-inner">${firstChar}</div><div><p class="font-bold text-slate-800">${fullName}</p></div></div></td>
                         <td class="p-4 font-bold text-slate-600">${email}</td>
-                        <td class="p-4 text-center">
-                            <div class="flex items-center justify-center space-x-2">
-                                <span id="pwdText_${docId}" class="font-mono text-slate-400 tracking-widest text-lg">••••••••</span>
-                                <button onclick="togglePwdView('${docId}', '${pwd}')" class="text-slate-400 hover:text-indigo-600 focus:outline-none" title="ເບິ່ງລະຫັດຜ່ານ">👁</button>
-                            </div>
-                        </td>
+                        <td class="p-4 text-center"><span class="font-mono text-slate-400 tracking-widest text-lg">••••••••</span></td>
                         <td class="p-4 text-center"><span class="px-3 py-1.5 ${roleBg} rounded-full text-[11px] font-extrabold tracking-wide border">${roleDisplay}</span></td>
                         <td class="p-4 text-center">${statusDisplay}</td>
                         <td class="p-4 text-center">
@@ -367,7 +361,8 @@
             document.getElementById('newUserName').value = user.fullName;
             document.getElementById('newUserEmail').value = user.email;
             document.getElementById('newUserEmail').disabled = true;
-            document.getElementById('newUserPwd').value = user.password || '';
+            document.getElementById('newUserPwd').value = '';
+            document.getElementById('newUserPwd').placeholder = 'ການປ່ຽນລະຫັດຜ່ານໃຊ້ Firebase Console';
             document.getElementById('newUserRole').value = user.role || 'technical_staff';
             
             renderPermissions(user.permissions || {}, user.role);
@@ -409,7 +404,6 @@
                 if (currentEditId) {
                     await updateDoc(doc(db, "users", currentEditId), {
                         fullName: name,
-                        password: pwd, 
                         role: role,
                         permissions: permissions
                     });
@@ -417,9 +411,15 @@
                     loadUsersFromFirestore();
                     alert("✅ ອັບເດດຂໍ້ມູນສຳເລັດ!");
                 } else {
+                    const currentUser = auth.currentUser;
+                    if (!currentUser) throw new Error('Session ໝົດອາຍຸ, ກະລຸນາ Login ໃໝ່');
+                    const idToken = await currentUser.getIdToken();
                     const response = await fetch('http://localhost:5000/api/users', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${idToken}`
+                        },
                         body: JSON.stringify({
                             fullName: name,
                             email: email,
