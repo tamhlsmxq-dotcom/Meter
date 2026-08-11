@@ -6,6 +6,7 @@ const cors = require('cors');
 const { initializeApp, cert } = require('firebase-admin/app');
 const { getAuth } = require('firebase-admin/auth');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
+const { validateCreateUserPayload } = require('./validation');
 
 // Initialize Firebase Admin
 const serviceAccount = require('./serviceAccountKey.json');
@@ -56,8 +57,9 @@ async function requireAdmin(req, res, next) {
 app.post('/api/users', requireAdmin, async (req, res) => {
     const { fullName, email, password, role, permissions } = req.body;
 
-    if (!email || !password || !fullName) {
-        return res.status(400).json({ error: 'ຂໍ້ມູນບໍ່ຄົບຖ້ວນ (Missing required fields)' });
+    const validationError = validateCreateUserPayload(req.body);
+    if (validationError) {
+        return res.status(400).json({ error: validationError });
     }
 
     try {

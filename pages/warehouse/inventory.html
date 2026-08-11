@@ -298,6 +298,12 @@
             document.getElementById('configMinStock').value = currentMin;
             toggleModal('alertConfigModal', true);
         }
+
+        function escapeHTML(value) {
+            return String(value ?? '').replace(/[&<>\'"]/g, character => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[character]));
+        }
     </script>
 
     <script type="module">
@@ -394,18 +400,35 @@
                     tr.setAttribute('data-status', statusKey);
                     
                     let actionButtons = `
-                        <button onclick="openEditMock('${docId}', '${data.itemCode}', '${name}', ${stock})" class="p-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-100 active:scale-90 transition-all" title="ແກ້ໄຂຍອດ"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
-                        <button onclick="openAlertConfig('${docId}', '${name}', ${minThreshold})" class="p-2 bg-violet-50 text-violet-600 rounded-lg hover:bg-violet-100 active:scale-90 transition-all ml-1" title="ຕັ້ງຄ່າແຈ້ງເຕືອນ"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg></button>
+                        <button data-action="edit" data-doc-id="${encodeURIComponent(docId)}" data-code="${encodeURIComponent(data.itemCode || '')}" data-name="${encodeURIComponent(name)}" data-stock="${stock}" class="p-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-100 active:scale-90 transition-all" title="ແກ້ໄຂຍອດ"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
+                        <button data-action="alert" data-doc-id="${encodeURIComponent(docId)}" data-name="${encodeURIComponent(name)}" data-min-stock="${minThreshold}" class="p-2 bg-violet-50 text-violet-600 rounded-lg hover:bg-violet-100 active:scale-90 transition-all ml-1" title="ຕັ້ງຄ່າແຈ້ງເຕືອນ"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0018 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg></button>
                     `;
 
                     tr.innerHTML = `
-                        <td class="p-4 font-bold text-indigo-600">${data.itemCode || '-'}</td>
-                        <td class="p-4 font-medium text-slate-800">${name} <span class="block text-xs text-slate-500 font-normal">${cat}</span></td>
-                        <td class="p-4 text-center"><span class="font-bold ${qtyColor}">${stock}</span> <span class="text-slate-600">${data.unit}</span></td>
+                        <td class="p-4 font-bold text-indigo-600">${escapeHTML(data.itemCode || '-')}</td>
+                        <td class="p-4 font-medium text-slate-800">${escapeHTML(name)} <span class="block text-xs text-slate-500 font-normal">${escapeHTML(cat)}</span></td>
+                        <td class="p-4 text-center"><span class="font-bold ${qtyColor}">${stock}</span> <span class="text-slate-600">${escapeHTML(data.unit || '')}</span></td>
                         <td class="p-4 text-center"><span class="px-3 py-1 ${statusBg} rounded-full text-[11px] font-bold border whitespace-nowrap">${statusText}</span></td>
                         <td class="p-4 text-center"><div class="flex justify-center items-center">${actionButtons}</div></td>
                     `;
                     tableBody.appendChild(tr);
+                    tr.querySelector('[data-action="edit"]').addEventListener('click', event => {
+                        const button = event.currentTarget;
+                        openEditMock(
+                            decodeURIComponent(button.dataset.docId),
+                            decodeURIComponent(button.dataset.code),
+                            decodeURIComponent(button.dataset.name),
+                            Number(button.dataset.stock)
+                        );
+                    });
+                    tr.querySelector('[data-action="alert"]').addEventListener('click', event => {
+                        const button = event.currentTarget;
+                        openAlertConfig(
+                            decodeURIComponent(button.dataset.docId),
+                            decodeURIComponent(button.dataset.name),
+                            Number(button.dataset.minStock)
+                        );
+                    });
                 });
 
                 document.getElementById('countTotal').innerText = total;
