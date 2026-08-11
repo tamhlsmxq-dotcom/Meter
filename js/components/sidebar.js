@@ -218,6 +218,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     </aside>
     `;
 
+    const mobileMenuButton = document.createElement('button');
+    mobileMenuButton.className = 'wm-mobile-menu-button';
+    mobileMenuButton.setAttribute('aria-label', 'ເປີດເມນູ');
+    mobileMenuButton.innerHTML = '<span></span><span></span><span></span>';
+    mobileMenuButton.addEventListener('click', () => {
+        document.getElementById('sidebar-container').classList.toggle('wm-sidebar-open');
+    });
+    document.getElementById('sidebar-container').appendChild(mobileMenuButton);
+
+    const mobileMenuOverlay = document.createElement('button');
+    mobileMenuOverlay.className = 'wm-mobile-menu-overlay';
+    mobileMenuOverlay.setAttribute('aria-label', 'ປິດເມນູ');
+    mobileMenuOverlay.addEventListener('click', () => {
+        document.getElementById('sidebar-container').classList.remove('wm-sidebar-open');
+    });
+    document.getElementById('sidebar-container').appendChild(mobileMenuOverlay);
+
     // 🌟 ລະບົບ Highlight ເມນູອັດຕະໂນມັດ 🌟
     const navLinks = document.querySelectorAll('.nav-link');
     navLinks.forEach(link => {

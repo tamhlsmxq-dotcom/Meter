@@ -21,9 +21,15 @@
         .wm-toast-info { background: #334155; }
         .wm-toast-success { background: #047857; }
         .wm-toast-error { background: #be123c; }
+        .wm-mobile-menu-button, .wm-mobile-menu-overlay { display: none; }
         @media (max-width: 768px) {
-            #sidebar-container { display: none !important; }
-            main { margin-left: 0 !important; padding: 1rem !important; width: 100% !important; }
+            #sidebar-container { display: block !important; width: 0 !important; flex: 0 0 0 !important; }
+            #sidebar-container aside { transform: translateX(-100%); transition: transform .25s ease; }
+            #sidebar-container.wm-sidebar-open aside { transform: translateX(0); }
+            .wm-mobile-menu-button { display: flex; position: fixed; top: 12px; left: 12px; z-index: 60; width: 42px; height: 42px; border: 0; border-radius: 10px; background: #0f172a; box-shadow: 0 6px 16px rgba(15,23,42,.25); align-items: center; justify-content: center; flex-direction: column; gap: 4px; }
+            .wm-mobile-menu-button span { display: block; width: 19px; height: 2px; background: #fff; border-radius: 2px; }
+            .wm-sidebar-open .wm-mobile-menu-overlay { display: block; position: fixed; inset: 0; z-index: 35; background: rgba(15,23,42,.45); border: 0; }
+            main { margin-left: 0 !important; padding: 4.5rem 1rem 1rem !important; width: 100% !important; }
             .overflow-x-auto { -webkit-overflow-scrolling: touch; }
             .wm-toast { right: 12px; bottom: 12px; }
         }

@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: water-meter-backend
+    runtime: docker
+    rootDir: water-meter-backend
+    healthCheckPath: /health
+    envVars:
+      - key: FRONTEND_ORIGIN
+        sync: false
+      - key: FIREBASE_SERVICE_ACCOUNT_JSON
+        sync: false

@@ -1,17 +1,23 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const fs = require('fs');
 
 // Import Firebase Admin SDK (v12+ Modular Syntax)
-const { initializeApp, cert } = require('firebase-admin/app');
+const { initializeApp, cert, applicationDefault } = require('firebase-admin/app');
 const { getAuth } = require('firebase-admin/auth');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const { validateCreateUserPayload } = require('./validation');
 
-// Initialize Firebase Admin
-const serviceAccount = require('./serviceAccountKey.json');
+// Use the local key during development and the platform identity in production.
+const serviceAccountPath = './serviceAccountKey.json';
+const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
 initializeApp({
-    credential: cert(serviceAccount)
+    credential: serviceAccountJson
+        ? cert(JSON.parse(serviceAccountJson))
+        : fs.existsSync(serviceAccountPath)
+            ? cert(require(serviceAccountPath))
+            : applicationDefault()
 });
 
 const db = getFirestore();
@@ -19,8 +25,24 @@ const auth = getAuth();
 const app = express();
 
 // Middleware
-app.use(cors({ origin: process.env.FRONTEND_ORIGIN || true }));
+const allowedOrigins = (process.env.FRONTEND_ORIGIN || '')
+    .split(',')
+    .map(origin => origin.trim())
+    .filter(Boolean);
+
+app.use(cors({
+    origin(origin, callback) {
+        if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        return callback(new Error('Origin not allowed by CORS'));
+    }
+}));
 app.use(express.json());
+
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok', service: 'water-meter-backend' });
+});
 
 async function requireAdmin(req, res, next) {
     const authorization = req.get('Authorization') || '';
@@ -95,6 +117,10 @@ app.post('/api/users', requireAdmin, async (req, res) => {
 
 // Start Server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`🚀 Water Meter Backend API ແລ່ນຢູ່ Port ${PORT}`);
-});
+if (require.main === module) {
+    app.listen(PORT, '0.0.0.0', () => {
+        console.log(`🚀 Water Meter Backend API ແລ່ນຢູ່ Port ${PORT}`);
+    });
+}
+
+module.exports = app;
