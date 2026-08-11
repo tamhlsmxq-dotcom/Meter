@@ -10,6 +10,7 @@
     
     <!-- ດຶງ Chart.js ສຳລັບແຕ້ມກຣາບ -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="./js/components/notifications.js"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;500;600;700&display=swap" rel="stylesheet">
     
@@ -73,9 +74,10 @@
                 <div class="flex justify-between items-start relative z-10">
                     <div>
                         <p class="text-slate-500 text-sm font-bold mb-1">ອຸປະກອນໃນສາງທັງໝົດ</p>
-                        <h3 class="text-4xl font-extrabold text-slate-800 tracking-tight">1,245</h3>
+                        <h3 id="dashboardTotalStock" class="text-4xl font-extrabold text-slate-800 tracking-tight">0</h3>
                         <p class="text-xs text-emerald-500 font-bold mt-2 flex items-center">
-                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg> ພ້ອມໃຊ້ງານ 98%
+                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg> ພ້ອມໃຊ້ງານ
+                            <span id="dashboardReadyPercent">0%</span>
                         </p>
                     </div>
                     <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30">
@@ -90,9 +92,9 @@
                 <div class="flex justify-between items-start relative z-10">
                     <div>
                         <p class="text-slate-500 text-sm font-bold mb-1">ເບີກຈ່າຍມື້ນີ້</p>
-                        <h3 class="text-4xl font-extrabold text-slate-800 tracking-tight">42</h3>
+                        <h3 id="dashboardIssuedToday" class="text-4xl font-extrabold text-slate-800 tracking-tight">0</h3>
                         <p class="text-xs text-indigo-500 font-bold mt-2 flex items-center">
-                            3 ໃບບິນ (ອະນຸມັດແລ້ວ)
+                            <span id="dashboardIssuedDocuments">0 ໃບບິນ</span>
                         </p>
                     </div>
                     <div class="w-14 h-14 bg-gradient-to-br from-indigo-500 to-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
@@ -107,9 +109,9 @@
                 <div class="flex justify-between items-start relative z-10">
                     <div>
                         <p class="text-slate-500 text-sm font-bold mb-1">ຮັບເຂົ້າສາງມື້ນີ້</p>
-                        <h3 class="text-4xl font-extrabold text-slate-800 tracking-tight">150</h3>
+                        <h3 id="dashboardReceivedToday" class="text-4xl font-extrabold text-slate-800 tracking-tight">0</h3>
                         <p class="text-xs text-emerald-600 font-bold mt-2 flex items-center">
-                            ໝໍ້ແທກນ້ຳ 15mm (Kent)
+                            <span id="dashboardLatestReceipt">ຍັງບໍ່ມີການຮັບເຂົ້າ</span>
                         </p>
                     </div>
                     <div class="w-14 h-14 bg-gradient-to-br from-emerald-500 to-emerald-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/30">
@@ -124,7 +126,7 @@
                 <div class="flex justify-between items-start relative z-10">
                     <div>
                         <p class="text-rose-500 text-sm font-bold mb-1">ແຈ້ງເຕືອນໃກ້ໝົດສາງ!</p>
-                        <h3 class="text-4xl font-extrabold text-slate-800 tracking-tight">8</h3>
+                        <h3 id="dashboardLowStock" class="text-4xl font-extrabold text-slate-800 tracking-tight">0</h3>
                         <p class="text-xs text-rose-600 font-bold mt-2 flex items-center bg-rose-50 inline-block px-2 py-1 rounded-md">
                             ກະລຸນາກວດສອບດ່ວນ
                         </p>
@@ -166,10 +168,10 @@
                 </div>
                 <!-- ຄຳອະທິບາຍລຸ່ມກຣາບວົງມົນ -->
                 <div class="mt-6 grid grid-cols-2 gap-4">
-                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-indigo-500 mr-2"></span><span class="text-xs font-bold text-slate-600">ໝໍ້ແທກນ້ຳ (45%)</span></div>
-                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-blue-400 mr-2"></span><span class="text-xs font-bold text-slate-600">ທໍ່ PVC (30%)</span></div>
-                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-emerald-400 mr-2"></span><span class="text-xs font-bold text-slate-600">ຂໍ້ຕໍ່/ວາວ (15%)</span></div>
-                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-slate-300 mr-2"></span><span class="text-xs font-bold text-slate-600">ອື່ນໆ (10%)</span></div>
+                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-indigo-500 mr-2"></span><span id="categoryLabel0" class="text-xs font-bold text-slate-600">ໝໍ້ແທກນ້ຳ (0%)</span></div>
+                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-blue-400 mr-2"></span><span id="categoryLabel1" class="text-xs font-bold text-slate-600">ທໍ່ PVC (0%)</span></div>
+                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-emerald-400 mr-2"></span><span id="categoryLabel2" class="text-xs font-bold text-slate-600">ຂໍ້ຕໍ່/ວາວ (0%)</span></div>
+                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-slate-300 mr-2"></span><span id="categoryLabel3" class="text-xs font-bold text-slate-600">ອື່ນໆ (0%)</span></div>
                 </div>
             </div>
         </div>
@@ -196,31 +198,8 @@
                             <th class="p-4 font-extrabold text-right">ເວລາ</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-50 text-sm text-slate-700 font-medium">
-                        <tr class="hover:bg-slate-50 transition-colors">
-                            <td class="p-4 font-bold text-indigo-600">IS-2026-089</td>
-                            <td class="p-4"><span class="px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-xs font-bold">ເບີກອອກ</span></td>
-                            <td class="p-4 text-slate-800">ໝໍ້ແທກນ້ຳ 15mm (Kent)</td>
-                            <td class="p-4 text-center font-extrabold text-rose-600">-10</td>
-                            <td class="p-4">ທ້າວ ສົມຊາຍ</td>
-                            <td class="p-4 text-right text-slate-400">10 ນາທີກ່ອນ</td>
-                        </tr>
-                        <tr class="hover:bg-slate-50 transition-colors">
-                            <td class="p-4 font-bold text-indigo-600">RC-2026-045</td>
-                            <td class="p-4"><span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold">ຮັບເຂົ້າ</span></td>
-                            <td class="p-4 text-slate-800">ທໍ່ນ້ຳ PVC 20mm ຊັ້ນ 8.5</td>
-                            <td class="p-4 text-center font-extrabold text-emerald-600">+50</td>
-                            <td class="p-4">ນາງ ນາລີ</td>
-                            <td class="p-4 text-right text-slate-400">2 ຊົ່ວໂມງກ່ອນ</td>
-                        </tr>
-                        <tr class="hover:bg-slate-50 transition-colors">
-                            <td class="p-4 font-bold text-indigo-600">IS-2026-088</td>
-                            <td class="p-4"><span class="px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-xs font-bold">ເບີກອອກ</span></td>
-                            <td class="p-4 text-slate-800">ວາວປິດ-ເປີດນ້ຳ 15mm</td>
-                            <td class="p-4 text-center font-extrabold text-rose-600">-5</td>
-                            <td class="p-4">ທ້າວ ບຸນມີ</td>
-                            <td class="p-4 text-right text-slate-400">ມື້ວານນີ້</td>
-                        </tr>
+                    <tbody id="dashboardActivities" class="divide-y divide-slate-50 text-sm text-slate-700 font-medium">
+                        <tr><td colspan="6" class="p-6 text-center text-slate-400">ກຳລັງໂຫຼດຂໍ້ມູນ...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -230,6 +209,13 @@
 
     <!-- 🟢 Script ໂຫຼດ Sidebar 🟢 -->
     <script src="./js/components/sidebar.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js').catch(error => {
+                console.error('Service Worker registration failed:', error);
+            });
+        }
+    </script>
 
     <!-- 🟢 Script ສຳລັບກຣາບ ແລະ ວັນທີ 🟢 -->
     <script>
@@ -240,7 +226,7 @@
 
         // 2. ຕັ້ງຄ່າກຣາບແທ່ງ (Bar Chart: ເບີກ-ຮັບ)
         const barCtx = document.getElementById('barChart').getContext('2d');
-        new Chart(barCtx, {
+        const barChart = new Chart(barCtx, {
             type: 'bar',
             data: {
                 labels: ['ກຸມພາ', 'ມີນາ', 'ເມສາ', 'ພຶດສະພາ', 'ມິຖຸນາ', 'ກໍລະກົດ'],
@@ -276,12 +262,12 @@
 
         // 3. ຕັ້ງຄ່າກຣາບວົງມົນ (Doughnut Chart: ສັດສ່ວນອຸປະກອນ)
         const doughnutCtx = document.getElementById('doughnutChart').getContext('2d');
-        new Chart(doughnutCtx, {
+        const doughnutChart = new Chart(doughnutCtx, {
             type: 'doughnut',
             data: {
                 labels: ['ໝໍ້ແທກນ້ຳ', 'ທໍ່ PVC', 'ຂໍ້ຕໍ່/ວາວ', 'ອື່ນໆ'],
                 datasets: [{
-                    data: [45, 30, 15, 10],
+                    data: [0, 0, 0, 0],
                     backgroundColor: [
                         '#6366f1', // Indigo 500
                         '#60a5fa', // Blue 400
@@ -301,6 +287,129 @@
                 }
             }
         });
+        window.dashboardCharts = { barChart, doughnutChart };
+    </script>
+
+    <script type="module">
+        import { db } from './firebase-config.js';
+        import { collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        const numberFormat = new Intl.NumberFormat('en-US');
+        const localDateKey = date => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+        const localMonthKey = date => localDateKey(date).slice(0, 7);
+
+        function setDashboardText(id, value) {
+            const element = document.getElementById(id);
+            if (element) element.innerText = value;
+        }
+
+        function escapeHTML(value) {
+            return String(value ?? '').replace(/[&<>\'"]/g, character => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[character]));
+        }
+
+        async function loadDashboardData() {
+            try {
+                const [materialsSnapshot, receiptsSnapshot, ticketsSnapshot] = await Promise.all([
+                    getDocs(collection(db, 'materials')),
+                    getDocs(collection(db, 'receipt_history')),
+                    getDocs(collection(db, 'reconcile_tickets'))
+                ]);
+
+                const materials = materialsSnapshot.docs.map(item => item.data());
+                const receipts = receiptsSnapshot.docs.map(item => item.data());
+                const tickets = ticketsSnapshot.docs.map(item => item.data());
+                const today = localDateKey(new Date());
+                const totalStock = materials.reduce((sum, item) => sum + Number(item.stockQuantity || 0), 0);
+                const lowStock = materials.filter(item => Number(item.stockQuantity || 0) <= Number(item.minThreshold ?? 15)).length;
+                const readyStock = materials.filter(item => Number(item.stockQuantity || 0) > Number(item.minThreshold ?? 15)).length;
+                const readyPercent = materials.length ? Math.round((readyStock / materials.length) * 100) : 0;
+                const todayReceipts = receipts.filter(item => item.receiveDate === today);
+                const receivedToday = todayReceipts.reduce((sum, receipt) => sum + (receipt.items || []).reduce((itemSum, item) => itemSum + Number(item.quantity || 0), 0), 0);
+                const latestReceiptItem = todayReceipts[0]?.items?.[0]?.itemName || 'ຍັງບໍ່ມີການຮັບເຂົ້າ';
+                const completedTickets = tickets.filter(item => item.status === 'completed');
+                const todayTickets = completedTickets.filter(item => item.completedAt?.toDate && localDateKey(item.completedAt.toDate()) === today);
+                const issuedToday = todayTickets.reduce((sum, ticket) => sum + (ticket.items || []).reduce((itemSum, item) => itemSum + Number(item.qtyWarehouse || 0), 0), 0);
+
+                setDashboardText('dashboardTotalStock', numberFormat.format(totalStock));
+                setDashboardText('dashboardReadyPercent', `${readyPercent}%`);
+                setDashboardText('dashboardIssuedToday', numberFormat.format(issuedToday));
+                setDashboardText('dashboardIssuedDocuments', `${todayTickets.length} ໃບບິນ`);
+                setDashboardText('dashboardReceivedToday', numberFormat.format(receivedToday));
+                setDashboardText('dashboardLatestReceipt', latestReceiptItem);
+                setDashboardText('dashboardLowStock', numberFormat.format(lowStock));
+                if (lowStock > 0 && window.showToast) {
+                    window.showToast(`ມີ ${lowStock} ລາຍການທີ່ stock ຕ່ຳກວ່າກຳນົດ`, 'info');
+                }
+
+                const months = Array.from({ length: 6 }, (_, index) => {
+                    const date = new Date();
+                    date.setDate(1);
+                    date.setMonth(date.getMonth() - (5 - index));
+                    return localMonthKey(date);
+                });
+                const receivedByMonth = Object.fromEntries(months.map(month => [month, 0]));
+                const issuedByMonth = Object.fromEntries(months.map(month => [month, 0]));
+                receipts.forEach(receipt => {
+                    const month = String(receipt.receiveDate || '').slice(0, 7);
+                    if (month in receivedByMonth) receivedByMonth[month] += (receipt.items || []).reduce((sum, item) => sum + Number(item.quantity || 0), 0);
+                });
+                completedTickets.forEach(ticket => {
+                    if (!ticket.completedAt?.toDate) return;
+                    const month = localMonthKey(ticket.completedAt.toDate());
+                    if (month in issuedByMonth) issuedByMonth[month] += (ticket.items || []).reduce((sum, item) => sum + Number(item.qtyWarehouse || 0), 0);
+                });
+
+                if (window.dashboardCharts) {
+                    window.dashboardCharts.barChart.data.labels = months.map(month => month.slice(5));
+                    window.dashboardCharts.barChart.data.datasets[0].data = months.map(month => receivedByMonth[month]);
+                    window.dashboardCharts.barChart.data.datasets[1].data = months.map(month => issuedByMonth[month]);
+                    window.dashboardCharts.barChart.update();
+
+                    const categories = ['ມິເຕີ ແລະ ອຸປະກອນ', 'ທໍ່ນ້ຳ', 'ຂໍ້ຕໍ່ / ວາວ', 'ອື່ນໆ'];
+                    const categoryTotals = categories.map(category => materials.filter(item => item.category === category).reduce((sum, item) => sum + Number(item.stockQuantity || 0), 0));
+                    const categoryTotal = categoryTotals.reduce((sum, value) => sum + value, 0);
+                    categoryTotals.forEach((value, index) => {
+                        const percent = categoryTotal ? Math.round((value / categoryTotal) * 100) : 0;
+                        setDashboardText(`categoryLabel${index}`, `${categories[index]} (${percent}%)`);
+                    });
+                    window.dashboardCharts.doughnutChart.data.datasets[0].data = categoryTotals;
+                    window.dashboardCharts.doughnutChart.update();
+                }
+
+                const activities = [
+                    ...receipts.map(receipt => ({
+                        ref: receipt.documentRef || '-', type: 'receive', item: receipt.items?.[0]?.itemName || '-', quantity: (receipt.items || []).reduce((sum, item) => sum + Number(item.quantity || 0), 0), user: receipt.receiverName || '-', date: receipt.receiveDate ? new Date(receipt.receiveDate) : new Date(0)
+                    })),
+                    ...completedTickets.map(ticket => ({
+                        ref: ticket.docRef || '-', type: 'issue', item: ticket.items?.[0]?.itemName || '-', quantity: -((ticket.items || []).reduce((sum, item) => sum + Number(item.qtyWarehouse || 0), 0)), user: ticket.whUser || '-', date: ticket.completedAt?.toDate ? ticket.completedAt.toDate() : new Date(0)
+                    }))
+                ].sort((first, second) => second.date - first.date).slice(0, 5);
+                const activityBody = document.getElementById('dashboardActivities');
+                if (activityBody) {
+                    activityBody.innerHTML = activities.length ? activities.map(activity => `
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="p-4 font-bold text-indigo-600">${escapeHTML(activity.ref)}</td>
+                            <td class="p-4"><span class="px-3 py-1 ${activity.type === 'issue' ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'} rounded-full text-xs font-bold">${activity.type === 'issue' ? 'ເບີກອອກ' : 'ຮັບເຂົ້າ'}</span></td>
+                            <td class="p-4 text-slate-800">${escapeHTML(activity.item)}</td>
+                            <td class="p-4 text-center font-extrabold ${activity.type === 'issue' ? 'text-rose-600' : 'text-emerald-600'}">${activity.quantity > 0 ? '+' : ''}${activity.quantity}</td>
+                            <td class="p-4">${escapeHTML(activity.user)}</td>
+                            <td class="p-4 text-right text-slate-400">${activity.date.getTime() ? activity.date.toLocaleDateString('lo-LA') : '-'}</td>
+                        </tr>
+                    `).join('') : '<tr><td colspan="6" class="p-6 text-center text-slate-400">ຍັງບໍ່ມີການເຄື່ອນໄຫວ</td></tr>';
+                }
+            } catch (error) {
+                console.error('Dashboard data error:', error);
+            }
+        }
+
+        loadDashboardData();
     </script>
 </body>
 </html>

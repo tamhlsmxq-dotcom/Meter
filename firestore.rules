@@ -1,0 +1,61 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function userData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isAdmin() {
+      return signedIn() && (userData().role == 'system_manager' || userData().role == 'super_admin');
+    }
+
+    function hasPermission(permission) {
+      return signedIn() && (isAdmin() || userData().permissions[permission] == true);
+    }
+
+    match /users/{userId} {
+      allow read: if signedIn() && (userId == request.auth.uid || isAdmin());
+      allow update: if isAdmin() && userId != request.auth.uid;
+      allow create, delete: if false;
+    }
+
+    match /presence/{userId} {
+      allow read: if signedIn();
+      allow create, update: if signedIn() && userId == request.auth.uid;
+      allow delete: if signedIn() && userId == request.auth.uid;
+    }
+
+    match /materials/{materialId} {
+      allow read: if signedIn();
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin()
+        || (hasPermission('receive') && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stockQuantity']) && request.resource.data.stockQuantity >= 0)
+        || (hasPermission('issue') && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stockQuantity']) && request.resource.data.stockQuantity >= 0);
+    }
+
+    match /stock_movements/{movementId} {
+      allow read: if hasPermission('inventory');
+      allow create: if (hasPermission('inventory') || hasPermission('receive') || hasPermission('issue'))
+        && request.resource.data.performedBy.uid == request.auth.uid
+        && request.resource.data.quantityAfter >= 0;
+      allow update, delete: if false;
+    }
+
+    match /receipt_history/{receiptId} {
+      allow read: if hasPermission('receive') || hasPermission('inventory');
+      allow create: if hasPermission('receive');
+      allow update, delete: if false;
+    }
+
+    match /reconcile_tickets/{ticketId} {
+      allow read: if hasPermission('issue') || hasPermission('receive') || hasPermission('inventory');
+      allow create, update: if hasPermission('issue') || hasPermission('receive') || hasPermission('inventory');
+      allow delete: if isAdmin();
+    }
+  }
+}

@@ -21,3 +21,4 @@ const app = initializeApp(firebaseConfig);
 // ສົ່ງອອກ db ແລະ auth ເພື່ອໃຫ້ໄຟລ໌ອື່ນເອີ້ນໃຊ້ໄດ້
 export const db = getFirestore(app);
 export const auth = getAuth(app);
+export const apiBaseUrl = window.WATER_METER_API_URL || 'http://localhost:5000';

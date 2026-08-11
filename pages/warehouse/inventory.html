@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ສະຕັອກສິນຄ້າ - Water Meter</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../../js/components/notifications.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <style> 
@@ -58,6 +59,9 @@
                 <button onclick="toggleModal('monthlyReportModal', true)" class="bg-violet-50 hover:bg-violet-100 border border-violet-200 text-violet-700 text-sm font-bold py-2.5 px-4 rounded-xl shadow-sm hover:shadow-md active:scale-95 transition-all duration-200 flex items-center group">
                     <svg class="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
                     ລາຍງານແກ້ໄຂ
+                </button>
+                <button onclick="openStockHistory()" class="bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 text-sm font-bold py-2.5 px-4 rounded-xl shadow-sm hover:shadow-md active:scale-95 transition-all duration-200 flex items-center group">
+                    ປະຫວັດການປ່ຽນ Stock
                 </button>
                 <button onclick="toggleModal('summaryModal', true)" class="bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-sm font-bold py-2.5 px-4 rounded-xl shadow-sm hover:shadow-md active:scale-95 transition-all duration-200 flex items-center group">
                     <svg class="w-5 h-5 mr-2 text-indigo-500 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
@@ -118,6 +122,13 @@
                         <tr><td colspan="5" class="p-8 text-center text-slate-400">ກຳລັງໂຫຼດຂໍ້ມູນຈາກຖານຂໍ້ມູນ...</td></tr>
                     </tbody>
                 </table>
+            </div>
+            <div class="p-3 border-t border-slate-100 flex items-center justify-between bg-slate-50">
+                <span id="inventoryPageInfo" class="text-xs text-slate-500">0 ລາຍການ</span>
+                <div class="flex gap-2">
+                    <button onclick="changeInventoryPage(-1)" class="px-3 py-1.5 text-xs font-bold bg-white border border-slate-200 rounded-lg hover:bg-slate-100">ກ່ອນ</button>
+                    <button onclick="changeInventoryPage(1)" class="px-3 py-1.5 text-xs font-bold bg-white border border-slate-200 rounded-lg hover:bg-slate-100">ຕໍ່ໄປ</button>
+                </div>
             </div>
         </div>
     </main>
@@ -230,6 +241,36 @@
         </div>
     </div>
 
+    <div id="stockHistoryModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4 modal-backdrop">
+        <div class="bg-white rounded-2xl w-full max-w-6xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            <div class="bg-amber-600 p-4 flex justify-between items-center text-white">
+                <h3 class="font-bold text-lg">ປະຫວັດການແກ້ໄຂ / ເພີ່ມ-ຫຼຸດ Stock</h3>
+                <div class="flex items-center gap-2">
+                    <input id="historyDateFilter" type="date" onchange="filterStockHistory()" class="text-slate-700 rounded px-2 py-1 text-xs">
+                    <input id="historyUserFilter" type="search" oninput="filterStockHistory()" placeholder="ຄົ້ນຫາຜູ້ເຮັດ" class="text-slate-700 rounded px-2 py-1 text-xs w-32">
+                    <button onclick="exportStockHistory()" class="bg-white/20 hover:bg-white/30 rounded px-2 py-1 text-xs font-bold">Export CSV</button>
+                    <button onclick="toggleModal('stockHistoryModal', false)" class="hover:text-rose-200 text-xl">✕</button>
+                </div>
+            </div>
+            <div class="overflow-auto">
+                <table class="w-full text-left text-sm whitespace-nowrap">
+                    <thead class="sticky top-0 bg-slate-100 text-slate-600">
+                        <tr>
+                            <th class="p-3">ວັນທີ / ເວລາ</th>
+                            <th class="p-3">ຜູ້ດຳເນີນການ</th>
+                            <th class="p-3">ລາຍການ</th>
+                            <th class="p-3 text-center">ປະເພດ</th>
+                            <th class="p-3 text-center">ກ່ອນ</th>
+                            <th class="p-3 text-center">ປ່ຽນ</th>
+                            <th class="p-3 text-center">ຫຼັງ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stockHistoryBody"><tr><td colspan="7" class="p-8 text-center text-slate-400">ກຳລັງໂຫຼດ...</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <div id="summaryModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-start justify-center p-4 overflow-y-auto modal-backdrop transition-all duration-300">
         <div class="bg-slate-200 rounded-xl w-full max-w-5xl my-8 flex flex-col shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] border-[6px] border-slate-400 modal-animate">
             <div class="bg-slate-800 p-4 rounded-t-sm flex justify-between items-center text-white sticky top-0 z-10 shadow-lg">
@@ -255,25 +296,39 @@
             else modal.classList.add('hidden');
         }
 
+        let inventoryPage = 1;
+        const inventoryPageSize = 50;
+
+        function applyInventoryFilters() {
+            const status = document.getElementById('statusSelect').value;
+            const search = document.getElementById('searchInput').value.trim().toUpperCase();
+            const matchingRows = Array.from(document.querySelectorAll('.inventory-row')).filter(row => {
+                const matchesStatus = status === 'all' || row.getAttribute('data-status') === status;
+                const matchesSearch = !search || row.innerText.toUpperCase().includes(search);
+                return matchesStatus && matchesSearch;
+            });
+            const pageCount = Math.max(1, Math.ceil(matchingRows.length / inventoryPageSize));
+            if (inventoryPage > pageCount) inventoryPage = pageCount;
+            const start = (inventoryPage - 1) * inventoryPageSize;
+            document.querySelectorAll('.inventory-row').forEach(row => { row.style.display = 'none'; });
+            matchingRows.slice(start, start + inventoryPageSize).forEach(row => { row.style.display = ''; });
+            document.getElementById('inventoryPageInfo').innerText = `${matchingRows.length} ລາຍການ · ໜ້າ ${inventoryPage}/${pageCount}`;
+        }
+
         function filterTable(status) {
             document.getElementById('statusSelect').value = status;
-            const rows = document.querySelectorAll('.inventory-row');
-            rows.forEach(row => {
-                if (status === 'all' || row.getAttribute('data-status') === status) {
-                    row.style.display = ''; 
-                } else {
-                    row.style.display = 'none'; 
-                }
-            });
+            inventoryPage = 1;
+            applyInventoryFilters();
         }
 
         function searchTable() {
-            const input = document.getElementById("searchInput").value.toUpperCase();
-            const rows = document.querySelectorAll('.inventory-row');
-            rows.forEach(row => {
-                const text = row.innerText.toUpperCase();
-                row.style.display = text.includes(input) ? '' : 'none';
-            });
+            inventoryPage = 1;
+            applyInventoryFilters();
+        }
+
+        function changeInventoryPage(direction) {
+            inventoryPage += direction;
+            applyInventoryFilters();
         }
 
         function printSection(elementId) {
@@ -283,8 +338,10 @@
         }
 
         let currentEditDocId = null;
+        let currentEditMaterial = null;
         function openEditMock(docId, code, name, stock) {
             currentEditDocId = docId;
+            currentEditMaterial = { id: docId, itemCode: code, itemName: name, stockQuantity: Number(stock) };
             document.getElementById('editItemName').innerText = `${code} - ${name}`;
             document.getElementById('editCurrentStock').value = stock;
             document.getElementById('editNewStock').value = '';
@@ -308,7 +365,8 @@
 
     <script type="module">
         import { db } from '../../firebase-config.js';
-        import { collection, addDoc, getDocs, query, orderBy, serverTimestamp, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { collection, addDoc, getDocs, query, orderBy, serverTimestamp, doc, updateDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { createStockMovement, getStockActor } from '../../js/data/stock-audit.js';
 
         // 🟢 ດຶງຂໍ້ມູນຈາກໄຟລ໌ materials.js ທີ່ເຮົາແຍກໄວ້ 🟢
         import { rawMaterialsCSV } from '../../js/data/materials.js';
@@ -316,13 +374,83 @@
         // 🔒 RBAC: ກວດສອບສິດທິແອດມິນ
         const userDataStr = localStorage.getItem('wm_user_data');
         const userData = userDataStr ? JSON.parse(userDataStr) : {};
-        const isAdmin = userData.role === 'system_manager' || userData.role === 'super_admin' || (userData.email || '').includes('admin');
+        const isAdmin = userData.role === 'system_manager' || userData.role === 'super_admin';
 
         // ສະແດງປຸ່ມສະເພາະ Admin
         if (isAdmin) {
             document.getElementById('btnAddMaterial').style.display = 'flex';
             document.getElementById('btnAutoImport').style.display = 'flex'; 
         }
+
+        let stockHistoryRows = [];
+
+        function renderStockHistory(rows) {
+            const historyBody = document.getElementById('stockHistoryBody');
+            const typeLabels = { manual_adjustment: 'ແກ້ດ້ວຍມື', receive: 'ຮັບເຂົ້າ', issue: 'ເບີກອອກ' };
+            historyBody.innerHTML = rows.length ? rows.map(movement => {
+                const date = movement.createdAt?.toDate ? movement.createdAt.toDate() : null;
+                const changed = Number(movement.quantityChanged || 0);
+                return `<tr class="border-b border-slate-100 hover:bg-slate-50">
+                    <td class="p-3">${date ? date.toLocaleString('lo-LA') : '-'}</td>
+                    <td class="p-3"><span class="font-bold">${escapeHTML(movement.performedBy?.name || '-')}</span><span class="block text-xs text-slate-400">${escapeHTML(movement.performedBy?.email || '')}</span></td>
+                    <td class="p-3"><span class="font-bold">${escapeHTML(movement.itemCode || '-')}</span><span class="block text-xs text-slate-500">${escapeHTML(movement.itemName || '')}</span></td>
+                    <td class="p-3 text-center">${typeLabels[movement.type] || escapeHTML(movement.type || '-')}</td>
+                    <td class="p-3 text-center">${Number(movement.quantityBefore || 0)}</td>
+                    <td class="p-3 text-center font-bold ${changed >= 0 ? 'text-emerald-600' : 'text-rose-600'}">${changed > 0 ? '+' : ''}${changed}</td>
+                    <td class="p-3 text-center font-bold">${Number(movement.quantityAfter || 0)}</td>
+                </tr>`;
+            }).join('') : '<tr><td colspan="7" class="p-8 text-center text-slate-400">ບໍ່ພົບລາຍການ</td></tr>';
+        }
+
+        window.filterStockHistory = function() {
+            const date = document.getElementById('historyDateFilter').value;
+            const user = document.getElementById('historyUserFilter').value.trim().toLowerCase();
+            renderStockHistory(stockHistoryRows.filter(movement => {
+                const movementDate = movement.createdAt?.toDate ? movement.createdAt.toDate() : null;
+                const sameDate = !date || (movementDate && movementDate.toISOString().slice(0, 10) === date);
+                const actor = `${movement.performedBy?.name || ''} ${movement.performedBy?.email || ''}`.toLowerCase();
+                return sameDate && (!user || actor.includes(user));
+            }));
+        };
+
+        window.exportStockHistory = function() {
+            const rows = stockHistoryRows.filter(movement => {
+                const date = document.getElementById('historyDateFilter').value;
+                const user = document.getElementById('historyUserFilter').value.trim().toLowerCase();
+                const movementDate = movement.createdAt?.toDate ? movement.createdAt.toDate() : null;
+                const actor = `${movement.performedBy?.name || ''} ${movement.performedBy?.email || ''}`.toLowerCase();
+                return (!date || (movementDate && movementDate.toISOString().slice(0, 10) === date)) && (!user || actor.includes(user));
+            });
+            const csv = ['Date,User,Email,Item Code,Item Name,Type,Before,Changed,After', ...rows.map(movement => {
+                const date = movement.createdAt?.toDate ? movement.createdAt.toDate().toISOString() : '';
+                return [date, movement.performedBy?.name, movement.performedBy?.email, movement.itemCode, movement.itemName, movement.type, movement.quantityBefore, movement.quantityChanged, movement.quantityAfter].map(value => `"${String(value ?? '').replace(/"/g, '""')}"`).join(',');
+            })].join('\n');
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+            link.download = `stock-history-${new Date().toISOString().slice(0, 10)}.csv`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+        };
+
+        window.openStockHistory = async function() {
+            toggleModal('stockHistoryModal', true);
+            const historyBody = document.getElementById('stockHistoryBody');
+            historyBody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400">ກຳລັງໂຫຼດ...</td></tr>';
+
+            try {
+                const snapshot = await getDocs(query(collection(db, 'stock_movements'), orderBy('createdAt', 'desc')));
+                if (snapshot.empty) {
+                    historyBody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400">ຍັງບໍ່ມີປະຫວັດການປ່ຽນ stock</td></tr>';
+                    return;
+                }
+
+                stockHistoryRows = snapshot.docs.map(historyDoc => historyDoc.data());
+                renderStockHistory(stockHistoryRows);
+            } catch (error) {
+                console.error('Stock history error:', error);
+                historyBody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-rose-500">ໂຫຼດປະຫວັດບໍ່ສຳເລັດ: ${escapeHTML(error.message)}</td></tr>`;
+            }
+        };
 
         // 🟢 ໂຫຼດຂໍ້ມູນວັດຖຸຈາກ Firebase 🟢
         window.loadInventory = async function() {
@@ -434,6 +562,7 @@
                 document.getElementById('countTotal').innerText = total;
                 document.getElementById('countLow').innerText = low;
                 document.getElementById('countOut').innerText = out;
+                applyInventoryFilters();
 
             } catch (error) {
                 console.error("Error loading inventory:", error);
@@ -454,7 +583,18 @@
             btn.disabled = true; btn.innerHTML = 'ກຳລັງບັນທຶກ...';
 
             try {
-                await updateDoc(doc(db, "materials", currentEditDocId), { stockQuantity: newStock });
+                const batch = writeBatch(db);
+                batch.update(doc(db, "materials", currentEditDocId), { stockQuantity: newStock });
+                batch.set(doc(collection(db, "stock_movements")), createStockMovement({
+                    actor: getStockActor(userData),
+                    material: currentEditMaterial,
+                    before: currentEditMaterial.stockQuantity,
+                    after: newStock,
+                    quantity: newStock - currentEditMaterial.stockQuantity,
+                    type: 'manual_adjustment',
+                    source: 'inventory_manual_edit'
+                }));
+                await batch.commit();
                 toggleModal('editModal', false);
                 window.loadInventory(); 
                 alert("✅ ແກ້ໄຂຍອດສະຕັອກສຳເລັດແລ້ວ!");
@@ -517,26 +657,28 @@
         window.autoImportData = async function() {
             if (!isAdmin) return alert("ສະເພາະ Admin ເທົ່ານັ້ນ!");
             
-            const confirmMsg = "⚠️ ຄຳເຕືອນ: ລະບົບຈະທຳການ 'ລຶບຂໍ້ມູນອຸປະກອນເກົ່າທັງໝົດ' ອອກຈາກຖານຂໍ້ມູນ ແລ້ວດຶງລາຍຊື່ວັດຖຸ 230 ລາຍການຕົວຈິງ ຈາກໄຟລ໌ materials.js ເຂົ້າໄປແທນ ໂດຍຍອດສະຕັອກຈະເລີ່ມທີ່ 0 ທັງໝົດ. ຕ້ອງການດຳເນີນການຕໍ່ຫຼືບໍ່?";
+            const confirmMsg = "ລະບົບຈະດຶງສະເພາະລາຍການໃໝ່ຈາກ master data. ລາຍການທີ່ມີ itemCode ຢູ່ແລ້ວຈະຖືກຂ້າມ ແລະຈະບໍ່ລຶບ/ປ່ຽນ stock ເກົ່າ. ຕ້ອງການດຳເນີນການຕໍ່ບໍ່?";
             if (!confirm(confirmMsg)) return;
 
             const btn = document.getElementById('btnAutoImport');
             const txt = document.getElementById('txtAutoImport');
             const originalText = txt.innerHTML;
-            btn.disabled = true; txt.innerHTML = 'ກຳລັງລ້າງຂໍ້ມູນເກົ່າ... (ກະລຸນາລໍຖ້າ)';
+            btn.disabled = true; txt.innerHTML = 'ກຳລັງກວດລາຍການຊ້ຳ... (ກະລຸນາລໍຖ້າ)';
 
             try {
                 const existingDocs = await getDocs(collection(db, "materials"));
-                const deletePromises = [];
-                existingDocs.forEach((d) => {
-                    deletePromises.push(deleteDoc(doc(db, "materials", d.id)));
+                const existingCodes = new Set();
+                existingDocs.forEach((materialDoc) => {
+                    const existingCode = String(materialDoc.data().itemCode || '').trim().toUpperCase();
+                    if (existingCode) existingCodes.add(existingCode);
                 });
-                await Promise.all(deletePromises);
 
                 txt.innerHTML = 'ກຳລັງລົງຂໍ້ມູນໃໝ່... (ຫ້າມປິດໜ້າຈໍ)';
 
                 const lines = rawMaterialsCSV.trim().split('\n');
                 let count = 0;
+                let skipped = 0;
+                const importedCodes = new Set();
 
                 for (const line of lines) {
                     if(!line || line.trim() === "" || line.includes("ລະຫັດອຸປະກອນ") || line.includes("ລາຍຊື່ອຸປະກອນ")) continue; 
@@ -545,9 +687,15 @@
                     const parts = line.split(delimiter);
                     
                     if (parts.length >= 2) {
-                        const code = parts[0].trim();
+                        const code = parts[0].trim().toUpperCase();
                         const name = parts[1].trim();
                         const unit = parts[2] ? parts[2].trim() : 'ອັນ';
+
+                        if (!code || existingCodes.has(code) || importedCodes.has(code)) {
+                            skipped++;
+                            continue;
+                        }
+                        importedCodes.add(code);
 
                         let cat = "ອື່ນໆ";
                         let min = 15; 
@@ -587,7 +735,7 @@
                     }
                 }
                 
-                alert(`✅ ສຳເລັດການລ້າງສະຕັອກ ແລະ ດຶງຂໍ້ມູນຈິງເຂົ້າຖານຂໍ້ມູນ! (ເພີ່ມໃໝ່ ${count} ລາຍການ ຍອດ=0)`);
+                alert(`✅ ດຶງຂໍ້ມູນສຳເລັດ! ເພີ່ມໃໝ່ ${count} ລາຍການ, ຂ້າມລາຍການຊ້ຳ ${skipped} ລາຍການ. ຍອດ stock ເກົ່າບໍ່ຖືກປ່ຽນ.`);
                 window.loadInventory();
                 
             } catch (error) {

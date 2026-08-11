@@ -36,9 +36,7 @@ async function requireAdmin(req, res, next) {
         const decodedToken = await auth.verifyIdToken(token);
         const userSnapshot = await db.collection('users').doc(decodedToken.uid).get();
         const userData = userSnapshot.exists ? userSnapshot.data() : {};
-        const email = (decodedToken.email || userData.email || '').toLowerCase();
-        const isAdmin = email.includes('admin') ||
-            userData.role === 'system_manager' ||
+        const isAdmin = userData.role === 'system_manager' ||
             userData.role === 'super_admin';
 
         if (!isAdmin) {

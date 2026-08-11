@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ຮັບເຄື່ອງເຂົ້າສາງ - Water Meter</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../../js/components/notifications.js"></script>
     <style> 
         * { font-family: 'Times New Roman', 'Phetsarath OT', serif; }
         body { background-color: #f8fafc; overflow-x: hidden; }
@@ -114,6 +115,7 @@
     <script type="module">
         import { db } from '../../firebase-config.js';
         import { collection, getDocs, doc, writeBatch, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { createStockMovement, getStockActor } from '../../js/data/stock-audit.js';
 
         // 1. ຕັ້ງຄ່າຂໍ້ມູນຜູ້ຮັບເຄື່ອງ (ດຶງຈາກຜູ້ລັອກອິນ)
         const userDataStr = localStorage.getItem('wm_user_data');
@@ -137,7 +139,8 @@
                         id: doc.id,
                         itemCode: data.itemCode,
                         itemName: data.itemName,
-                        unit: data.unit || 'ອັນ'
+                        unit: data.unit || 'ອັນ',
+                        stockQuantity: Number(data.stockQuantity || 0)
                     });
 
                     const option = document.createElement('option');
@@ -327,9 +330,20 @@
                 // 2. ອັບເດດຍອດສະຕັອກ (Inventory)
                 itemsToReceive.forEach(item => {
                     const materialRef = doc(db, "materials", item.materialDocId);
+                    const material = masterMaterials.find(entry => entry.id === item.materialDocId) || item;
                     batch.update(materialRef, { 
                         stockQuantity: increment(item.quantity) 
                     });
+                    batch.set(doc(collection(db, "stock_movements")), createStockMovement({
+                        actor: getStockActor(userData),
+                        material,
+                        before: material.stockQuantity,
+                        after: material.stockQuantity + item.quantity,
+                        quantity: item.quantity,
+                        type: 'receive',
+                        source: 'warehouse_receive',
+                        referenceId: receiptRef.id
+                    }));
                 });
 
                 // 3. ຢືນຢັນການບັນທຶກ

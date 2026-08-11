@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ສົມທຽບ ແລະ ຕັດສະຕັອກ - Water Meter</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../../js/components/notifications.js"></script>
     <style> 
         * { font-family: 'Times New Roman', 'Phetsarath OT', serif; }
         body { background-color: #f8fafc; overflow-x: hidden; }
@@ -155,10 +156,13 @@
     <script type="module">
         import { db } from '../../firebase-config.js';
         import { collection, addDoc, getDocs, doc, updateDoc, writeBatch, increment, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { createStockMovement, getStockActor } from '../../js/data/stock-audit.js';
 
         // 1. ຕົວແປ Global
         let masterMaterials = [];
         let currentTicketId = null; 
+        const userDataStr = localStorage.getItem('wm_user_data');
+        const userData = userDataStr ? JSON.parse(userDataStr) : {};
 
         // 2. ຟັງຊັນປິດ-ເປີດ Modal
         window.toggleModal = function(modalId, show) {
@@ -450,10 +454,25 @@
                 });
 
                 // ຂ. ຕັດຍອດສະຕັອກໃນ Collection ຫຼັກ (materials)
+                const stockByMaterial = new Map(masterMaterials.map(material => [material.id, material.stock]));
                 items.forEach(item => {
                     const matRef = doc(db, "materials", item.materialDocId);
+                    const material = masterMaterials.find(entry => entry.id === item.materialDocId) || { id: item.materialDocId, itemCode: item.itemCode, itemName: item.itemName, stock: 0 };
+                    const stockBefore = stockByMaterial.get(item.materialDocId) ?? material.stock;
+                    const stockAfter = stockBefore - Number(item.qtyWarehouse || 0);
                     // ໃຊ້ -item.qtyWarehouse ເພື່ອລົບສະຕັອກອອກ
                     batch.update(matRef, { stockQuantity: increment(-item.qtyWarehouse) });
+                    batch.set(doc(collection(db, "stock_movements")), createStockMovement({
+                        actor: getStockActor(userData),
+                        material: { ...material, stockQuantity: stockBefore },
+                        before: stockBefore,
+                        after: stockAfter,
+                        quantity: -Number(item.qtyWarehouse || 0),
+                        type: 'issue',
+                        source: 'stock_reconcile',
+                        referenceId: currentTicketId
+                    }));
+                    stockByMaterial.set(item.materialDocId, stockAfter);
                 });
 
                 await batch.commit();

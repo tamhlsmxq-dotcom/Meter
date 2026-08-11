@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ສົມທຽບ ແລະ ຕັດສະຕັອກ - Water Meter</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../../js/components/notifications.js"></script>
     <style> 
         * { font-family: 'Times New Roman', 'Phetsarath OT', serif; }
         body { background-color: #f8fafc; overflow-x: hidden; }
@@ -183,6 +184,7 @@
     <script type="module">
         import { db } from '../../firebase-config.js';
         import { collection, addDoc, getDocs, doc, updateDoc, writeBatch, increment, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { createStockMovement, getStockActor } from '../../js/data/stock-audit.js';
 
         // 🟢 1. ລະບົບ Role ຂອງຜູ້ໃຊ້ປັດຈຸບັນ 🟢
         const userDataStr = localStorage.getItem('wm_user_data');
@@ -192,9 +194,9 @@
         const userName = userData.fullName || email.split('@')[0] || 'Unknown User';
 
         // Base Roles (ສິດທິແທ້ຈິງ)
-        const isSuperAdmin = realRole === 'system_manager' || realRole === 'super_admin' || email.includes('admin');
-        const isRealWarehouse = realRole === 'warehouse_staff' || email.includes('warehouse');
-        const isRealField = realRole === 'field_staff' || email.includes('field');
+        const isSuperAdmin = realRole === 'system_manager' || realRole === 'super_admin';
+        const isRealWarehouse = realRole === 'warehouse_staff' || realRole === 'warehouse_manager';
+        const isRealField = realRole === 'field_staff' || realRole === 'technical_staff';
 
         // Current Active Role (ສິດທິທີ່ກຳລັງສະແດງຜົນ - Admin ສາມາດປ່ຽນໄປມາໄດ້)
         let currentRole = isSuperAdmin ? 'admin' : (isRealWarehouse ? 'warehouse' : 'field');
@@ -238,7 +240,7 @@
                 snap.forEach(doc => {
                     const data = doc.data();
                     masterMaterials.push({
-                        id: doc.id, itemCode: data.itemCode, itemName: data.itemName, stock: data.stockQuantity || 0
+                        id: doc.id, itemCode: data.itemCode, itemName: data.itemName, stock: Number(data.stockQuantity || 0)
                     });
                     const option = document.createElement('option');
                     option.value = data.itemCode; option.textContent = data.itemName;
@@ -591,9 +593,24 @@
                         whUser: userName 
                     });
 
+                    const stockByMaterial = new Map(masterMaterials.map(material => [material.id, material.stock]));
                     items.forEach(item => {
                         const matRef = doc(db, "materials", item.materialDocId);
+                        const material = masterMaterials.find(entry => entry.id === item.materialDocId) || { id: item.materialDocId, itemCode: item.itemCode, itemName: item.itemName, stock: 0 };
+                        const stockBefore = stockByMaterial.get(item.materialDocId) ?? material.stock;
+                        const stockAfter = stockBefore - Number(item.qtyWarehouse || 0);
                         batch.update(matRef, { stockQuantity: increment(-item.qtyWarehouse) });
+                        batch.set(doc(collection(db, "stock_movements")), createStockMovement({
+                            actor: getStockActor(userData),
+                            material: { ...material, stockQuantity: stockBefore },
+                            before: stockBefore,
+                            after: stockAfter,
+                            quantity: -Number(item.qtyWarehouse || 0),
+                            type: 'issue',
+                            source: 'warehouse_issue',
+                            referenceId: currentTicketId
+                        }));
+                        stockByMaterial.set(item.materialDocId, stockAfter);
                     });
 
                     await batch.commit();

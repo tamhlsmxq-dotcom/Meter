@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const role = userData.role || 'technical_staff';
     const perms = userData.permissions || {};
 
-    const isAdmin = userEmail.includes('admin') || role === 'system_manager' || role === 'super_admin';
+    const isAdmin = role === 'system_manager' || role === 'super_admin';
     
     // 🌟 ການແກ້ບັກ: ກວດສອບຕຳແໜ່ງໃຫ້ກວ້າງຂຶ້ນ ເພື່ອປ້ອງກັນຜູ້ໃຊ້ທຳມະດາຖືກລັອກເມນູຕົນເອງ 🌟
     const isWarehouse = role.includes('warehouse') || role.includes('head');
@@ -241,28 +241,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function initRealtimePresence() {
         try {
             const { db } = await import(base + '/firebase-config.js');
-            const { collection, query, where, getDocs, updateDoc, doc, onSnapshot, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            const { collection, query, where, getDocs, setDoc, updateDoc, doc, onSnapshot, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
             
-            const usersRef = collection(db, 'users');
+            const presenceRef = collection(db, 'presence');
             let currentUserDocId = null;
 
-            if (userEmail && !userEmail.includes('admin')) { 
-                const myQ = query(usersRef, where('email', '==', userEmail));
-                const mySnapshot = await getDocs(myQ);
-                
-                if (!mySnapshot.empty) {
-                    currentUserDocId = mySnapshot.docs[0].id;
-                    const myDocRef = doc(db, 'users', currentUserDocId);
-                    
-                    await updateDoc(myDocRef, { isOnline: true, lastActive: serverTimestamp() });
+            if (userData.uid || userData.authUid) {
+                currentUserDocId = userData.uid || userData.authUid;
+                const myDocRef = doc(db, 'presence', currentUserDocId);
+                await setDoc(myDocRef, {
+                    uid: currentUserDocId,
+                    fullName: userName,
+                    email: userEmail,
+                    role,
+                    isOnline: true,
+                    lastActive: serverTimestamp()
+                }, { merge: true });
 
-                    window.addEventListener('beforeunload', () => {
-                        updateDoc(myDocRef, { isOnline: false });
-                    });
-                }
+                window.addEventListener('beforeunload', () => {
+                    updateDoc(myDocRef, { isOnline: false });
+                });
             }
 
-            const onlineQ = query(usersRef, where('isOnline', '==', true));
+            const onlineQ = query(presenceRef, where('isOnline', '==', true));
             onSnapshot(onlineQ, (snapshot) => {
                 const listContainer = document.getElementById('online-users-list');
                 const countContainer = document.getElementById('online-count');
@@ -311,7 +312,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             return async function() {
                 if (currentUserDocId) {
-                    await updateDoc(doc(db, 'users', currentUserDocId), { isOnline: false });
+                    await updateDoc(doc(db, 'presence', currentUserDocId), { isOnline: false });
                 }
             };
 

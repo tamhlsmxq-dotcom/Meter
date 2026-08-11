@@ -16,11 +16,10 @@ export function checkPageAccess() {
     }
 
     const userData = JSON.parse(userDataStr);
-    const email = (userData.email || '').toLowerCase();
     const role = userData.role || '';
 
     // 2. Admin Bypass (ໃຫ້ Admin ຜ່ານທຸກໜ້າ)
-    if (email.includes('admin') || role === 'system_manager' || role === 'super_admin') {
+    if (role === 'system_manager' || role === 'super_admin') {
         return;
     }
 

@@ -1,18 +1,28 @@
-const CACHE_NAME = 'water-meter-v2'; // ປ່ຽນເວີຊັ່ນເປັນ v2 ເພື່ອລຶບຂອງເກົ່າຖິ້ມ
+const CACHE_NAME = 'water-meter-v3';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
-  './record.html',
-  './summary.html',
-  './manage-items.html',
-  './receive-items.html',
+  './login.html',
+  './404.html',
+  './manifest.json',
   './firebase-config.js',
-  './items-data.js',
-  './sidebar.js'
+  './js/components/sidebar.js',
+  './js/components/auth-guard.js',
+  './js/components/notifications.js',
+  './js/data/stock-audit.js',
+  './js/data/materials.js'
 ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE)));
+  event.waitUntil(caches.open(CACHE_NAME).then(async (cache) => {
+    await Promise.all(ASSETS_TO_CACHE.map(async (asset) => {
+      try {
+        await cache.add(asset);
+      } catch (error) {
+        console.warn(`Unable to cache ${asset}`, error);
+      }
+    }));
+  }));
   self.skipWaiting(); // ບັງຄັບໃຫ້ອັບເດດທັນທີ
 });
 

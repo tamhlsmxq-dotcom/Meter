@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ເຂົ້າສູ່ລະບົບ - Water Meter System</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="./js/components/notifications.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -112,7 +113,7 @@
     <script type="module">
         import { auth, db } from './firebase-config.js';
         import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // ຟັງຊັນເປີດ-ປິດ ຕາເບິ່ງລະຫັດຜ່ານ
         window.togglePassword = function() {
@@ -158,20 +159,21 @@
                 await signInWithEmailAndPassword(auth, email, password);
                 
                 // 2. ດຶງຂໍ້ມູນສິດທິຈາກ Firestore (Users table)
-                const q = query(collection(db, "users"), where("email", "==", email));
-                const querySnapshot = await getDocs(q);
+                const firebaseUser = auth.currentUser;
+                const userSnapshot = await getDoc(doc(db, "users", firebaseUser.uid));
                 
                 // ຄ່າເລີ່ມຕົ້ນສຳລັບພະນັກງານທົ່ວໄປ (ຖ້າບໍ່ພົບຂໍ້ມູນໃນຖານ)
-                let userData = { 
+                let userData = {
+                    uid: firebaseUser.uid,
                     email: email, 
                     fullName: email, 
                     role: 'staff', 
                     permissions: { dashboard: true, inventory: false, receive: false, issue: false, manageUsers: false } 
                 };
 
-                if (!querySnapshot.empty) {
-                    querySnapshot.forEach((doc) => {
-                        const data = doc.data();
+                if (userSnapshot.exists()) {
+                        const data = userSnapshot.data();
+                        userData.authUid = firebaseUser.uid;
                         userData.fullName = data.fullName || email;
                         userData.role = data.role || 'staff';
                         // ດຶງສິດທິທີ່ຕິກໄວ້ໃນຕາຕະລາງມາໃຊ້
@@ -181,11 +183,6 @@
                         if (data.role === 'super_admin' || data.role === 'system_manager') {
                             userData.permissions = { dashboard: true, inventory: true, receive: true, issue: true, manageUsers: true };
                         }
-                    });
-                } else if (email.includes('admin')) {
-                    // ກໍລະນີສຸກເສີນ: ຖ້າບັນຊີແອດມິນບໍ່ມີໃນຖານຂໍ້ມູນ ໃຫ້ສິດພິເສດໄປກ່ອນ
-                    userData.role = 'system_manager';
-                    userData.permissions = { dashboard: true, inventory: true, receive: true, issue: true, manageUsers: true };
                 }
 
                 // 3. ບັນທຶກຂໍ້ມູນທັງໝົດລົງເຄື່ອງ ເພື່ອໃຫ້ sidebar ເອົາໄປໃຊ້ງານຕໍ່
