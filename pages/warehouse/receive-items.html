@@ -115,8 +115,41 @@
 
     <script type="module">
         import { db } from '../../firebase-config.js';
-        import { collection, getDocs, doc, writeBatch, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { rawMaterialsCSV } from '../../js/data/materials.js';
+        import { collection, getDocs, doc, writeBatch, increment, serverTimestamp, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { createStockMovement, getStockActor } from '../../js/data/stock-audit.js';
+
+        async function seedMaterialsIfEmpty() {
+            try {
+                const snap = await getDocs(collection(db, 'materials'));
+                if (!snap.empty) return;
+
+                const lines = rawMaterialsCSV.trim().split(/\r?\n/);
+                for (const line of lines) {
+                    if (!line || !line.trim()) continue;
+                    const delimiter = line.includes('\t') ? '\t' : ',';
+                    const parts = line.split(delimiter).map(part => part.trim());
+                    if (parts.length < 2) continue;
+
+                    const code = String(parts[0] || '').trim().toUpperCase();
+                    const name = String(parts[1] || '').trim();
+                    const unit = parts[2] ? String(parts[2]).trim() : 'ອັນ';
+                    if (!code || !name) continue;
+
+                    await addDoc(collection(db, 'materials'), {
+                        itemCode: code,
+                        itemName: name,
+                        category: name.includes('ທໍ່') ? 'ທໍ່ນ້ຳ' : 'ອື່ນໆ',
+                        unit,
+                        minThreshold: 15,
+                        stockQuantity: 0,
+                        createdAt: serverTimestamp()
+                    });
+                }
+            } catch (error) {
+                console.error('Receive page seed recovery failed:', error);
+            }
+        }
 
         // 1. ຕັ້ງຄ່າຂໍ້ມູນຜູ້ຮັບເຄື່ອງ (ດຶງຈາກ Firebase Auth + Firestore ທີ່ແທ້ຈິງ)
         const { auth, db } = await import('../../firebase-config.js');
@@ -132,6 +165,7 @@
         // 3. ດຶງຂໍ້ມູນລາຍຊື່ອຸປະກອນຈາກ Firebase
         async function loadMaterialsForAutocomplete() {
             try {
+                await seedMaterialsIfEmpty();
                 const snap = await getDocs(collection(db, "materials"));
                 const datalist = document.getElementById('materialsList');
                 datalist.innerHTML = ''; 

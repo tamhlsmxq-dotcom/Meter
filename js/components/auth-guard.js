@@ -4,7 +4,7 @@
 
 import { auth, db } from '../../firebase-config.js';
 import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
 const REDIRECT_KEY = 'meter_redirect_guard';
 let redirectLock = false;
@@ -51,6 +51,8 @@ export async function checkPageAccess() {
 
     if (!serverUserSnap.exists()) {
         localStorage.removeItem('wm_user_data');
+        sessionStorage.removeItem(REDIRECT_KEY);
+        await signOut(auth);
         safeRedirect(`${base}/login.html`);
         return;
     }
@@ -98,6 +100,12 @@ onAuthStateChanged(auth, async (user) => {
         await checkPageAccess();
     } catch (error) {
         console.error('Auth guard error:', error);
+        sessionStorage.removeItem(REDIRECT_KEY);
+        try {
+            await signOut(auth);
+        } catch (signOutError) {
+            console.warn('Unable to sign out after auth guard failure:', signOutError);
+        }
         safeRedirect(`${base}/login.html`);
     }
 });

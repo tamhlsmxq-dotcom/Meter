@@ -476,7 +476,7 @@
         window.loadInventory = async function() {
             const tableBody = document.getElementById('inventoryTable');
             try {
-                // ດຶງຂໍ້ມູນທັງໝົດກ່ອນ
+                await seedMaterialsIfEmpty();
                 const querySnapshot = await getDocs(query(collection(db, "materials")));
                 
                 tableBody.innerHTML = '';
