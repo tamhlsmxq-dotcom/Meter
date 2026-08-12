@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Water Meter app icon">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <circle cx="256" cy="256" r="164" fill="none" stroke="#dbeafe" stroke-width="26"/>
+  <circle cx="256" cy="256" r="90" fill="none" stroke="#dbeafe" stroke-width="20"/>
+  <path d="M256 148v108l74 40" fill="none" stroke="#dbeafe" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M256 82V52" stroke="#dbeafe" stroke-width="24" stroke-linecap="round"/>
+  <path d="M256 460v-30" stroke="#dbeafe" stroke-width="24" stroke-linecap="round"/>
+</svg>

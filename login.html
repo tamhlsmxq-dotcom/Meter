@@ -6,11 +6,13 @@
     <title>ເຂົ້າສູ່ລະບົບ - Water Meter System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <meta name="theme-color" content="#1e40af">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="WaterMeter">
     <link rel="manifest" href="./manifest.json">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3256/3256114.png">
+    <link rel="icon" href="./icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="./icon.svg">
     <script src="./runtime-config.js"></script>
     <script src="./js/components/notifications.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -140,6 +142,14 @@
         let redirectInProgress = false;
         const REDIRECT_KEY = 'meter_redirect_guard';
 
+        if (location.protocol === 'file:') {
+            console.warn('PWA install requires a real HTTP/HTTPS server. Open the app from localhost or deploy it with HTTPS.');
+            if (installButton) {
+                installButton.textContent = 'ເປີດຈາກ localhost/HTTPS ເພື່ອຕິດຕັ້ງແອັບ';
+                installButton.classList.remove('hidden');
+            }
+        }
+
         function showAuthLoading(show) {
             if (!authLoading) return;
             authLoading.classList.toggle('hidden', !show);
@@ -158,13 +168,15 @@
             window.location.replace(url);
         }
 
-        window.addEventListener('beforeinstallprompt', (event) => {
-            event.preventDefault();
-            deferredPrompt = event;
-            if (installButton) {
-                installButton.classList.remove('hidden');
-            }
-        });
+        if (location.protocol !== 'file:') {
+            window.addEventListener('beforeinstallprompt', (event) => {
+                event.preventDefault();
+                deferredPrompt = event;
+                if (installButton) {
+                    installButton.classList.remove('hidden');
+                }
+            });
+        }
 
         if (installButton) {
             installButton.addEventListener('click', async () => {

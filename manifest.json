@@ -2,20 +2,20 @@
   "name": "ສາງໝໍ້ແທກນ້ຳ NPNL",
   "short_name": "ສາງໝໍ້ແທກນ້ຳ",
   "description": "ລະບົບບັນທຶກ ແລະ ຄຸ້ມຄອງການເບີກຈ່າຍອຸປະກອນ ສາງໝໍ້ແທກນ້ຳ",
+  "id": "/index.html",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "orientation": "portrait-primary",
   "background_color": "#eff6ff",
   "theme_color": "#1e40af",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3256/3256114.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "https://cdn-icons-png.flaticon.com/512/3256/3256114.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     }
   ]
 }
