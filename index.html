@@ -301,13 +301,16 @@
 
     <script type="module">
         import { db } from './firebase-config.js';
+        import { rawMaterialsCSV } from './js/data/materials.js';
         import {
+            addDoc,
             collection,
             getCountFromServer,
             getDocs,
             limit,
             orderBy,
-            query
+            query,
+            serverTimestamp
         } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
         const numberFormat = new Intl.NumberFormat('en-US');
@@ -330,8 +333,75 @@
             }[character]));
         }
 
+        function parseSeedRow(line) {
+            if (!line || !line.trim()) return null;
+            const delimiter = line.includes('\t') ? '\t' : ',';
+            const parts = line.split(delimiter).map(part => part.trim());
+            if (parts.length < 2) return null;
+            const code = parts[0].trim().toUpperCase();
+            const name = parts[1].trim();
+            const unit = parts[2] ? parts[2].trim() : 'ອັນ';
+            if (!code || !name) return null;
+
+            let category = 'ອື່ນໆ';
+            let minThreshold = 15;
+
+            if (name.includes('ທໍ່') && !name.includes('ຂໍ້') && !name.includes('ປອກ')) {
+                category = 'ທໍ່ນ້ຳ';
+                minThreshold = 12;
+            } else if (name.includes('ຂໍ້') || name.includes('ວາວ') || name.includes('ສາມຕາ') || name.includes('ລວມສູນ') || name.includes('ດອນອັດ') || name.includes('ຝາອັດ') || name.includes('ປະຕູນ້ຳ') || name.includes('ປອກຈັບ') || name.includes('ໜ້າແປນ') || name.includes('ຫົວເຈາະ')) {
+                category = 'ຂໍ້ຕໍ່ / ວາວ';
+                minThreshold = 40;
+            } else if (name.includes('ແທກນ້ຳ') || name.includes('ອາໄຫຼ່ Insert') || name.includes('ຊຸດຂາ') || name.includes('ຂາໝໍ້')) {
+                category = 'ມິເຕີ ແລະ ອຸປະກອນ';
+                if (/\b(13|15|18|20)\b/.test(name) || name.includes('15mm') || name.includes('20mm') || name.includes('DN 15') || name.includes('DN 20')) {
+                    minThreshold = 150;
+                } else if (/\b(25|30)\b/.test(name) || name.includes('25mm') || name.includes('DN 25')) {
+                    minThreshold = 200;
+                } else if (/\b(32|35|40)\b/.test(name) || name.includes('40mm')) {
+                    minThreshold = 100;
+                } else if (/\b(50|55|63|75|80|100|150|200|250|400)\b/.test(name) || name.includes('50mm') || name.match(/(50|80|100|150|200|250|400)mm/)) {
+                    minThreshold = 10;
+                }
+            }
+
+            return {
+                itemCode: code,
+                itemName: name,
+                category,
+                unit,
+                minThreshold,
+                stockQuantity: 0,
+                createdAt: serverTimestamp()
+            };
+        }
+
+        async function seedMaterialsIfEmpty() {
+            try {
+                const materialCount = await getCountFromServer(collection(db, 'materials'));
+                if (materialCount.data().count > 0) return;
+
+                const lines = rawMaterialsCSV.trim().split(/\r?\n/);
+                let created = 0;
+                for (const line of lines) {
+                    const item = parseSeedRow(line);
+                    if (!item) continue;
+                    await addDoc(collection(db, 'materials'), item);
+                    created += 1;
+                }
+
+                if (window.showToast) {
+                    window.showToast(`ດຶງຂໍ້ມູນລາຍການພື້ນຖານຄືນໃໝ່ແລ້ວ (${created} ລາຍການ)`, 'success');
+                }
+                console.info('Seeded materials collection with master data:', created);
+            } catch (error) {
+                console.error('Material seed recovery failed:', error);
+            }
+        }
+
         async function loadDashboardData() {
             try {
+                await seedMaterialsIfEmpty();
                 const materialsQuery = query(collection(db, 'materials'), limit(200));
                 const receiptsQuery = query(collection(db, 'receipt_history'), orderBy('receiveDate', 'desc'), limit(30));
                 const ticketsQuery = query(collection(db, 'reconcile_tickets'), orderBy('completedAt', 'desc'), limit(30));
