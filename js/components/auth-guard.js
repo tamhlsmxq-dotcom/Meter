@@ -4,16 +4,23 @@
 
 import { auth, db } from '../../firebase-config.js';
 import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
 export async function checkPageAccess() {
     const currentPath = window.location.pathname.toLowerCase();
     const base = currentPath.includes('/pages/') ? '../..' : '.';
-    const currentUser = auth.currentUser;
 
-    if (!currentUser) {
-        if (!currentPath.includes('login.html')) {
-            window.location.replace(`${base}/login.html`);
+    if (currentPath.includes('login.html')) {
+        const currentUser = auth.currentUser;
+        if (currentUser) {
+            window.location.replace(`${base}/index.html`);
         }
+        return;
+    }
+
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+        window.location.replace(`${base}/login.html`);
         return;
     }
 
@@ -49,4 +56,21 @@ export async function checkPageAccess() {
     }
 }
 
-checkPageAccess();
+onAuthStateChanged(auth, async (user) => {
+    const currentPath = window.location.pathname.toLowerCase();
+    const base = currentPath.includes('/pages/') ? '../..' : '.';
+
+    if (!user) {
+        if (!currentPath.includes('login.html')) {
+            window.location.replace(`${base}/login.html`);
+        }
+        return;
+    }
+
+    if (currentPath.includes('login.html')) {
+        window.location.replace(`${base}/index.html`);
+        return;
+    }
+
+    await checkPageAccess();
+});
