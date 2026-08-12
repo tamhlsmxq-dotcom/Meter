@@ -43,14 +43,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const currentUser = auth.currentUser;
         if (!currentUser) {
-            if (!currentPath.includes('login.html')) window.location.href = base + '/login.html';
             return;
         }
 
         const userSnapshot = await getDoc(doc(db, 'users', currentUser.uid));
         if (!userSnapshot.exists()) {
             localStorage.removeItem('wm_user_data');
-            if (!currentPath.includes('login.html')) window.location.href = base + '/login.html';
             return;
         }
 
@@ -65,7 +63,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
     } catch (error) {
         console.error('Sidebar auth profile error:', error);
-        if (!currentPath.includes('login.html')) window.location.href = base + '/login.html';
         return;
     }
 

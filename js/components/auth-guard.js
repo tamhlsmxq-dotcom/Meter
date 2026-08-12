@@ -101,3 +101,5 @@ onAuthStateChanged(auth, async (user) => {
         safeRedirect(`${base}/login.html`);
     }
 });
+
+checkPageAccess();
