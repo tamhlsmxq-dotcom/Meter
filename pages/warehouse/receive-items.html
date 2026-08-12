@@ -118,10 +118,12 @@
         import { collection, getDocs, doc, writeBatch, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { createStockMovement, getStockActor } from '../../js/data/stock-audit.js';
 
-        // 1. ຕັ້ງຄ່າຂໍ້ມູນຜູ້ຮັບເຄື່ອງ (ດຶງຈາກຜູ້ລັອກອິນ)
-        const userDataStr = localStorage.getItem('wm_user_data');
-        const userData = userDataStr ? JSON.parse(userDataStr) : {};
-        document.getElementById('receiverName').value = userData.fullName || 'ແອດມິນລະບົບ';
+        // 1. ຕັ້ງຄ່າຂໍ້ມູນຜູ້ຮັບເຄື່ອງ (ດຶງຈາກ Firebase Auth + Firestore ທີ່ແທ້ຈິງ)
+        const { auth, db } = await import('../../firebase-config.js');
+        const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+        const currentUser = auth.currentUser;
+        const userData = currentUser ? (await getDoc(doc(db, 'users', currentUser.uid))).data() || {} : {};
+        document.getElementById('receiverName').value = userData.fullName || currentUser?.displayName || 'ແອດມິນລະບົບ';
         document.getElementById('receiveDate').valueAsDate = new Date();
 
         // 2. ຕົວແປເກັບຂໍ້ມູນ Master Data ຈາກສະຕັອກ

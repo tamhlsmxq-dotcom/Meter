@@ -33,14 +33,38 @@ window.SYSTEM_MODULES = [
 ];
 
 document.addEventListener('DOMContentLoaded', async () => {
-
-    const userDataStr = localStorage.getItem('wm_user_data');
-    const userData = userDataStr ? JSON.parse(userDataStr) : null;
-    
     const currentPath = window.location.pathname;
     const base = currentPath.includes('/pages/') ? '../..' : '.';
 
-    if (!userData) {
+    let userData = null;
+    try {
+        const { auth, db } = await import(base + '/firebase-config.js');
+        const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+        const currentUser = auth.currentUser;
+
+        if (!currentUser) {
+            if (!currentPath.includes('login.html')) window.location.href = base + '/login.html';
+            return;
+        }
+
+        const userSnapshot = await getDoc(doc(db, 'users', currentUser.uid));
+        if (!userSnapshot.exists()) {
+            localStorage.removeItem('wm_user_data');
+            if (!currentPath.includes('login.html')) window.location.href = base + '/login.html';
+            return;
+        }
+
+        const data = userSnapshot.data();
+        userData = {
+            uid: currentUser.uid,
+            authUid: currentUser.uid,
+            email: data.email || currentUser.email || '',
+            fullName: data.fullName || currentUser.displayName || 'ພະນັກງານ',
+            role: String(data.role || 'technical_staff').trim(),
+            permissions: data.permissions || {}
+        };
+    } catch (error) {
+        console.error('Sidebar auth profile error:', error);
         if (!currentPath.includes('login.html')) window.location.href = base + '/login.html';
         return;
     }

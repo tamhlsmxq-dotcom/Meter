@@ -130,8 +130,7 @@
     </div>
 
     <script type="module">
-        import { apiBaseUrl, auth, db } from '../../firebase-config.js';
-        import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { apiBaseUrl, auth } from '../../firebase-config.js';
 
         let currentEditId = null;
         let usersList = [];
@@ -202,25 +201,40 @@
         window.loadUsersFromFirestore = async function() {
             const tableBody = document.getElementById('userTableBody');
             
-            // ລໍຖ້າຈົນກວ່າ sidebar.js ຈະໂຫຼດແລ້ວ
             if (!window.SYSTEM_MODULES) {
                 setTimeout(loadUsersFromFirestore, 100);
                 return;
             }
 
             try {
-                const querySnapshot = await getDocs(collection(db, "users"));
+                const currentUser = auth.currentUser;
+                if (!currentUser) {
+                    window.location.href = '../../login.html';
+                    return;
+                }
+
+                const idToken = await currentUser.getIdToken();
+                const response = await fetch(`${apiBaseUrl}/api/users`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${idToken}`
+                    }
+                });
+
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error || 'ບໍ່ສາມາດດຶງຂໍ້ມູນຜູ້ໃຊ້ໄດ້');
+
+                const users = result.users || [];
                 tableBody.innerHTML = '';
                 usersList = [];
                 
-                if (querySnapshot.empty) {
+                if (users.length === 0) {
                     tableBody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-400">ຍັງບໍ່ມີຂໍ້ມູນຜູ້ໃຊ້ໃນລະບົບ</td></tr>';
                     return;
                 }
 
-                querySnapshot.forEach((userDoc) => {
-                    const user = userDoc.data();
-                    const docId = userDoc.id; 
+                users.forEach((user) => {
+                    const docId = user.id;
                     usersList.push({ id: docId, ...user });
                     
                     const fullName = user.fullName || 'No Name';
@@ -334,8 +348,25 @@
             const newStatus = currentStatus === 'active' ? 'suspended' : 'active';
             const msg = newStatus === 'suspended' ? "ຕ້ອງການໂຈະຜູ້ໃຊ້ນີ້ບໍ່?" : "ຕ້ອງການເປີດນຳໃຊ້ບັນຊີນີ້ຄືນບໍ່?";
             if(confirm(msg)) {
-                await updateDoc(doc(db, "users", docId), { status: newStatus });
-                loadUsersFromFirestore();
+                try {
+                    const currentUser = auth.currentUser;
+                    if (!currentUser) throw new Error('Session ໝົດອາຍຸ, ກະລຸນາ Login ໃໝ່');
+                    const idToken = await currentUser.getIdToken();
+                    const response = await fetch(`${apiBaseUrl}/api/users/${docId}/status`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${idToken}`
+                        },
+                        body: JSON.stringify({ status: newStatus })
+                    });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.error || 'ປ່ຽນສະຖານະຜູ້ໃຊ້ບໍ່ສຳເລັດ');
+                    loadUsersFromFirestore();
+                } catch (e) {
+                    console.error('Update status error:', e);
+                    alert(`❌ ${e.message}`);
+                }
             }
         };
 
@@ -406,11 +437,25 @@
 
             try {
                 if (currentEditId) {
-                    await updateDoc(doc(db, "users", currentEditId), {
-                        fullName: name,
-                        role: role,
-                        permissions: permissions
+                    const currentUser = auth.currentUser;
+                    if (!currentUser) throw new Error('Session ໝົດອາຍຸ, ກະລຸນາ Login ໃໝ່');
+                    const idToken = await currentUser.getIdToken();
+                    const response = await fetch(`${apiBaseUrl}/api/users/${currentEditId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${idToken}`
+                        },
+                        body: JSON.stringify({
+                            fullName: name,
+                            role: role,
+                            permissions: permissions
+                        })
                     });
+
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.error || 'ອັບເດດຜູ້ໃຊ້ບໍ່ສຳເລັດ');
+
                     closeModal();
                     loadUsersFromFirestore();
                     alert("✅ ອັບເດດຂໍ້ມູນສຳເລັດ!");

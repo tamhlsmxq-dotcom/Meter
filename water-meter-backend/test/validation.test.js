@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { validateCreateUserPayload } = require('../validation');
-const { isAdminRole } = require('../authz');
+const { isAdminRole, isAllowedUserRole } = require('../authz');
 
 test('accepts a valid create-user payload', () => {
     assert.equal(validateCreateUserPayload({
@@ -46,4 +46,15 @@ test('recognizes admin roles only for the allowlisted values', () => {
     assert.equal(isAdminRole('warehouse_manager'), false);
     assert.equal(isAdminRole('technical_staff'), false);
     assert.equal(isAdminRole(''), false);
+});
+
+test('accepts only the allowlisted non-admin roles', () => {
+    assert.equal(isAllowedUserRole('technical_staff'), true);
+    assert.equal(isAllowedUserRole('warehouse_manager'), true);
+    assert.equal(isAllowedUserRole('department_head'), true);
+    assert.equal(isAllowedUserRole('system_manager'), true);
+    assert.equal(isAllowedUserRole('super_admin'), true);
+    assert.equal(isAllowedUserRole('admin'), false);
+    assert.equal(isAllowedUserRole('hacker'), false);
+    assert.equal(isAllowedUserRole(''), false);
 });

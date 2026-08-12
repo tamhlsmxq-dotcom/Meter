@@ -6,29 +6,14 @@ import { auth, db } from '../../firebase-config.js';
 import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 export async function checkPageAccess() {
-    const userDataStr = localStorage.getItem('wm_user_data');
     const currentPath = window.location.pathname.toLowerCase();
     const base = currentPath.includes('/pages/') ? '../..' : '.';
+    const currentUser = auth.currentUser;
 
-    if (!userDataStr) {
+    if (!currentUser) {
         if (!currentPath.includes('login.html')) {
             window.location.replace(`${base}/login.html`);
         }
-        return;
-    }
-
-    let userData;
-    try {
-        userData = JSON.parse(userDataStr);
-    } catch (error) {
-        localStorage.removeItem('wm_user_data');
-        window.location.replace(`${base}/login.html`);
-        return;
-    }
-
-    const currentUser = auth.currentUser;
-    if (!currentUser) {
-        window.location.replace(`${base}/login.html`);
         return;
     }
 
@@ -49,7 +34,7 @@ export async function checkPageAccess() {
         return;
     }
 
-    const perms = serverUser.permissions || userData.permissions || {};
+    const perms = serverUser.permissions || {};
     let hasAccess = true;
 
     if (currentPath.includes('index.html') && perms.dashboard !== true) { hasAccess = false; }

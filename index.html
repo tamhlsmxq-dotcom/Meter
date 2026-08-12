@@ -7,6 +7,12 @@
     
     <!-- ດຶງ TailwindCSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="theme-color" content="#1e40af">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="WaterMeter">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3256/3256114.png">
     
     <!-- ດຶງ Chart.js ສຳລັບແຕ້ມກຣາບ -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -293,7 +299,14 @@
 
     <script type="module">
         import { db } from './firebase-config.js';
-        import { collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import {
+            collection,
+            getCountFromServer,
+            getDocs,
+            limit,
+            orderBy,
+            query
+        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
         const numberFormat = new Intl.NumberFormat('en-US');
         const localDateKey = date => {
@@ -317,10 +330,17 @@
 
         async function loadDashboardData() {
             try {
-                const [materialsSnapshot, receiptsSnapshot, ticketsSnapshot] = await Promise.all([
-                    getDocs(collection(db, 'materials')),
-                    getDocs(collection(db, 'receipt_history')),
-                    getDocs(collection(db, 'reconcile_tickets'))
+                const materialsQuery = query(collection(db, 'materials'), limit(200));
+                const receiptsQuery = query(collection(db, 'receipt_history'), orderBy('receiveDate', 'desc'), limit(30));
+                const ticketsQuery = query(collection(db, 'reconcile_tickets'), orderBy('completedAt', 'desc'), limit(30));
+
+                const [materialsSnapshot, receiptsSnapshot, ticketsSnapshot, materialCount, receiptCount, ticketsCount] = await Promise.all([
+                    getDocs(materialsQuery),
+                    getDocs(receiptsQuery),
+                    getDocs(ticketsQuery),
+                    getCountFromServer(collection(db, 'materials')),
+                    getCountFromServer(collection(db, 'receipt_history')),
+                    getCountFromServer(collection(db, 'reconcile_tickets'))
                 ]);
 
                 const materials = materialsSnapshot.docs.map(item => item.data());
@@ -411,6 +431,32 @@
         }
 
         loadDashboardData();
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch((error) => {
+                    console.warn('Service worker registration failed:', error);
+                });
+            });
+        }
+
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (event) => {
+            event.preventDefault();
+            deferredPrompt = event;
+            const installButton = document.getElementById('installAppButton');
+            if (installButton) {
+                installButton.classList.remove('hidden');
+                installButton.addEventListener('click', async () => {
+                    if (!deferredPrompt) return;
+                    deferredPrompt.prompt();
+                    await deferredPrompt.userChoice;
+                    deferredPrompt = null;
+                    installButton.classList.add('hidden');
+                });
+            }
+        });
     </script>
 </body>
 </html>

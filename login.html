@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ເຂົ້າສູ່ລະບົບ - Water Meter System</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="theme-color" content="#1e40af">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="WaterMeter">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3256/3256114.png">
     <script src="./runtime-config.js"></script>
     <script src="./js/components/notifications.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -107,6 +113,10 @@
                 <span id="btnText">ເຂົ້າສູ່ລະບົບ</span>
                 <svg id="btnIcon" class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
             </button>
+
+            <button type="button" id="installAppButton" class="hidden w-full mt-3 bg-white/10 border border-white/20 text-white font-bold py-3 px-4 rounded-xl hover:bg-white/20 transition-all duration-200">
+                ຕິດຕັ້ງແອັບໃສ່ໂທລະສັບ
+            </button>
         </form>
     </div>
 
@@ -115,6 +125,33 @@
         import { auth, db } from './firebase-config.js';
         import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const installButton = document.getElementById('installAppButton');
+        let deferredPrompt = null;
+
+        window.addEventListener('beforeinstallprompt', (event) => {
+            event.preventDefault();
+            deferredPrompt = event;
+            if (installButton) {
+                installButton.classList.remove('hidden');
+            }
+        });
+
+        if (installButton) {
+            installButton.addEventListener('click', async () => {
+                if (!deferredPrompt) {
+                    alert('ບໍລິການຕິດຕັ້ງແອັບຍັງບໍ່ມີໃນບຣາວເຊີນີ້ \nກະລຸນາໃຊ້ Chrome หรือ Safari ແລ້ວເລືອກ “Add to Home Screen”');
+                    return;
+                }
+
+                deferredPrompt.prompt();
+                const choice = await deferredPrompt.userChoice;
+                if (choice.outcome === 'accepted') {
+                    installButton.classList.add('hidden');
+                }
+                deferredPrompt = null;
+            });
+        }
 
         // ຟັງຊັນເປີດ-ປິດ ຕາເບິ່ງລະຫັດຜ່ານ
         window.togglePassword = function() {
@@ -159,31 +196,31 @@
                 // 1. ກວດສອບລະຫັດຜ່ານຜ່ານ Auth
                 await signInWithEmailAndPassword(auth, email, password);
                 
-                // 2. ດຶງຂໍ້ມູນສິດທິຈາກ Firestore (Users table)
+                // 2. ດຶງຂໍ້ມູນຜູ້ໃຊ້ຈາກ Firestore ເພື່ອກວດສອບສິດທິຈິງ (ບໍ່ໃຫ້ login ຜ່ານໄປໂດຍການບໍລິການຕົວຂອງຜູ້ໃຊ້ໃນ browser)
                 const firebaseUser = auth.currentUser;
                 const userSnapshot = await getDoc(doc(db, "users", firebaseUser.uid));
-                
-                // ຄ່າເລີ່ມຕົ້ນສຳລັບພະນັກງານທົ່ວໄປ (ຖ້າບໍ່ພົບຂໍ້ມູນໃນຖານ)
-                let userData = {
+
+                if (!userSnapshot.exists()) {
+                    throw new Error('ບັນຊີນີ້ຍັງບໍ່ໄດ້ລະບົບໃຫ້ຜູ້ໃຊ້ຢູ່ໃນລະບົບ');
+                }
+
+                const data = userSnapshot.data();
+                const userStatus = String(data.status || 'active').trim().toLowerCase();
+                if (userStatus !== 'active') {
+                    throw new Error('ບັນຊີນີ້ບໍ່ມີສິດເຂົ້າລະບົບໃນປັດຈຸບັນ');
+                }
+
+                const userData = {
                     uid: firebaseUser.uid,
-                    email: email, 
-                    fullName: email, 
-                    role: 'staff', 
-                    permissions: { dashboard: true, inventory: false, receive: false, issue: false, manageUsers: false } 
+                    authUid: firebaseUser.uid,
+                    email: data.email || email,
+                    fullName: data.fullName || email,
+                    role: data.role || 'technical_staff',
+                    permissions: data.permissions || {}
                 };
 
-                if (userSnapshot.exists()) {
-                        const data = userSnapshot.data();
-                        userData.authUid = firebaseUser.uid;
-                        userData.fullName = data.fullName || email;
-                        userData.role = data.role || 'staff';
-                        // ດຶງສິດທິທີ່ຕິກໄວ້ໃນຕາຕະລາງມາໃຊ້
-                        if (data.permissions) { userData.permissions = data.permissions; }
-                        
-                        // ຖ້າເປັນ admin ໃຫ້ສິດທຸກຢ່າງອັດຕະໂນມັດ (ປ້ອງກັນແອດມິນລືມຕິກໃຫ້ໂຕເອງ)
-                        if (data.role === 'super_admin' || data.role === 'system_manager') {
-                            userData.permissions = { dashboard: true, inventory: true, receive: true, issue: true, manageUsers: true };
-                        }
+                if (userData.role === 'super_admin' || userData.role === 'system_manager') {
+                    userData.permissions = { dashboard: true, inventory: true, receive: true, issue: true, manageUsers: true };
                 }
 
                 // 3. ບັນທຶກຂໍ້ມູນທັງໝົດລົງເຄື່ອງ ເພື່ອໃຫ້ sidebar ເອົາໄປໃຊ້ງານຕໍ່
@@ -201,8 +238,9 @@
             } catch (error) {
                 console.error("Login Error:", error);
                 errorMessage.classList.remove('hidden');
-                errorMessage.innerText = '❌ ອີເມວ ຫຼື ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ!';
-                
+                const message = error?.message || '❌ ອີເມວ ຫຼື ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ!';
+                errorMessage.innerText = message;
+
                 btnText.innerText = 'ເຂົ້າສູ່ລະບົບ';
                 btnLogin.disabled = false;
                 btnLogin.classList.remove('opacity-75', 'cursor-not-allowed');
