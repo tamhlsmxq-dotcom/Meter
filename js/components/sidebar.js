@@ -40,8 +40,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         const { auth, db } = await import(base + '/firebase-config.js');
         const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-        const currentUser = auth.currentUser;
 
+        const currentUser = auth.currentUser;
         if (!currentUser) {
             if (!currentPath.includes('login.html')) window.location.href = base + '/login.html';
             return;

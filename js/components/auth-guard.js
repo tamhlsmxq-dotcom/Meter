@@ -6,21 +6,43 @@ import { auth, db } from '../../firebase-config.js';
 import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
+const REDIRECT_KEY = 'meter_redirect_guard';
+let redirectLock = false;
+
+function safeRedirect(url) {
+    if (redirectLock) return;
+
+    const target = new URL(url, window.location.href).toString();
+    const currentTarget = sessionStorage.getItem(REDIRECT_KEY);
+    if (currentTarget === target) return;
+
+    redirectLock = true;
+    sessionStorage.setItem(REDIRECT_KEY, target);
+    window.location.replace(url);
+}
+
+window.addEventListener('pageshow', () => {
+    redirectLock = false;
+    const currentPath = window.location.pathname.toLowerCase();
+    if (currentPath.includes('login.html')) {
+        sessionStorage.removeItem(REDIRECT_KEY);
+    }
+});
+
 export async function checkPageAccess() {
     const currentPath = window.location.pathname.toLowerCase();
     const base = currentPath.includes('/pages/') ? '../..' : '.';
+    const currentUser = auth.currentUser;
 
     if (currentPath.includes('login.html')) {
-        const currentUser = auth.currentUser;
         if (currentUser) {
-            window.location.replace(`${base}/index.html`);
+            safeRedirect(`${base}/index.html`);
         }
         return;
     }
 
-    const currentUser = auth.currentUser;
     if (!currentUser) {
-        window.location.replace(`${base}/login.html`);
+        safeRedirect(`${base}/login.html`);
         return;
     }
 
@@ -29,7 +51,7 @@ export async function checkPageAccess() {
 
     if (!serverUserSnap.exists()) {
         localStorage.removeItem('wm_user_data');
-        window.location.replace(`${base}/login.html`);
+        safeRedirect(`${base}/login.html`);
         return;
     }
 
@@ -52,7 +74,7 @@ export async function checkPageAccess() {
 
     if (!hasAccess) {
         alert('🚫 ຂໍອະໄພ! ບັນຊີຂອງທ່ານບໍ່ມີສິດເຂົ້າເຖິງໜ້າວຽກນີ້.');
-        window.location.replace(`${base}/index.html`);
+        safeRedirect(`${base}/index.html`);
     }
 }
 
@@ -60,17 +82,22 @@ onAuthStateChanged(auth, async (user) => {
     const currentPath = window.location.pathname.toLowerCase();
     const base = currentPath.includes('/pages/') ? '../..' : '.';
 
-    if (!user) {
-        if (!currentPath.includes('login.html')) {
-            window.location.replace(`${base}/login.html`);
+    if (currentPath.includes('login.html')) {
+        if (user) {
+            safeRedirect(`${base}/index.html`);
         }
         return;
     }
 
-    if (currentPath.includes('login.html')) {
-        window.location.replace(`${base}/index.html`);
+    if (!user) {
+        safeRedirect(`${base}/login.html`);
         return;
     }
 
-    await checkPageAccess();
+    try {
+        await checkPageAccess();
+    } catch (error) {
+        console.error('Auth guard error:', error);
+        safeRedirect(`${base}/login.html`);
+    }
 });
