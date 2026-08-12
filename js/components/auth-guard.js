@@ -2,12 +2,14 @@
 // 🛡️ Auth Guard - Middleware ກວດສອບສິດທິການເຂົ້າເຖິງລະບົບ
 // =========================================================================
 
-export function checkPageAccess() {
+import { auth, db } from '../../firebase-config.js';
+import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+export async function checkPageAccess() {
     const userDataStr = localStorage.getItem('wm_user_data');
     const currentPath = window.location.pathname.toLowerCase();
     const base = currentPath.includes('/pages/') ? '../..' : '.';
 
-    // 1. ກວດສອບວ່າ Login ຫຼືຍັງ
     if (!userDataStr) {
         if (!currentPath.includes('login.html')) {
             window.location.replace(`${base}/login.html`);
@@ -15,25 +17,47 @@ export function checkPageAccess() {
         return;
     }
 
-    const userData = JSON.parse(userDataStr);
-    const role = userData.role || '';
-
-    // 2. Admin Bypass (ໃຫ້ Admin ຜ່ານທຸກໜ້າ)
-    if (role === 'system_manager' || role === 'super_admin') {
+    let userData;
+    try {
+        userData = JSON.parse(userDataStr);
+    } catch (error) {
+        localStorage.removeItem('wm_user_data');
+        window.location.replace(`${base}/login.html`);
         return;
     }
 
-    // 3. ກວດສອບສິດທິສະເພາະໜ້າ (Permissions) ສຳລັບ User ทົ່ວໄປ
-    const perms = userData.permissions || {};
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+        window.location.replace(`${base}/login.html`);
+        return;
+    }
+
+    const serverUserRef = doc(db, 'users', currentUser.uid);
+    const serverUserSnap = await getDoc(serverUserRef);
+
+    if (!serverUserSnap.exists()) {
+        localStorage.removeItem('wm_user_data');
+        window.location.replace(`${base}/login.html`);
+        return;
+    }
+
+    const serverUser = serverUserSnap.data();
+    const role = String(serverUser.role || '').trim();
+    const allowedAdminRoles = new Set(['system_manager', 'super_admin']);
+
+    if (allowedAdminRoles.has(role)) {
+        return;
+    }
+
+    const perms = serverUser.permissions || userData.permissions || {};
     let hasAccess = true;
 
-    if (currentPath.includes('index.html') && !perms.dashboard) { hasAccess = false; }
-    if (currentPath.includes('inventory.html') && !perms.inventory) { hasAccess = false; }
-    if (currentPath.includes('receive-items.html') && !perms.receive) { hasAccess = false; }
-    if (currentPath.includes('issue-items.html') && !perms.issue) { hasAccess = false; }
-    if (currentPath.includes('manage-users.html') && !perms.manageUsers) { hasAccess = false; }
+    if (currentPath.includes('index.html') && perms.dashboard !== true) { hasAccess = false; }
+    if (currentPath.includes('inventory.html') && perms.inventory !== true) { hasAccess = false; }
+    if (currentPath.includes('receive-items.html') && perms.receive !== true) { hasAccess = false; }
+    if (currentPath.includes('issue-items.html') && perms.issue !== true) { hasAccess = false; }
+    if (currentPath.includes('manage-users.html') && perms.manageUsers !== true) { hasAccess = false; }
 
-    // 4. ຖ້າບໍ່ມີສິດ ໃຫ້ແຈ້ງເຕືອນແລ້ວ Redirect ກັບໜ້າ Dashboard
     if (!hasAccess) {
         alert('🚫 ຂໍອະໄພ! ບັນຊີຂອງທ່ານບໍ່ມີສິດເຂົ້າເຖິງໜ້າວຽກນີ້.');
         window.location.replace(`${base}/index.html`);

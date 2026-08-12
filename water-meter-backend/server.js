@@ -8,6 +8,7 @@ const { initializeApp, cert, applicationDefault } = require('firebase-admin/app'
 const { getAuth } = require('firebase-admin/auth');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const { validateCreateUserPayload } = require('./validation');
+const { isAdminRole } = require('./authz');
 
 // Use the local key during development and the platform identity in production.
 const serviceAccountPath = './serviceAccountKey.json';
@@ -58,8 +59,7 @@ async function requireAdmin(req, res, next) {
         const decodedToken = await auth.verifyIdToken(token);
         const userSnapshot = await db.collection('users').doc(decodedToken.uid).get();
         const userData = userSnapshot.exists ? userSnapshot.data() : {};
-        const isAdmin = userData.role === 'system_manager' ||
-            userData.role === 'super_admin';
+        const isAdmin = isAdminRole(userData.role);
 
         if (!isAdmin) {
             return res.status(403).json({ error: 'ບັນຊີນີ້ບໍ່ມີສິດ Admin' });

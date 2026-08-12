@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const userName = userData.fullName || 'ພະນັກງານ';
     const userEmail = (userData.email || '').toLowerCase();
-    const role = userData.role || 'technical_staff';
+    const role = String(userData.role || 'technical_staff').trim();
     const perms = userData.permissions || {};
 
     const isAdmin = role === 'system_manager' || role === 'super_admin';

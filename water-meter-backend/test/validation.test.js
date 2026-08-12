@@ -1,6 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { validateCreateUserPayload } = require('../validation');
+const { isAdminRole } = require('../authz');
 
 test('accepts a valid create-user payload', () => {
     assert.equal(validateCreateUserPayload({
@@ -37,4 +38,12 @@ test('rejects passwords shorter than six characters', () => {
         }),
         /6/
     );
+});
+
+test('recognizes admin roles only for the allowlisted values', () => {
+    assert.equal(isAdminRole('system_manager'), true);
+    assert.equal(isAdminRole('super_admin'), true);
+    assert.equal(isAdminRole('warehouse_manager'), false);
+    assert.equal(isAdminRole('technical_staff'), false);
+    assert.equal(isAdminRole(''), false);
 });
