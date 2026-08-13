@@ -2,7 +2,7 @@
 // 🧠 ໂລຈິກກວດສອບຜູ້ໃຊ້ & Dynamic Routing (ພ້ອມລະບົບ Real-time Online Users)
 // =========================================================================
 
-// 🟢 1. ຝັງໂຄງສ້າງເມນູໄວ້ໃນນີ້ເລີຍ (ປ້ອງກັນບັນຫາເວັບຫາໄຟລ໌ບໍ່ເຫັນ) 🟢
+// 🟢 1. ຝັງໂຄງສ້າງເມນູໄວ້ໃນນີ້ເລີຍ
 window.SYSTEM_MODULES = [
     {
         id: 'warehouse',
@@ -36,44 +36,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     const currentPath = window.location.pathname;
     const base = currentPath.includes('/pages/') ? '../..' : '.';
 
-    let userData = null;
-    try {
-        const { auth, db } = await import(base + '/firebase-config.js');
-        const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-
-        const currentUser = auth.currentUser;
-        if (!currentUser) {
-            return;
-        }
-
-        const userSnapshot = await getDoc(doc(db, 'users', currentUser.uid));
-        if (!userSnapshot.exists()) {
-            localStorage.removeItem('wm_user_data');
-            return;
-        }
-
-        const data = userSnapshot.data();
-        userData = {
-            uid: currentUser.uid,
-            authUid: currentUser.uid,
-            email: data.email || currentUser.email || '',
-            fullName: data.fullName || currentUser.displayName || 'ພະນັກງານ',
-            role: String(data.role || 'technical_staff').trim(),
-            permissions: data.permissions || {}
-        };
-    } catch (error) {
-        console.error('Sidebar auth profile error:', error);
-        return;
+    // 🌟 1. ແກ້ບັກ: ດຶງຂໍ້ມູນຈາກ localStorage ແທນການລໍຖ້າ Firebase Auth (ເຮັດໃຫ້ເວັບໂຫຼດໄວຂຶ້ນ 100%)
+    const userDataStr = localStorage.getItem('wm_user_data');
+    if (!userDataStr) {
+        return; // ຖ້າບໍ່ມີ Session, auth-guard ຈະເຕະໄປໜ້າ login ອັດຕະໂນມັດ ບໍ່ຕ້ອງແຕ້ມ Sidebar
     }
 
-    const userName = userData.fullName || 'ພະນັກງານ';
+    let userData = JSON.parse(userDataStr);
+    
+    // ຈັດກຽມຂໍ້ມູນຜູ້ໃຊ້
+    const userName = userData.fullName || userData.email.split('@')[0] || 'ພະນັກງານ';
     const userEmail = (userData.email || '').toLowerCase();
-    const role = String(userData.role || 'technical_staff').trim();
+    const role = String(userData.role || 'viewer').trim();
     const perms = userData.permissions || {};
 
     const isAdmin = role === 'system_manager' || role === 'super_admin';
-    
-    // 🌟 ການແກ້ບັກ: ກວດສອບຕຳແໜ່ງໃຫ້ກວ້າງຂຶ້ນ ເພື່ອປ້ອງກັນຜູ້ໃຊ້ທຳມະດາຖືກລັອກເມນູຕົນເອງ 🌟
     const isWarehouse = role.includes('warehouse') || role.includes('head');
     const isField = role.includes('field') || role.includes('technical') || role.includes('head');
 
@@ -87,6 +64,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const avatarText = userName.charAt(0).toUpperCase();
     const adminBadge = isAdmin ? `<span class="inline-flex items-center justify-center ml-2 px-1.5 py-0.5 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded text-[9px] font-extrabold tracking-wider uppercase"><svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg> Admin</span>` : '';
 
+    // 🟢 2. ສ້າງ HTML ເມນູ
     let dynamicMenuHTML = `<p class="px-3 text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mb-3">ເມນູຫຼັກ (Main Menu)</p>
     <a href="${base}/index.html" class="nav-link flex items-center px-4 py-3.5 rounded-xl text-slate-400 transition-all duration-300 group active:scale-[0.98] border border-transparent" data-path="/index.html">
         <svg class="w-5 h-5 mr-3 group-hover:translate-x-1 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
@@ -99,12 +77,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (isAdmin) {
             hasAccess = true;
         } else {
-            // 🌟 ການແກ້ບັກ: ໃຫ້ສິດທິພື້ນຖານຕາມຕຳແໜ່ງສະເໝີ ເພື່ອປ້ອງກັນການຖືກລັອກຈາກ Admin ເຊັດຕິ້ງຜິດ 🌟
             if (module.id === 'warehouse' && isWarehouse) hasAccess = true;
             if (module.id === 'field' && isField) hasAccess = true;
             if (module.id === 'reconcile') hasAccess = true;
-            
-            // ແຕ່ຖ້າ Admin ຕິກໃຫ້ສິດທິພິເສດ ກໍເປີດໃຫ້ເຊັ່ນກັນ
             if (perms[module.id] === true) hasAccess = true;
         }
 
@@ -126,7 +101,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </a>
                 `;
             } else {
-                // ເຮັດເປັນສີເທົາ ແລະ ເອົາອະນິເມຊັນອອກເພື່ອໃຫ້ຮູ້ວ່າກົດບໍ່ໄດ້
                 const staticIcon = menu.icon.replace(/group-hover:[^\s'"]+/g, '');
                 dynamicMenuHTML += `
                 <div class="flex items-center px-4 py-3.5 mb-1 rounded-xl text-slate-500 opacity-40 cursor-not-allowed bg-slate-800/30 border border-slate-800/50" title="ເຈົ້າບໍ່ມີສິດເຂົ້າເຖິງໜ້ານີ້">
@@ -138,7 +112,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    // ⚙️ ສະແດງເມນູ Admin (ລັອກໄວ້ຖ້າບໍ່ແມ່ນ Admin)
     let hasAdminAccess = isAdmin || perms.manageUsers === true;
     
     dynamicMenuHTML += `
@@ -166,7 +139,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         `;
     }
 
-    // 🟢 3. ປະກອບເຂົ້າ Sidebar Container 🟢
+    // 🟢 3. ແຕ້ມ Sidebar ເຂົ້າໃນ HTML
     document.getElementById('sidebar-container').innerHTML = `
     <style>
         .custom-scrollbar::-webkit-scrollbar { width: 8px; }
@@ -239,24 +212,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     </aside>
     `;
 
-    const mobileMenuButton = document.createElement('button');
-    mobileMenuButton.className = 'wm-mobile-menu-button';
-    mobileMenuButton.setAttribute('aria-label', 'ເປີດເມນູ');
-    mobileMenuButton.innerHTML = '<span></span><span></span><span></span>';
-    mobileMenuButton.addEventListener('click', () => {
-        document.getElementById('sidebar-container').classList.toggle('wm-sidebar-open');
-    });
-    document.getElementById('sidebar-container').appendChild(mobileMenuButton);
-
-    const mobileMenuOverlay = document.createElement('button');
-    mobileMenuOverlay.className = 'wm-mobile-menu-overlay';
-    mobileMenuOverlay.setAttribute('aria-label', 'ປິດເມນູ');
-    mobileMenuOverlay.addEventListener('click', () => {
-        document.getElementById('sidebar-container').classList.remove('wm-sidebar-open');
-    });
-    document.getElementById('sidebar-container').appendChild(mobileMenuOverlay);
-
-    // 🌟 ລະບົບ Highlight ເມນູອັດຕະໂນມັດ 🌟
+    // 🌟 Highlight ເມນູປັດຈຸບັນ
     const navLinks = document.querySelectorAll('.nav-link');
     navLinks.forEach(link => {
         const pathData = link.getAttribute('data-path');
@@ -272,26 +228,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // =========================================================================
-    // 🚀 ລະບົບຈັດການສະຖານະ Online ຕົວຈິງ ແລະ Auto Logout
+    // 🚀 ລະບົບຈັດການສະຖານະ Online ຕົວຈິງ ແລະ Auto Logout (ເຊື່ອມ Firebase)
     // =========================================================================
     let updateStatusToOffline = async () => {}; 
 
     async function initRealtimePresence() {
         try {
             const { db } = await import(base + '/firebase-config.js');
-            const { collection, query, where, getDocs, setDoc, updateDoc, doc, onSnapshot, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            const { collection, query, where, setDoc, updateDoc, doc, onSnapshot, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
             
             const presenceRef = collection(db, 'presence');
-            let currentUserDocId = null;
+            const currentUserDocId = userEmail; // ໃຊ້ Email ເປັນ ID ປ້ອງກັນການ error ຖ້າບໍ່ມີ uid
 
-            if (userData.uid || userData.authUid) {
-                currentUserDocId = userData.uid || userData.authUid;
+            if (currentUserDocId) {
                 const myDocRef = doc(db, 'presence', currentUserDocId);
                 await setDoc(myDocRef, {
-                    uid: currentUserDocId,
+                    uid: userData.uid || userEmail,
                     fullName: userName,
                     email: userEmail,
-                    role,
+                    role: role,
                     isOnline: true,
                     lastActive: serverTimestamp()
                 }, { merge: true });
@@ -324,7 +279,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (user.role === 'system_manager' || user.role === 'super_admin') roleDisplay = 'ຜູ້ບໍລິຫານ';
                     else if (user.role === 'department_head') roleDisplay = 'ຫົວໜ້າພະແນກ';
                     else if (user.role === 'section_head') roleDisplay = 'ຫົວໜ້າພາກສ່ວນ';
-                    else if (user.role === 'warehouse_manager') roleDisplay = 'ຜູ້ຈັດການສາງ';
+                    else if (user.role === 'warehouse_manager' || user.role.includes('warehouse')) roleDisplay = 'ຜູ້ຈັດການສາງ';
 
                     html += `
                     <div class="flex items-center p-2 rounded-lg hover:bg-slate-800/50 transition-colors cursor-pointer group">
@@ -374,6 +329,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
+    // Timeout (Lock screen ຖ້າບໍ່ມີການເຄື່ອນໄຫວ)
     (function() {
         let idleTimer;
         const idleTimeLimit = 5 * 60 * 1000; 
