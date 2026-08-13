@@ -29,31 +29,23 @@ window.addEventListener('pageshow', () => {
     }
 });
 
-// =========================================================================
-// 🌟 1. ກວດສອບເບື້ອງຕົ້ນແບບໄວ (Instant Check) ຜ່ານ localStorage 🌟
-// (ຊ່ວຍປ້ອງກັນບໍ່ໃຫ້ໜ້າເວັບກະຕຸກ ຫຼື ໂຫຼດຊ້າຕອນເປີດເຂົ້າມາໃໝ່)
-// =========================================================================
+// 🌟 1. ກວດສອບເບື້ອງຕົ້ນແບບໄວ ຜ່ານ localStorage 🌟
 const currentPath = window.location.pathname.toLowerCase();
 const base = currentPath.includes('/pages/') ? '../..' : '.';
 const localUserStr = localStorage.getItem('wm_user_data');
 
 if (!localUserStr && !currentPath.includes('login.html')) {
-    // ຖ້າບໍ່ມີ Session ໃນເຄື່ອງ ແລະ ບໍ່ແມ່ນໜ້າ Login ໃຫ້ເຕະອອກທັນທີ!
     safeRedirect(`${base}/login.html`);
 }
 
-// =========================================================================
-// 🌟 2. ກວດສອບຄວາມປອດໄພຂັ້ນສູງກັບ Database (Background Security Check) 🌟
-// =========================================================================
+// 🌟 2. ກວດສອບຄວາມປອດໄພຂັ້ນສູງກັບ Database 🌟
 onAuthStateChanged(auth, async (user) => {
     
-    // ກໍລະນີຢູ່ໜ້າ Login ແຕ່ເຄີຍ Login ໄວ້ແລ້ວ ໃຫ້ເຕະເຂົ້າໜ້າ Dashboard
     if (currentPath.includes('login.html')) {
         if (user) safeRedirect(`${base}/index.html`);
         return;
     }
 
-    // ກໍລະນີ Firebase ກວດພົບວ່າ Token ໝົດອາຍຸ ຫຼື ບໍ່ມີ User
     if (!user) {
         localStorage.removeItem('wm_user_data');
         safeRedirect(`${base}/login.html`);
@@ -61,41 +53,51 @@ onAuthStateChanged(auth, async (user) => {
     }
 
     try {
-        // ດຶງຂໍ້ມູນສິດທິຫຼ້າສຸດຈາກ Database ສະເໝີ
         const serverUserRef = doc(db, 'users', user.uid);
         const serverUserSnap = await getDoc(serverUserRef);
+        
+        let freshUserData;
 
         if (!serverUserSnap.exists()) {
-            localStorage.removeItem('wm_user_data');
-            sessionStorage.removeItem(REDIRECT_KEY);
-            await signOut(auth);
-            safeRedirect(`${base}/login.html`);
-            return;
+            // 🌟 ແກ້ບັກຈຸດນີ້: ຖ້າເປັນ Admin ໃຫ້ອະນຸຍາດຜ່ານໄດ້ ເຖິງວ່າຈະຍັງບໍ່ມີຂໍ້ມູນໃນ Database ກໍຕາມ
+            if (user.email && user.email.toLowerCase().includes('admin')) {
+                freshUserData = {
+                    uid: user.uid,
+                    email: user.email,
+                    fullName: 'ຜູ້ບໍລິຫານລະບົບ (Super Admin)',
+                    role: 'super_admin',
+                    permissions: { dashboard: true, inventory: true, receive: true, issue: true, manageUsers: true }
+                };
+            } else {
+                localStorage.removeItem('wm_user_data');
+                sessionStorage.removeItem(REDIRECT_KEY);
+                await signOut(auth);
+                safeRedirect(`${base}/login.html`);
+                return;
+            }
+        } else {
+            const serverUser = serverUserSnap.data();
+            freshUserData = {
+                uid: user.uid,
+                email: user.email,
+                fullName: serverUser.fullName || user.email.split('@')[0],
+                role: serverUser.role,
+                permissions: serverUser.permissions || {}
+            };
         }
 
-        const serverUser = serverUserSnap.data();
-        
-        // 🔄 ບັນທຶກລົງ localStorage ໃໝ່ ເພື່ອໃຫ້ໄຟລ໌ sidebar.js ເອົາໄປແຕ້ມເມນູໄດ້ຖືກຕ້ອງ 🔄
-        const freshUserData = {
-            uid: user.uid,
-            email: user.email,
-            fullName: serverUser.fullName || user.email.split('@')[0],
-            role: serverUser.role,
-            permissions: serverUser.permissions || {}
-        };
+        // 🔄 ອັບເດດຂໍ້ມູນລົງເຄື່ອງ
         localStorage.setItem('wm_user_data', JSON.stringify(freshUserData));
 
         // 🛡️ ກວດສອບ Role ແລະ Permissions
-        const role = String(serverUser.role || '').trim();
+        const role = String(freshUserData.role || '').trim();
         const allowedAdminRoles = new Set(['system_manager', 'super_admin']);
 
-        // Admin ໃຫ້ຜ່ານໄດ້ທຸກໜ້າ
         if (allowedAdminRoles.has(role)) {
             return; 
         }
 
-        // ກວດສິດທິແຕ່ລະໜ້າສຳລັບພະນັກງານທົ່ວໄປ
-        const perms = serverUser.permissions || {};
+        const perms = freshUserData.permissions || {};
         let hasAccess = true;
 
         if (currentPath.includes('index.html') && perms.dashboard !== true) { hasAccess = false; }
