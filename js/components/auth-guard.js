@@ -1,75 +1,74 @@
 // =========================================================================
-// 🛡️ Auth Guard - Middleware ກວດສອບສິດທິການເຂົ້າເຖິງລະບົບ (Bulletproof)
+// 🛡️ Auth Guard - Universal Version (ຮອງຮັບທັງ Web App ແລະ App / PWA)
 // =========================================================================
 
 import { auth, db } from '../../firebase-config.js';
 import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
-const REDIRECT_KEY = 'meter_redirect_guard';
-let redirectLock = false;
-
-// 🌟 ຟັງຊັນແກ້ບັນຫາ "Cannot GET /pages/.../login.html" ໃຫ້ມັນກັບຄືນໜ້າຫຼັກສະເໝີ
+// 🌟 1. ຟັງຊັນຄຳນວນ Path ທີ່ໃຊ້ໄດ້ທັງ Web App ແລະ App 🌟
+// (ໃຊ້ການຖອຍຫຼັງໂຟນເດີ ../ ແທນການອ້າງອີງຈາກ Root / )
 function getCorrectPath(targetPage) {
-    const isLocal = window.location.protocol === 'file:';
-    if (!isLocal) return `/${targetPage}`; // ຖ້າລັນເທິງ Server ຫຼື Live Server ໃຊ້ Absolute Path ປອດໄພສຸດ
-    
     const path = window.location.pathname.toLowerCase();
-    const base = (path.includes('/pages/warehouse/') || path.includes('/pages/admin/')) ? '../..' : path.includes('/pages/') ? '..' : '.';
+    let base = '.';
+    
+    // ກວດສອບວ່າໄຟລ໌ປັດຈຸບັນຢູ່ເລິກຊ່ຳໃດ ເພື່ອຖອຍຫຼັງໃຫ້ຖືກຕ້ອງ
+    if (path.includes('/pages/warehouse/') || path.includes('/pages/admin/')) {
+        base = '../..';
+    } else if (path.includes('/pages/')) {
+        base = '..';
+    }
     return `${base}/${targetPage}`;
 }
 
-function safeRedirect(url) {
-    if (redirectLock) return;
-    const target = new URL(url, window.location.href).toString();
-    if (sessionStorage.getItem(REDIRECT_KEY) === target) return;
-
-    redirectLock = true;
-    sessionStorage.setItem(REDIRECT_KEY, target);
-    window.location.replace(url);
+// 🌟 2. ຟັງຊັນ Redirect ທີ່ປ້ອງກັນການຄ້າງ (Loop) ໃນ App 🌟
+let isRedirecting = false;
+function safeRedirect(targetPage) {
+    if (isRedirecting) return;
+    
+    // ກວດສອບວ່າປັດຈຸບັນຢູ່ໜ້າດຽວກັນແລ້ວຫຼືບໍ່ ເພື່ອປ້ອງກັນບໍ່ໃຫ້ມັນໂຫຼດໜ້າເກົ່າຊໍ້າໆ
+    const currentPath = window.location.pathname.toLowerCase();
+    if (!currentPath.includes(targetPage.toLowerCase())) {
+        isRedirecting = true;
+        const targetUrl = getCorrectPath(targetPage);
+        window.location.replace(targetUrl);
+    }
 }
 
-window.addEventListener('pageshow', () => {
-    redirectLock = false;
-    if (window.location.pathname.toLowerCase().includes('login.html')) {
-        sessionStorage.removeItem(REDIRECT_KEY);
-    }
-});
-
-// 🌟 1. ກວດສອບເບື້ອງຕົ້ນແບບໄວ ຜ່ານ localStorage 🌟
 const currentPath = window.location.pathname.toLowerCase();
 const localUserStr = localStorage.getItem('wm_user_data');
 
+// 🌟 3. Fast Check: ຖ້າບໍ່ມີ Session ໃນເຄື່ອງ ໃຫ້ເຕະໄປ Login ທັນທີ (ບໍ່ໃຫ້ຈໍກະຕຸກ)
 if (!localUserStr && !currentPath.includes('login.html')) {
-    safeRedirect(getCorrectPath('login.html'));
+    safeRedirect('login.html');
 }
 
-// 🌟 2. ກວດສອບຄວາມປອດໄພຂັ້ນສູງກັບ Database 🌟
+// 🌟 4. Firebase Security Check
 onAuthStateChanged(auth, async (user) => {
     
+    // ຖ້າຢູ່ໜ້າ Login ແຕ່ເຄີຍ Login ແລ້ວ -> ໄປໜ້າ Dashboard
     if (currentPath.includes('login.html')) {
-        if (user) safeRedirect(getCorrectPath('index.html'));
+        if (user) safeRedirect('index.html');
         return;
     }
 
+    // ຖ້າ Firebase ແຈ້ງວ່າ Token ໝົດອາຍຸ ຫຼື ບໍ່ມີ User
     if (!user) {
         localStorage.removeItem('wm_user_data');
-        safeRedirect(getCorrectPath('login.html'));
+        safeRedirect('login.html');
         return;
     }
 
     try {
-        // 🔒 ກວດສອບຂໍ້ມູນຈາກ Database
+        // ກວດສອບສິດທິຈາກ Database ໂດຍໃຊ້ອີເມວ
         const serverUserRef = doc(db, 'users', user.email.toLowerCase());
         const serverUserSnap = await getDoc(serverUserRef);
         
         let freshUserData;
 
-        // ❌ ຖ້າບໍ່ມີຂໍ້ມູນໃນ Database
         if (!serverUserSnap.exists()) {
-            // 🌟 ຂໍ້ຍົກເວັ້ນພິເສດສຳລັບ Admin ເພື່ອບໍ່ໃຫ້ຖືກລັອກໃນຕອນກຳລັງຕັ້ງຄ່າລະບົບ 🌟
+            // ⚠️ ຊ່ອງທາງພິເສດສຳລັບ Admin ເພື່ອປ້ອງກັນການລັອກໂຕເອງອອກ ຕອນກຳລັງຕັ້ງຄ່າ
             if (user.email.toLowerCase() === 'admin@watermeter.com') {
-                console.warn("System: ໃຊ້ສິດທິພິເສດສຳລັບ Admin ຫຼັກ");
                 freshUserData = {
                     uid: user.uid,
                     email: user.email,
@@ -78,16 +77,12 @@ onAuthStateChanged(auth, async (user) => {
                     permissions: { dashboard: true, inventory: true, receive: true, issue: true, manageUsers: true }
                 };
             } else {
-                // ຖ້າເປັນຄົນອື່ນທີ່ບໍ່ມີໃນ Database ໃຫ້ເຕະອອກທັນທີ
-                console.warn("Security Alert: User not found in database.");
                 localStorage.removeItem('wm_user_data');
-                sessionStorage.removeItem(REDIRECT_KEY);
                 await signOut(auth);
-                safeRedirect(getCorrectPath('login.html'));
+                safeRedirect('login.html');
                 return;
             }
         } else {
-            // ✅ ຖ້າມີຂໍ້ມູນໃນ Database ແລ້ວ ໃຫ້ດຶງມາໃຊ້
             const serverUser = serverUserSnap.data();
             freshUserData = {
                 uid: user.uid,
@@ -98,35 +93,35 @@ onAuthStateChanged(auth, async (user) => {
             };
         }
         
-        // 🔄 ອັບເດດຂໍ້ມູນລົງ localStorage
+        // ອັບເດດ Session ລົງເຄື່ອງ
         localStorage.setItem('wm_user_data', JSON.stringify(freshUserData));
 
-        // 🛡️ ກວດສອບ Role ແລະ Permissions
+        // ກວດສອບການເຂົ້າເຖິງແຕ່ລະໜ້າ
         const role = String(freshUserData.role || '').trim();
         const allowedAdminRoles = new Set(['system_manager', 'super_admin']);
 
-        if (allowedAdminRoles.has(role)) {
-            return; 
-        }
+        // Admin ຜ່ານໄດ້ທຸກໜ້າ
+        if (allowedAdminRoles.has(role)) return; 
 
+        // ກວດສິດທິຕາມໜ້າວຽກ
         const perms = freshUserData.permissions || {};
         let hasAccess = true;
 
-        if (currentPath.includes('index.html') && perms.dashboard !== true) { hasAccess = false; }
-        if (currentPath.includes('inventory.html') && perms.inventory !== true) { hasAccess = false; }
-        if (currentPath.includes('receive-items.html') && perms.receive !== true) { hasAccess = false; }
-        if (currentPath.includes('issue-items.html') && perms.issue !== true) { hasAccess = false; }
-        if (currentPath.includes('manage-users.html') && perms.manageUsers !== true) { hasAccess = false; }
+        if (currentPath.includes('index.html') && !perms.dashboard) hasAccess = false;
+        if (currentPath.includes('inventory.html') && !perms.inventory) hasAccess = false;
+        if (currentPath.includes('receive-items.html') && !perms.receive) hasAccess = false;
+        if (currentPath.includes('create-issue.html') && !perms.issue) hasAccess = false;
+        if (currentPath.includes('field-report.html') && !perms.field) hasAccess = false;
+        if (currentPath.includes('manage-users.html') && !perms.manageUsers) hasAccess = false;
 
         if (!hasAccess) {
             alert('🚫 ຂໍອະໄພ! ບັນຊີຂອງທ່ານບໍ່ມີສິດເຂົ້າເຖິງໜ້າວຽກນີ້.');
-            safeRedirect(getCorrectPath('index.html'));
+            safeRedirect('index.html');
         }
 
     } catch (error) {
         console.error('Auth guard error:', error);
-        sessionStorage.removeItem(REDIRECT_KEY);
         try { await signOut(auth); } catch (e) {}
-        safeRedirect(getCorrectPath('login.html'));
+        safeRedirect('login.html');
     }
 });
