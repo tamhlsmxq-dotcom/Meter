@@ -220,25 +220,13 @@
             }
         }
 
-        // 🟢 1. ລະບົບ Role ຂອງຜູ້ໃຊ້ປັດຈຸບັນ (ບໍ່ເຊື່ອຖື localStorage ເປັນ source of truth) 🟢
-        const userData = await (async () => {
+        // 🟢 1. ລະບົບ Role ຂອງຜູ້ໃຊ້ປັດຈຸບັນ (ດຶງຈາກ localStorage ທີ່ auth-guard ກວດສອບແລ້ວ) 🟢
+        const userData = (() => {
             try {
-                const { auth, db } = await import('../../firebase-config.js');
-                const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-                const currentUser = auth.currentUser;
-                if (!currentUser) return {};
-                const userSnapshot = await getDoc(doc(db, 'users', currentUser.uid));
-                if (!userSnapshot.exists()) return {};
-                const data = userSnapshot.data();
-                return {
-                    uid: currentUser.uid,
-                    email: data.email || currentUser.email || '',
-                    fullName: data.fullName || currentUser.displayName || 'Unknown User',
-                    role: String(data.role || '').trim(),
-                    permissions: data.permissions || {}
-                };
-            } catch (error) {
-                console.error('Issue items RBAC profile error:', error);
+                const dataStr = localStorage.getItem('wm_user_data');
+                return dataStr ? JSON.parse(dataStr) : {};
+            } catch (e) {
+                console.error('Could not parse user data from localStorage', e);
                 return {};
             }
         })();

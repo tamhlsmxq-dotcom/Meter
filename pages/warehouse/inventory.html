@@ -369,35 +369,23 @@
         import { collection, addDoc, getDocs, query, orderBy, serverTimestamp, doc, updateDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { createStockMovement, getStockActor } from '../../js/data/stock-audit.js';
 
-        // 🟢 ດຶງຂໍ້ມູນຈາກໄຟລ໌ materials.js ທີ່ເຮົາແຍກໄວ້ 🟢
         import { rawMaterialsCSV } from '../../js/data/materials.js';
 
-        // 🔒 RBAC: ກວດສອບສິດທິແອດມິນຈາກ Firebase Auth + Firestore ທີ່ແທ້ຈິງ, ບໍ່ໄດ້ເຊື່ອຖື role ຈາກ localStorage
-        const userData = await (async () => {
+        // 🔒 RBAC: ດຶງຂໍ້ມູນຜູ້ໃຊ້ທີ່ກວດສອບແລ້ວຈາກ localStorage (ທີ່ auth-guard.js ສ້າງໄວ້)
+        const userData = (() => {
             try {
-                const { auth, db } = await import('../../firebase-config.js');
-                const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-                const currentUser = auth.currentUser;
-                if (!currentUser) return {};
-                const userSnapshot = await getDoc(doc(db, 'users', currentUser.uid));
-                if (!userSnapshot.exists()) return {};
-                const data = userSnapshot.data();
-                return {
-                    uid: currentUser.uid,
-                    email: data.email || currentUser.email || '',
-                    fullName: data.fullName || currentUser.displayName || 'ພະນັກງານ',
-                    role: String(data.role || 'technical_staff').trim(),
-                    permissions: data.permissions || {}
-                };
-            } catch (error) {
-                console.error('Inventory RBAC profile error:', error);
+                const dataStr = localStorage.getItem('wm_user_data');
+                return dataStr ? JSON.parse(dataStr) : {};
+            } catch (e) {
+                console.error('Could not parse user data from localStorage', e);
                 return {};
             }
         })();
         const isAdmin = userData.role === 'system_manager' || userData.role === 'super_admin';
+        const isWarehouseManager = userData.role === 'warehouse_manager';
 
         // ສະແດງປຸ່ມສະເພາະ Admin
-        if (isAdmin) {
+        if (isAdmin || isWarehouseManager) {
             document.getElementById('btnAddMaterial').style.display = 'flex';
             document.getElementById('btnAutoImport').style.display = 'flex'; 
         }
@@ -591,7 +579,7 @@
         };
 
         window.saveManualStock = async function() {
-            if (!isAdmin) return alert("⛔ ຂໍອະໄພ, ສະເພາະ Admin ເທົ່ານັ້ນທີ່ສາມາດແກ້ໄຂຍອດສະຕັອກໄດ້!");
+            if (!isAdmin && !isWarehouseManager) return alert("⛔ ຂໍອະໄພ, ສະເພາະ Admin ຫຼື ຜູ້ຈັດການສາງ ເທົ່ານັ້ນທີ່ສາມາດແກ້ໄຂຍອດສະຕັອກໄດ້!");
             if (!currentEditDocId) return;
 
             const btn = document.getElementById('btnSaveStockManual');
@@ -626,7 +614,7 @@
         };
 
         window.saveMaterial = async function() {
-            if (!isAdmin) return alert("⛔ ຂໍອະໄພ, ສະເພາະ Admin ເທົ່ານັ້ນ!");
+            if (!isAdmin && !isWarehouseManager) return alert("⛔ ຂໍອະໄພ, ສະເພາະ Admin ຫຼື ຜູ້ຈັດການສາງ ເທົ່ານັ້ນ!");
 
             const btn = document.getElementById('btnSaveMaterial');
             const code = document.getElementById('matCode').value.trim().toUpperCase();
@@ -675,7 +663,7 @@
         };
 
         window.autoImportData = async function() {
-            if (!isAdmin) return alert("ສະເພາະ Admin ເທົ່ານັ້ນ!");
+            if (!isAdmin && !isWarehouseManager) return alert("ສະເພາະ Admin ຫຼື ຜູ້ຈັດການສາງ ເທົ່ານັ້ນ!");
             
             const confirmMsg = "ລະບົບຈະດຶງສະເພາະລາຍການໃໝ່ຈາກ master data. ລາຍການທີ່ມີ itemCode ຢູ່ແລ້ວຈະຖືກຂ້າມ ແລະຈະບໍ່ລຶບ/ປ່ຽນ stock ເກົ່າ. ຕ້ອງການດຳເນີນການຕໍ່ບໍ່?";
             if (!confirm(confirmMsg)) return;

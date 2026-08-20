@@ -15,6 +15,7 @@
     <link rel="apple-touch-icon" href="./icon.svg">
     <script src="./runtime-config.js"></script>
     <script src="./js/components/notifications.js"></script>
+    <script type="module" src="./js/components/auth-guard.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -72,13 +73,6 @@
             <p class="text-blue-100/80 text-sm mt-2 text-center">ພະແນກຄຸ້ມຄອງໝໍ້ແທກນ້ຳ<br>ແລະ ຫຼຸດຜ່ອນນ້ຳສູນເສຍ</p>
         </div>
 
-        <div id="authLoading" class="hidden absolute inset-0 bg-slate-900/60 backdrop-blur-sm rounded-3xl z-20 items-center justify-center">
-            <div class="flex flex-col items-center text-white">
-                <div class="animate-spin rounded-full h-12 w-12 border-4 border-white/30 border-t-blue-300"></div>
-                <p class="mt-4 text-sm font-medium">ກຳລັງກວດສະຖານະຜູ້ໃຊ້...</p>
-            </div>
-        </div>
-
         <!-- ຟອມ Login ທີ່ເຊື່ອມ Firebase ແລ້ວ -->
         <form id="loginForm" class="space-y-5" autocomplete="off">
             <div>
@@ -132,41 +126,12 @@
     <!-- 🟢 Script ໂຕໃໝ່ລ່າສຸດ ທີ່ດຶງສິດທິຈາກ Firestore ໄດ້ 🟢 -->
     <script type="module">
         import { auth, db } from './firebase-config.js';
-        import { signInWithEmailAndPassword, setPersistence, browserLocalPersistence, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { signInWithEmailAndPassword, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const installButton = document.getElementById('installAppButton');
-        const authLoading = document.getElementById('authLoading');
         const loginForm = document.getElementById('loginForm');
         let deferredPrompt = null;
-        let redirectInProgress = false;
-        const REDIRECT_KEY = 'meter_redirect_guard';
-
-        if (location.protocol === 'file:') {
-            console.warn('PWA install requires a real HTTP/HTTPS server. Open the app from localhost or deploy it with HTTPS.');
-            if (installButton) {
-                installButton.textContent = 'ເປີດຈາກ localhost/HTTPS ເພື່ອຕິດຕັ້ງແອັບ';
-                installButton.classList.remove('hidden');
-            }
-        }
-
-        function showAuthLoading(show) {
-            if (!authLoading) return;
-            authLoading.classList.toggle('hidden', !show);
-            authLoading.classList.toggle('flex', show);
-        }
-
-        function redirectOnce(url) {
-            if (redirectInProgress) return;
-
-            const target = new URL(url, window.location.href).toString();
-            const currentTarget = sessionStorage.getItem(REDIRECT_KEY);
-            if (currentTarget === target) return;
-
-            redirectInProgress = true;
-            sessionStorage.setItem(REDIRECT_KEY, target);
-            window.location.replace(url);
-        }
 
         if (location.protocol !== 'file:') {
             window.addEventListener('beforeinstallprompt', (event) => {
@@ -176,6 +141,13 @@
                     installButton.classList.remove('hidden');
                 }
             });
+        }
+        else {
+            console.warn('PWA install requires a real HTTP/HTTPS server. Open the app from localhost or deploy it with HTTPS.');
+            if (installButton) {
+                installButton.textContent = 'ເປີດຈາກ localhost/HTTPS ເພື່ອຕິດຕັ້ງແອັບ';
+                installButton.classList.remove('hidden');
+            }
         }
 
         if (installButton) {
@@ -211,63 +183,6 @@
         const btnText = document.getElementById('btnText');
         const errorMessage = document.getElementById('errorMessage');
 
-        async function validateAndRedirectUser(user) {
-            if (!user) {
-                redirectInProgress = false;
-                showAuthLoading(false);
-                return;
-            }
-
-            try {
-                const userSnapshot = await getDoc(doc(db, 'users', user.uid));
-
-                if (!userSnapshot.exists()) {
-                    localStorage.removeItem('wm_user_data');
-                    sessionStorage.removeItem(REDIRECT_KEY);
-                    await signOut(auth);
-                    errorMessage.classList.remove('hidden');
-                    errorMessage.innerText = 'ບັນຊີນີ້ຍັງບໍ່ໄດ້ລະບົບໃຫ້ຜູ້ໃຊ້ໃນລະບົບ ກະລຸນາເຂົ້າສູ່ລະບົບອີກຄັ້ງ';
-                    showAuthLoading(false);
-                    redirectInProgress = false;
-                    return;
-                }
-
-                const data = userSnapshot.data();
-                const userStatus = String(data.status || 'active').trim().toLowerCase();
-                if (userStatus !== 'active') {
-                    localStorage.removeItem('wm_user_data');
-                    sessionStorage.removeItem(REDIRECT_KEY);
-                    await signOut(auth);
-                    errorMessage.classList.remove('hidden');
-                    errorMessage.innerText = 'ບັນຊີນີ້ບໍ່ມີສິດເຂົ້າລະບົບໃນປັດຈຸບັນ';
-                    showAuthLoading(false);
-                    redirectInProgress = false;
-                    return;
-                }
-
-                showAuthLoading(true);
-                redirectOnce('./index.html');
-            } catch (error) {
-                console.error('Login auth validation failed:', error);
-                localStorage.removeItem('wm_user_data');
-                sessionStorage.removeItem(REDIRECT_KEY);
-                try {
-                    await signOut(auth);
-                } catch (signOutError) {
-                    console.warn('Failed to sign out invalid session:', signOutError);
-                }
-                errorMessage.classList.remove('hidden');
-                errorMessage.innerText = 'ເກີດຂໍ້ຜິດພາດໃນການກວດສອບຂໍ້ມູນຜູ້ໃຊ້';
-                showAuthLoading(false);
-                redirectInProgress = false;
-            }
-        }
-
-        onAuthStateChanged(auth, (user) => {
-            sessionStorage.removeItem(REDIRECT_KEY);
-            validateAndRedirectUser(user);
-        });
-
         // ເມື່ອໂຫຼດໜ້າຂຶ້ນມາ ໃຫ້ດຶງອີເມວທີ່ເຄີຍຈື່ໄວ້ມາສະແດງ
         document.addEventListener("DOMContentLoaded", function() {
             const savedEmail = localStorage.getItem('wm_user_email');
@@ -275,9 +190,6 @@
                 document.getElementById('email').value = savedEmail;
                 document.getElementById('rememberMe').checked = true;
             }
-            redirectInProgress = false;
-            sessionStorage.removeItem(REDIRECT_KEY);
-            showAuthLoading(false);
         });
 
         // ເມື່ອກົດປຸ່ມເຂົ້າສູ່ລະບົບ (Submit Form)
@@ -335,7 +247,7 @@
                 }
                 
                 // ລັອກອິນສຳເລັດ ໂດດໄປໜ້າ Dashboard
-                redirectOnce('./index.html');
+                window.location.href = './index.html';
 
             } catch (error) {
                 console.error("Login Error:", error);
