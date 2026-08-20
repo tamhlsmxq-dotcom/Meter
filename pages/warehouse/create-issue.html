@@ -96,7 +96,7 @@
     <script type="module">
         import { db } from '../../firebase-config.js';
         import { rawMaterialsCSV } from '../../js/data/materials.js';
-        import { collection, getDocs, doc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { collection, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         async function seedMaterialsIfEmpty() {
             try {
@@ -211,13 +211,13 @@
                 
                 // ແຈ້ງເຕືອນຖ້າສະຕັອກໝົດ
                 if(matchedItem.stock <= 0) {
-                    stockSpan.classList.replace('text-slate-500', 'text-rose-500');
-                    alert(`⚠️ ແຈ້ງເຕືອນ: ວັດຖຸນີ້ໝົດສະຕັອກແລ້ວ (ຍອດເຫຼືອ 0)`);
+                    stockSpan.classList.add('text-rose-500');
+                    showNotification(`⚠️ ແຈ້ງເຕືອນ: ${matchedItem.itemName} ໝົດສະຕັອກແລ້ວ`, 'warning');
                 }
             } else {
                 nameInput.value = 'ບໍ່ພົບລະຫັດ!';
                 docIdInput.value = '';
-                stockSpan.textContent = '-';
+                stockSpan.textContent = '??';
                 inputElement.classList.add('border-rose-400', 'text-rose-500');
             }
         };
@@ -227,7 +227,7 @@
             if(tbody.children.length > 1) {
                 btn.closest('tr').remove();
                 updateRowNumbers();
-            } else { alert("ຕ້ອງມີຢ່າງໜ້ອຍ 1 ລາຍການ"); }
+            } else { showNotification("ຕ້ອງມີຢ່າງໜ້ອຍ 1 ລາຍການ", "error"); }
         };
 
         function updateRowNumbers() {
@@ -243,7 +243,8 @@
             const teamVal = document.getElementById('teamName').value;
 
             if (!docRefVal || !dateVal || !teamVal) {
-                return alert("ກະລຸນາປ້ອນ ຂໍ້ມູນໃບເບີກ ໃຫ້ຄົບຖ້ວນ!");
+                showNotification("ກະລຸນາປ້ອນຂໍ້ມູນໃບເບີກໃຫ້ຄົບຖ້ວນ!", "error");
+                return;
             }
 
             const rows = document.querySelectorAll('.issue-row');
@@ -257,10 +258,10 @@
 
                 if (code !== "") {
                     if (!docId) {
-                        alert(`ລະຫັດອຸປະກອນ "${code}" ບໍ່ຖືກຕ້ອງ!`);
+                        showNotification(`ລະຫັດອຸປະກອນ "${code}" ບໍ່ຖືກຕ້ອງ!`, "error");
                         hasError = true;
                     } else if (isNaN(qtyWh) || qtyWh <= 0) {
-                        alert(`ກະລຸນາປ້ອນຈຳນວນທີ່ສາງຈ່າຍ ສຳລັບລະຫັດ "${code}" ໃຫ້ຖືກຕ້ອງ.`);
+                        showNotification(`ກະລຸນາປ້ອນຈຳນວນທີ່ສາງຈ່າຍສຳລັບ "${code}" ໃຫ້ຖືກຕ້ອງ.`, "error");
                         hasError = true;
                     } else {
                         itemsToIssue.push({
@@ -275,7 +276,10 @@
             });
 
             if (hasError) return;
-            if (itemsToIssue.length === 0) return alert("ກະລຸນາເພີ່ມຢ່າງໜ້ອຍ 1 ລາຍການ!");
+            if (itemsToIssue.length === 0) {
+                showNotification("ກະລຸນາເພີ່ມຢ່າງໜ້ອຍ 1 ລາຍການ!", "error");
+                return;
+            }
 
             btn.disabled = true; btn.innerHTML = 'ກຳລັງບັນທຶກ...';
 
@@ -285,12 +289,11 @@
                     docRef: docRefVal,
                     issueDate: dateVal,
                     teamName: teamVal,
-                    status: 'issued', // ສະຖານະ: ສາງຈ່າຍແລ້ວ ລໍຖ້າຊ່າງລາຍງານ
                     items: itemsToIssue,
                     createdAt: serverTimestamp()
                 });
 
-                alert("✅ ສ້າງໃບເບີກເຄື່ອງສຳເລັດ! ເອກະສານນີ້ຖືກສົ່ງໄປຫາໜ້າຈໍຂອງຊ່າງແລ້ວ.");
+                showNotification("✅ ສ້າງໃບເບີກເຄື່ອງສຳເລັດ!", "success");
                 
                 // ລ້າງໜ້າຈໍ
                 document.getElementById('docRef').value = '';
@@ -299,7 +302,8 @@
                 addTableRow();
 
             } catch (error) {
-                console.error("Error:", error); alert("❌ ຜິດພາດ: " + error.message);
+                console.error("Error:", error); 
+                showNotification("❌ ຜິດພາດ: " + error.message, "error");
             } finally {
                 btn.disabled = false; btn.innerHTML = 'ສ້າງໃບເບີກ (ສົ່ງໃຫ້ຊ່າງ)';
             }

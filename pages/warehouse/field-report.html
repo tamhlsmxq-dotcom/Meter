@@ -143,12 +143,11 @@
 
     <script type="module">
         import { db } from '../../firebase-config.js';
-        import { collection, getDocs, doc, updateDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { collection, getDocs, doc, getDoc, updateDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         let currentTicketId = null;
         let currentItems = [];
 
-        // 🟢 ໂຫຼດລາຍການໃບເບີກທັງໝົດ 🟢
         window.loadTickets = async function() {
             const tbody = document.getElementById('ticketsTableBody');
             try {
@@ -205,7 +204,6 @@
             } catch (error) { console.error("Error:", error); }
         };
 
-        // 🟢 ເປີດ Modal ລາຍງານ (ໂຫຼດລາຍການອຸປະກອນໃນໃບເບີກນັ້ນ) 🟢
         window.openReportModal = async function(docId, isReadOnly = false) {
             currentTicketId = docId;
             const tbody = document.getElementById('reportTableBody');
@@ -216,11 +214,9 @@
 
             try {
                 // ດຶງຂໍ້ມູນໃບບິນນີ້
-                const q = query(collection(db, "reconcile_tickets"));
-                const snap = await getDocs(q);
-                let ticketData = null;
-                snap.forEach(d => { if(d.id === docId) ticketData = d.data(); });
-
+                const ticketRef = doc(db, "reconcile_tickets", docId);
+                const ticketSnap = await getDoc(ticketRef);
+                const ticketData = ticketSnap.exists() ? ticketSnap.data() : {};
                 document.getElementById('lblDocRef').innerText = ticketData.docRef;
                 currentItems = ticketData.items || [];
                 tbody.innerHTML = '';
@@ -255,7 +251,6 @@
             } catch(e) { console.error(e); }
         };
 
-        // 🟢 ບັນທຶກການລາຍງານຂອງຊ່າງ 🟢
         window.submitFieldReport = async function() {
             const btn = document.getElementById('btnSubmitReport');
             const inputs = document.querySelectorAll('.input-qty-field');
@@ -276,9 +271,14 @@
                 }
             });
 
-            if(hasError) return alert("ກະລຸນາປ້ອນຈຳນວນທີ່ປົດ/ໃຊ້ຈິງ ໃຫ້ຄົບທຸກລາຍການ (ຫ້າມປະຫວ່າງ ແລະ ຫ້າມຕິດລົບ)!");
+            if(hasError) {
+                showNotification("ກະລຸນາປ້ອນຈຳນວນທີ່ປົດ/ໃຊ້ຈິງ ໃຫ້ຄົບທຸກລາຍການ (ຫ້າມປະຫວ່າງ ແລະ ຫ້າມຕິດລົບ)!", "error");
+                return;
+            }
 
-            if(!confirm("ຢືນຢັນການສົ່ງລາຍງານ? ຫຼັງຈາກສົ່ງແລ້ວ ຂໍ້ມູນຈະຖືກສົ່ງໄປໃຫ້ສາງສົມທຽບເພື່ອຕັດສະຕັອກ.")) return;
+            if(!confirm("ຢືນຢັນການສົ່ງລາຍງານ? ຂໍ້ມູນຈະຖືກສົ່ງໄປໃຫ້ສາງສົມທຽບ.")) {
+                return;
+            }
 
             btn.disabled = true; btn.innerHTML = 'ກຳລັງບັນທຶກ...';
 
@@ -291,18 +291,17 @@
                     reportedAt: serverTimestamp()
                 });
 
-                alert("✅ ສົ່ງລາຍງານການປົດເຄື່ອງໃຫ້ສາງສຳເລັດແລ້ວ!");
+                showNotification("✅ ສົ່ງລາຍງານໃຫ້ສາງສຳເລັດແລ້ວ!", "success");
                 toggleModal('reportModal', false);
                 loadTickets(); // Refresh ຕາຕະລາງ
 
             } catch(e) { 
-                alert("❌ ເກີດຂໍ້ຜິດພາດ: " + e.message); 
+                showNotification("❌ ເກີດຂໍ້ຜິດພາດ: " + e.message, "error");
             } finally {
                 btn.disabled = false; btn.innerHTML = 'ບັນທຶກການລາຍງານ';
             }
         };
 
-        // ໂຫຼດຂໍ້ມູນທັນທີທີ່ເປີດໜ້າ
         window.loadTickets();
 
     </script>

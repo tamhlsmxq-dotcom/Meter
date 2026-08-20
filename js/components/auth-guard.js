@@ -60,8 +60,8 @@ onAuthStateChanged(auth, async (user) => {
     }
 
     try {
-        // ກວດສອບສິດທິຈາກ Database ໂດຍໃຊ້ອີເມວ
-        const serverUserRef = doc(db, 'users', user.email.toLowerCase());
+        // 🟢 ແກ້ໄຂ: ປ່ຽນຈາກການໃຊ້ email ມາເປັນ user.uid ເພື່ອໃຫ້ກົງກັບວິທີການສ້າງ user ໃນລະບົບ
+        const serverUserRef = doc(db, 'users', user.uid);
         const serverUserSnap = await getDoc(serverUserRef);
         
         let freshUserData;
@@ -86,7 +86,7 @@ onAuthStateChanged(auth, async (user) => {
             const serverUser = serverUserSnap.data();
             freshUserData = {
                 uid: user.uid,
-                email: user.email,
+                email: serverUser.email || user.email,
                 fullName: serverUser.fullName || user.email.split('@')[0],
                 role: serverUser.role,
                 permissions: serverUser.permissions || {}
@@ -108,10 +108,10 @@ onAuthStateChanged(auth, async (user) => {
         let hasAccess = true;
 
         if (currentPath.includes('index.html') && !perms.dashboard) hasAccess = false;
-        if (currentPath.includes('inventory.html') && !perms.inventory) hasAccess = false;
-        if (currentPath.includes('receive-items.html') && !perms.receive) hasAccess = false;
-        if (currentPath.includes('create-issue.html') && !perms.issue) hasAccess = false;
-        if (currentPath.includes('field-report.html') && !perms.field) hasAccess = false;
+        if (currentPath.includes('inventory.html') && !perms.inventory) hasAccess = false; // ໜ້າສະຕັອກ
+        if (currentPath.includes('receive-items.html') && !perms.receive) hasAccess = false; // ໜ້າຮັບເຄື່ອງ
+        if (currentPath.includes('create-issue.html') && !perms.issue) hasAccess = false; // ໜ້າສ້າງໃບເບີກ
+        if (currentPath.includes('issue-items.html') && !(perms.issue || perms.field)) hasAccess = false; // ໜ້າສົມທຽບ (ສາງ) ຫຼື ລາຍງານ (ຊ່າງ)
         if (currentPath.includes('manage-users.html') && !perms.manageUsers) hasAccess = false;
 
         if (!hasAccess) {

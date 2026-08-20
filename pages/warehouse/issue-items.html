@@ -185,7 +185,7 @@
     <script type="module">
         import { db } from '../../firebase-config.js';
         import { rawMaterialsCSV } from '../../js/data/materials.js';
-        import { collection, addDoc, getDocs, doc, updateDoc, writeBatch, increment, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { collection, addDoc, getDocs, doc, getDoc, updateDoc, writeBatch, increment, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { createStockMovement, getStockActor } from '../../js/data/stock-audit.js';
 
         async function seedMaterialsIfEmpty() {
@@ -411,9 +411,10 @@
             toggleModal('reconcileModal', true);
 
             try {
-                const q = query(collection(db, "reconcile_tickets"));
-                const snap = await getDocs(q);
-                snap.forEach(d => { if(d.id === docId) ticketGlobalData = d.data(); });
+                // 🟢 ປັບປຸງ: ດຶງຂໍ້ມູນສະເພາະ Document ທີ່ຕ້ອງການ ເພື່ອປະສິດທິພາບທີ່ດີຂຶ້ນ
+                const ticketRef = doc(db, "reconcile_tickets", docId);
+                const ticketSnap = await getDoc(ticketRef);
+                ticketGlobalData = ticketSnap.exists() ? ticketSnap.data() : {};
 
                 // ສະແດງຊື່ຜູ້ປ້ອນ
                 document.getElementById('lblFieldUser').innerText = ticketGlobalData.fieldUser || 'ຍັງບໍ່ມີ';
