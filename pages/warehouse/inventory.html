@@ -371,24 +371,37 @@
 
         import { rawMaterialsCSV } from '../../js/data/materials.js';
 
-        // 🔒 RBAC: ດຶງຂໍ້ມູນຜູ້ໃຊ້ທີ່ກວດສອບແລ້ວຈາກ localStorage (ທີ່ auth-guard.js ສ້າງໄວ້)
-        const userData = (() => {
-            try {
-                const dataStr = localStorage.getItem('wm_user_data');
-                return dataStr ? JSON.parse(dataStr) : {};
-            } catch (e) {
-                console.error('Could not parse user data from localStorage', e);
-                return {};
-            }
-        })();
-        const isAdmin = userData.role === 'system_manager' || userData.role === 'super_admin';
-        const isWarehouseManager = userData.role === 'warehouse_manager';
+        let userData = {};
+        let isAdmin = false;
+        let isWarehouseManager = false;
 
-        // ສະແດງປຸ່ມສະເພາະ Admin
-        if (isAdmin || isWarehouseManager) {
-            document.getElementById('btnAddMaterial').style.display = 'flex';
-            document.getElementById('btnAutoImport').style.display = 'flex'; 
+        function setupPageForUser(user) {
+            if (!user || !user.role) {
+                console.warn("Inventory page: User data not ready, buttons hidden.");
+                return;
+            }
+            
+            userData = user;
+            isAdmin = userData.role === 'system_manager' || userData.role === 'super_admin';
+            isWarehouseManager = userData.role === 'warehouse_manager';
+
+            // ສະແດງປຸ່ມສະເພາະ Admin ຫຼື ຜູ້ຈັດການສາງ
+            if (isAdmin || isWarehouseManager) {
+                document.getElementById('btnAddMaterial').style.display = 'flex';
+                document.getElementById('btnAutoImport').style.display = 'flex'; 
+            }
         }
+
+        // 1. ລໍຖັງ event ຈາກ auth-guard ເພື່ອແກ້ໄຂ race condition
+        document.addEventListener('userDataReady', (e) => {
+            setupPageForUser(e.detail);
+        });
+
+        // 2. ລອງກວດສອບຂໍ້ມູນທັນທີ ຖ້າມີໃນ localStorage ຢູ່ແລ້ວ (ສຳລັບການໂຫຼດໜ້າໄວ)
+        try {
+            const initialData = localStorage.getItem('wm_user_data');
+            if (initialData) setupPageForUser(JSON.parse(initialData));
+        } catch(e) { console.error("Error parsing initial user data", e); }
 
         let stockHistoryRows = [];
 

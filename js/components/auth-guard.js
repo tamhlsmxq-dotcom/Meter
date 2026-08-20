@@ -46,41 +46,37 @@ if (!localUserStr && !currentPath.includes('login.html')) {
 // 🌟 4. Firebase Security Check
 onAuthStateChanged(auth, async (user) => {
     
-    // ຖ້າຢູ່ໜ້າ Login ແຕ່ເຄີຍ Login ແລ້ວ -> ໄປໜ້າ Dashboard
-    if (currentPath.includes('login.html')) {
-        if (user) safeRedirect('index.html');
-        return;
-    }
+    const onLoginPage = currentPath.includes('login.html');
 
-    // ຖ້າ Firebase ແຈ້ງວ່າ Token ໝົດອາຍຸ ຫຼື ບໍ່ມີ User
     if (!user) {
-        localStorage.removeItem('wm_user_data');
-        safeRedirect('login.html');
+        // ຖ້າບໍ່ມີ User Session, ຕ້ອງຢູ່ໜ້າ Login ເທົ່ານັ້ນ
+        if (!onLoginPage) {
+            localStorage.removeItem('wm_user_data');
+            safeRedirect('login.html');
+        }
         return;
     }
 
+    // ຖ້າມີ User Session, ຕ້ອງກວດສອບຄວາມຖືກຕ້ອງຂອງ Profile ທຸກຄັ້ງ
     try {
-        // 🟢 ແກ້ໄຂ: ປ່ຽນຈາກການໃຊ້ email ມາເປັນ user.uid ເພື່ອໃຫ້ກົງກັບວິທີການສ້າງ user ໃນລະບົບ
         const serverUserRef = doc(db, 'users', user.uid);
         const serverUserSnap = await getDoc(serverUserRef);
         
         let freshUserData;
 
         if (!serverUserSnap.exists()) {
-            // ⚠️ ຊ່ອງທາງພິເສດສຳລັບ Admin ເພື່ອປ້ອງກັນການລັອກໂຕເອງອອກ ຕອນກຳລັງຕັ້ງຄ່າ
+            // ⚠️ ຊ່ອງທາງພິເສດສຳລັບ Admin ເພື່ອປ້ອງກັນການລັອກໂຕເອງອອກ
             if (user.email.toLowerCase() === 'admin@watermeter.com') {
                 freshUserData = {
                     uid: user.uid,
                     email: user.email,
                     fullName: 'ຜູ້ບໍລິຫານລະບົບ',
                     role: 'super_admin',
-                    permissions: { dashboard: true, inventory: true, receive: true, issue: true, manageUsers: true }
+                    permissions: { dashboard: true, inventory: true, receive: true, issue: true, field: true, manageUsers: true }
                 };
             } else {
-                localStorage.removeItem('wm_user_data');
-                await signOut(auth);
-                safeRedirect('login.html');
-                return;
+                // ຖ້າ User ທົ່ວໄປບໍ່ມີ Profile ໃນ Firestore, ຖືວ່າບໍ່ hợp lệ
+                throw new Error(`User profile not found for UID: ${user.uid}`);
             }
         } else {
             const serverUser = serverUserSnap.data();
@@ -88,22 +84,28 @@ onAuthStateChanged(auth, async (user) => {
                 uid: user.uid,
                 email: serverUser.email || user.email,
                 fullName: serverUser.fullName || user.email.split('@')[0],
-                role: serverUser.role,
+                role: serverUser.role || 'technical_staff',
                 permissions: serverUser.permissions || {}
             };
         }
         
-        // ອັບເດດ Session ລົງເຄື່ອງ
         localStorage.setItem('wm_user_data', JSON.stringify(freshUserData));
+        // 🟢 ແຈ້ງບອກສະຄຣິບອື່ນໆວ່າຂໍ້ມູນຜູ້ໃຊ້ພ້ອມແລ້ວ (ແກ້ໄຂ race condition)
+        document.dispatchEvent(new CustomEvent('userDataReady', { detail: freshUserData }));
 
-        // ກວດສອບການເຂົ້າເຖິງແຕ່ລະໜ້າ
+        // ຫຼັງຈາກກວດສອບ Profile ສຳເລັດ
+        if (onLoginPage) {
+            // ຖ້າຢູ່ໜ້າ Login ແຕ່ Profile ຖືກຕ້ອງ, ໃຫ້ໄປໜ້າຫຼັກ
+            safeRedirect('index.html');
+            return;
+        }
+
+        // ຖ້າຢູ່ໜ້າອື່ນ, ກວດສອບສິດທິການເຂົ້າເຖິງໜ້ານັ້ນໆ
         const role = String(freshUserData.role || '').trim();
         const allowedAdminRoles = new Set(['system_manager', 'super_admin']);
 
-        // Admin ຜ່ານໄດ້ທຸກໜ້າ
         if (allowedAdminRoles.has(role)) return; 
 
-        // ກວດສິດທິຕາມໜ້າວຽກ
         const perms = freshUserData.permissions || {};
         let hasAccess = true;
 
@@ -120,8 +122,15 @@ onAuthStateChanged(auth, async (user) => {
         }
 
     } catch (error) {
-        console.error('Auth guard error:', error);
-        try { await signOut(auth); } catch (e) {}
-        safeRedirect('login.html');
+        // ຖ້າການກວດສອບ Profile ຜິດພາດ (ເຊັ່ນ: Network error, user ບໍ່ມີ profile)
+        console.error('Auth guard validation error:', error);
+        localStorage.removeItem('wm_user_data');
+        await signOut(auth);
+
+        // ຖ້າບໍ່ໄດ້ຢູ່ໜ້າ Login, ໃຫ້ສົ່ງໄປໜ້າ Login
+        if (!onLoginPage) {
+            safeRedirect('login.html');
+        }
+        // ຖ້າຢູ່ໜ້າ Login ຢູ່ແລ້ວ, ກໍບໍ່ຕ້ອງເຮັດຫຍັງ, ໃຫ້ user ລັອກອິນໃໝ່
     }
 });

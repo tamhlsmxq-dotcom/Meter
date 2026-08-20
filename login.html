@@ -207,47 +207,16 @@
             try {
                 await setPersistence(auth, browserLocalPersistence);
 
-                // 1. ກວດສອບລະຫັດຜ່ານຜ່ານ Auth
+                // 1. ພະຍາຍາມລັອກອິນຜ່ານ Firebase Auth
                 await signInWithEmailAndPassword(auth, email, password);
                 
-                // 2. ດຶງຂໍ້ມູນຜູ້ໃຊ້ຈາກ Firestore ເພື່ອກວດສອບສິດທິຈິງ (ບໍ່ໃຫ້ login ຜ່ານໄປໂດຍການບໍລິການຕົວຂອງຜູ້ໃຊ້ໃນ browser)
-                const firebaseUser = auth.currentUser;
-                const userSnapshot = await getDoc(doc(db, "users", firebaseUser.uid));
-
-                if (!userSnapshot.exists()) {
-                    throw new Error('ບັນຊີນີ້ຍັງບໍ່ໄດ້ລະບົບໃຫ້ຜູ້ໃຊ້ຢູ່ໃນລະບົບ');
-                }
-
-                const data = userSnapshot.data();
-                const userStatus = String(data.status || 'active').trim().toLowerCase();
-                if (userStatus !== 'active') {
-                    throw new Error('ບັນຊີນີ້ບໍ່ມີສິດເຂົ້າລະບົບໃນປັດຈຸບັນ');
-                }
-
-                const userData = {
-                    uid: firebaseUser.uid,
-                    authUid: firebaseUser.uid,
-                    email: data.email || email,
-                    fullName: data.fullName || email,
-                    role: data.role || 'technical_staff',
-                    permissions: data.permissions || {}
-                };
-
-                if (userData.role === 'super_admin' || userData.role === 'system_manager') {
-                    userData.permissions = { dashboard: true, inventory: true, receive: true, issue: true, manageUsers: true };
-                }
-
-                // 3. ບັນທຶກຂໍ້ມູນທັງໝົດລົງເຄື່ອງ ເພື່ອໃຫ້ sidebar ເອົາໄປໃຊ້ງານຕໍ່
-                localStorage.setItem('wm_user_data', JSON.stringify(userData));
-                
+                // 2. ຫຼັງຈາກລັອກອິນສຳເລັດ, auth-guard.js ຈະຮັບໜ້າທີ່ກວດສອບ Profile ແລະ redirect ເອງ
+                // ເຮົາພຽງແຕ່ບັນທຶກອີເມວຖ້າຜູ້ໃຊ້ຕ້ອງການ
                 if(rememberMe) { 
                     localStorage.setItem('wm_user_email', email); 
                 } else { 
                     localStorage.removeItem('wm_user_email'); 
                 }
-                
-                // ລັອກອິນສຳເລັດ ໂດດໄປໜ້າ Dashboard
-                window.location.href = './index.html';
 
             } catch (error) {
                 console.error("Login Error:", error);
