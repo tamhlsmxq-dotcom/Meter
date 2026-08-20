@@ -27,11 +27,12 @@ function safeRedirect(targetPage) {
     if (isRedirecting) return;
     
     // ກວດສອບວ່າປັດຈຸບັນຢູ່ໜ້າດຽວກັນແລ້ວຫຼືບໍ່ ເພື່ອປ້ອງກັນບໍ່ໃຫ້ມັນໂຫຼດໜ້າເກົ່າຊໍ້າໆ
-    const currentPath = window.location.pathname.toLowerCase();
-    if (!currentPath.includes(targetPage.toLowerCase())) {
+    const currentFullUrl = window.location.href.toLowerCase();
+    const targetFullUrl = new URL(getCorrectPath(targetPage), window.location.href).href.toLowerCase();
+
+    if (currentFullUrl !== targetFullUrl) { // ປັບປຸງການກວດສອບໃຫ້ຮອບຄອບຂຶ້ນ, ລວມທັງ Query Parameters
         isRedirecting = true;
-        const targetUrl = getCorrectPath(targetPage);
-        window.location.replace(targetUrl);
+        window.location.replace(targetFullUrl);
     }
 }
 

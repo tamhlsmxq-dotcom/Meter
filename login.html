@@ -190,6 +190,20 @@
                 document.getElementById('email').value = savedEmail;
                 document.getElementById('rememberMe').checked = true;
             }
+
+            // ກວດສອບ Error Message ຈາກ URL (ທີ່ Auth Guard ສົ່ງມາ)
+            const urlParams = new URLSearchParams(window.location.search);
+            const errorParam = urlParams.get('error');
+            if (errorParam) {
+                errorMessage.classList.remove('hidden');
+                if (errorParam === 'profile_invalid') {
+                    errorMessage.innerText = 'ບັນຊີຂອງທ່ານບໍ່ມີຂໍ້ມູນສິດທິໃນລະບົບ ຫຼື ບໍ່ຖືກຕ້ອງ. ກະລຸນາຕິດຕໍ່ຜູ້ເບິ່ງແຍງລະບົບ.';
+                } else if (errorParam === 'auth_guard_failed') {
+                    errorMessage.innerText = 'ເກີດຂໍ້ຜິດພາດໃນການກວດສອບຄວາມປອດໄພ. ກະລຸນາລອງໃໝ່ອີກຄັ້ງ.';
+                }
+                // ລຶບ Error Parameter ອອກຈາກ URL ເພື່ອບໍ່ໃຫ້ສະແດງຊໍ້າອີກເມື່ອ Refresh
+                history.replaceState({}, document.title, window.location.pathname);
+            }
         });
 
         // ເມື່ອກົດປຸ່ມເຂົ້າສູ່ລະບົບ (Submit Form)
