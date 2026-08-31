@@ -126,8 +126,23 @@
     <!-- 🟢 Script ໂຕໃໝ່ລ່າສຸດ ທີ່ດຶງສິດທິຈາກ Firestore ໄດ້ 🟢 -->
     <script type="module">
         import { auth, db } from './firebase-config.js';
-        import { signInWithEmailAndPassword, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { signInWithEmailAndPassword, setPersistence, browserLocalPersistence, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const getDeviceFingerprint = () => {
+            const parts = [
+                navigator.userAgent,
+                navigator.language,
+                navigator.platform,
+                screen.width,
+                screen.height,
+                new Date().getTimezoneOffset(),
+                navigator.hardwareConcurrency || 0,
+                location.hostname
+            ];
+
+            return btoa(unescape(encodeURIComponent(parts.join('|')))).slice(0, 64);
+        };
 
         const installButton = document.getElementById('installAppButton');
         const loginForm = document.getElementById('loginForm');
@@ -200,6 +215,8 @@
                     errorMessage.innerText = 'ບັນຊີຂອງທ່ານບໍ່ມີຂໍ້ມູນສິດທິໃນລະບົບ ຫຼື ບໍ່ຖືກຕ້ອງ. ກະລຸນາຕິດຕໍ່ຜູ້ເບິ່ງແຍງລະບົບ.';
                 } else if (errorParam === 'auth_guard_failed') {
                     errorMessage.innerText = 'ເກີດຂໍ້ຜິດພາດໃນການກວດສອບຄວາມປອດໄພ. ກະລຸນາລອງໃໝ່ອີກຄັ້ງ.';
+                } else if (errorParam === 'security_alert') {
+                    errorMessage.innerText = '⚠️ ເຫັນອຸປະກອນຫຼື browser ທີ່ບໍ່ໄດ້ຮັບອະນຸຍາດ. ການເຂົ້າເຖິງໄດ້ຖືກລະງັບເພື່ອຄວາມປອດໄພ.';
                 }
                 // ລຶບ Error Parameter ອອກຈາກ URL ເພື່ອບໍ່ໃຫ້ສະແດງຊໍ້າອີກເມື່ອ Refresh
                 history.replaceState({}, document.title, window.location.pathname);
@@ -225,7 +242,41 @@
                 await signInWithEmailAndPassword(auth, email, password);
                 
                 // 2. ຫຼັງຈາກລັອກອິນສຳເລັດ, auth-guard.js ຈະຮັບໜ້າທີ່ກວດສອບ Profile ແລະ redirect ເອງ
-                // ເຮົາພຽງແຕ່ບັນທຶກອີເມວຖ້າຜູ້ໃຊ້ຕ້ອງການ
+                // ກວດສອບ device fingerprint ຄັ້ງທຳອິດເພື່ອປ້ອງກັນການເຂົ້າເຖິງຈາກ browser/ອຸປະກອນທີ່ບໍ່ໄດ້ຮັບອະນຸຍາດ
+                const currentUser = auth.currentUser;
+                if (currentUser) {
+                    const userRef = doc(db, 'users', currentUser.uid);
+                    const userSnap = await getDoc(userRef);
+                    const userData = userSnap.exists() ? userSnap.data() : {};
+                    const trustedDevice = userData?.security?.deviceFingerprint || null;
+                    const currentDevice = getDeviceFingerprint();
+
+                    if (trustedDevice && trustedDevice !== currentDevice) {
+                        await updateDoc(userRef, {
+                            'security.lastSuspiciousAt': serverTimestamp(),
+                            'security.suspiciousDeviceFingerprint': currentDevice,
+                            'security.alerts': (userData?.security?.alerts || []).concat([
+                                {
+                                    type: 'untrusted_device',
+                                    message: 'Detected login from a different browser/device than the trusted fingerprint.',
+                                    ts: serverTimestamp()
+                                }
+                            ])
+                        });
+
+                        await signOut(auth);
+                        throw new Error('Untrusted device detected. Access blocked for security reasons.');
+                    }
+
+                    await updateDoc(userRef, {
+                        'security.deviceFingerprint': currentDevice,
+                        'security.lastKnownUserAgent': navigator.userAgent,
+                        'security.lastLoginAt': serverTimestamp(),
+                        'security.loginCount': (userData?.security?.loginCount || 0) + 1,
+                        'security.lastUpdatedAt': serverTimestamp()
+                    }, { merge: true });
+                }
+
                 if(rememberMe) { 
                     localStorage.setItem('wm_user_email', email); 
                 } else { 

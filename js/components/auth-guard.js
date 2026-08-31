@@ -3,8 +3,23 @@
 // =========================================================================
 
 import { auth, db } from '../../firebase-config.js';
-import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { doc, getDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+const getDeviceFingerprint = () => {
+    const parts = [
+        navigator.userAgent,
+        navigator.language,
+        navigator.platform,
+        screen.width,
+        screen.height,
+        new Date().getTimezoneOffset(),
+        navigator.hardwareConcurrency || 0,
+        location.hostname
+    ];
+
+    return btoa(unescape(encodeURIComponent(parts.join('|')))).slice(0, 64);
+};
 
 // 🌟 1. ຟັງຊັນຄຳນວນ Path ທີ່ໃຊ້ໄດ້ທັງ Web App ແລະ App 🌟
 // (ໃຊ້ການຖອຍຫຼັງໂຟນເດີ ../ ແທນການອ້າງອີງຈາກ Root / )
@@ -100,12 +115,42 @@ onAuthStateChanged(auth, async (user) => {
             }
         } else {
             const serverUser = serverUserSnap.data();
+            const currentDeviceFingerprint = getDeviceFingerprint();
+            const trustedDeviceFingerprint = serverUser.security?.deviceFingerprint;
+
+            if (trustedDeviceFingerprint && trustedDeviceFingerprint !== currentDeviceFingerprint) {
+                await updateDoc(serverUserRef, {
+                    'security.lastSuspiciousAt': serverTimestamp(),
+                    'security.suspiciousDeviceFingerprint': currentDeviceFingerprint,
+                    'security.alerts': (serverUser.security?.alerts || []).concat([
+                        {
+                            type: 'untrusted_device',
+                            message: 'Blocked access from untrusted browser/device during auth validation.',
+                            ts: serverTimestamp()
+                        }
+                    ]),
+                    'security.isBlocked': true,
+                    'security.blockedAt': serverTimestamp()
+                }, { merge: true });
+
+                localStorage.removeItem('wm_user_data');
+                await signOut(auth);
+                alert('⚠️ ຄວາມປອດໄພ: ເຫັນອຸປະກອນທີ່ບໍ່ໄດ້ຮັບອະນຸຍາດ. ການເຂົ້າເຖິງລະບົບໄດ້ຖືກລະງັບຊົ່ວຄາວ.');
+                window.location.replace('login.html?error=security_alert');
+                return;
+            }
+
             freshUserData = {
                 uid: user.uid,
                 email: serverUser.email || user.email,
                 fullName: serverUser.fullName || user.email.split('@')[0],
                 role: serverUser.role || 'technical_staff',
-                permissions: serverUser.permissions || {}
+                permissions: serverUser.permissions || {},
+                security: {
+                    deviceFingerprint: currentDeviceFingerprint,
+                    lastKnownUserAgent: navigator.userAgent,
+                    lastLoginAt: serverUser.security?.lastLoginAt || null
+                }
             };
         }
         

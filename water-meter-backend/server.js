@@ -129,7 +129,27 @@ async function requireAdmin(req, res, next) {
         const isAdmin = isAdminRole(userData.role);
 
         if (!isAdmin) {
+            await logAuditEvent({
+                actorUid: decodedToken.uid,
+                actorEmail: decodedToken.email || null,
+                action: 'unauthorized_admin_access_attempt',
+                resourceType: 'admin_api',
+                resourceId: decodedToken.uid,
+                details: { path: req.originalUrl, method: req.method }
+            });
             return res.status(403).json({ error: 'ບັນຊີນີ້ບໍ່ມີສິດ Admin' });
+        }
+
+        if (userData.status === 'suspended') {
+            await logAuditEvent({
+                actorUid: decodedToken.uid,
+                actorEmail: decodedToken.email || null,
+                action: 'blocked_suspended_admin_access',
+                resourceType: 'users',
+                resourceId: decodedToken.uid,
+                details: { path: req.originalUrl, method: req.method }
+            });
+            return res.status(403).json({ error: 'ບັນຊີນີ້ຖືກລະງັບການເຂົ້າເຖິງອັດຕະໂນມັດຍ້ອນສະຖານະບໍ່ເປີດໃຊ້ງານ' });
         }
 
         req.user = decodedToken;
@@ -139,6 +159,26 @@ async function requireAdmin(req, res, next) {
         return res.status(401).json({ error: 'Firebase ID token ບໍ່ຖືກຕ້ອງ ຫຼື ໝົດອາຍຸ' });
     }
 }
+
+app.get('/api/security/audit', requireAdmin, async (req, res) => {
+    try {
+        const snapshot = await db.collection('audit_logs')
+            .orderBy('createdAt', 'desc')
+            .limit(25)
+            .get();
+
+        const entries = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+            createdAt: doc.data().createdAt?.toDate ? doc.data().createdAt.toDate().toISOString() : null,
+        }));
+
+        res.json({ entries });
+    } catch (error) {
+        console.error('Security audit fetch error:', error);
+        res.status(500).json({ error: 'ບໍ່ສາມາດດຶງລາຍການຄວາມປອດໄພໄດ້' });
+    }
+});
 
 app.get('/api/users', requireAdmin, async (req, res) => {
     try {
