@@ -53,6 +53,16 @@ function safeRedirect(targetPage) {
 
 const currentPath = window.location.pathname.toLowerCase();
 
+function isLoginPagePath(pathname = currentPath) {
+    const normalized = (pathname || '').replace(/\/+$/, '');
+    return normalized.endsWith('/login') || normalized.endsWith('/login.html') || normalized === '';
+}
+
+function isIndexPagePath(pathname = currentPath) {
+    const normalized = (pathname || '').replace(/\/+$/, '');
+    return normalized === '' || normalized.endsWith('/index') || normalized.endsWith('/index.html');
+}
+
 function getStoredUser() {
     try {
         const localUserStr = localStorage.getItem('wm_user_data');
@@ -74,14 +84,14 @@ function getStoredUser() {
 const localUser = getStoredUser();
 
 // 🌟 3. Fast Check: ຖ້າບໍ່ມີ Session ໃນເຄື່ອງ ໃຫ້ເຕະໄປ Login ທັນທີ (ບໍ່ໃຫ້ຈໍກະຕຸກ)
-if (!localUser && !currentPath.includes('login.html')) {
+if (!localUser && !isLoginPagePath()) {
     safeRedirect('login.html');
 }
 
 // 🌟 4. Firebase Security Check
 onAuthStateChanged(auth, async (user) => {
     
-    const onLoginPage = currentPath.includes('login.html');
+    const onLoginPage = isLoginPagePath();
 
     if (!user) {
         // ຖ້າບໍ່ມີ User Session, ຕ້ອງຢູ່ໜ້າ Login ເທົ່ານັ້ນ
@@ -195,7 +205,7 @@ onAuthStateChanged(auth, async (user) => {
             : {};
         let hasAccess = true;
 
-        if (currentPath.includes('index.html') && perms.dashboard !== true) hasAccess = false;
+        if (isIndexPagePath() && perms.dashboard !== true) hasAccess = false;
         if (currentPath.includes('inventory.html') && perms.inventory !== true) hasAccess = false; // ໜ້າສະຕັອກ
         if (currentPath.includes('receive-items.html') && perms.receive !== true) hasAccess = false; // ໜ້າຮັບເຄື່ອງ
         if (currentPath.includes('create-issue.html') && perms.issue !== true) hasAccess = false; // ໜ້າສ້າງໃບເບີກ
