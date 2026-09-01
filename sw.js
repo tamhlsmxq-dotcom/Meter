@@ -1,4 +1,4 @@
-const CACHE_NAME = 'water-meter-v3';
+const CACHE_NAME = 'water-meter-v5';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -23,11 +23,10 @@ self.addEventListener('install', (event) => {
       }
     }));
   }));
-  self.skipWaiting(); // ບັງຄັບໃຫ້ອັບເດດທັນທີ
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
-  // ລຶບຄວາມຈຳເກົ່າ (v1) ຖິ້ມທັງໝົດ
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
@@ -40,9 +39,25 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// ສຳຄັນ: ໃຫ້ດຶງຂໍ້ມູນຈາກເນັດກ່ອນສະເໝີ (Network-First) ຖ້າບໍ່ມີເນັດຈຶ່ງໃຊ້ Cache
 self.addEventListener('fetch', (event) => {
+  const request = event.request;
+
+  if (request.method !== 'GET') return;
+
+  const isSameOrigin = request.url.startsWith(self.location.origin);
+  const isHtmlRequest = request.mode === 'navigate' || request.headers.get('accept')?.includes('text/html');
+
+  if (!isSameOrigin && !isHtmlRequest) {
+    return;
+  }
+
   event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request))
+    fetch(request)
+      .then((response) => {
+        const responseClone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone)).catch(() => {});
+        return response;
+      })
+      .catch(() => caches.match(request).then((cached) => cached || caches.match('./index.html')))
   );
 });
