@@ -58,3 +58,11 @@ test('accepts only the allowlisted non-admin roles', () => {
     assert.equal(isAllowedUserRole('hacker'), false);
     assert.equal(isAllowedUserRole(''), false);
 });
+
+test('normalizes role strings before checking permissions', () => {
+    assert.equal(isAdminRole(' SUPER_ADMIN '), true);
+    assert.equal(isAdminRole(' system_manager '), true);
+    assert.equal(isAllowedUserRole(' WAREHOUSE_MANAGER '), true);
+    assert.equal(isAllowedUserRole('  technical_staff  '), true);
+    assert.equal(isAllowedUserRole('Admin'), false);
+});

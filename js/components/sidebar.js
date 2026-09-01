@@ -35,20 +35,31 @@ window.SYSTEM_MODULES = [
 document.addEventListener('DOMContentLoaded', async () => {
     const currentPath = window.location.pathname;
     const base = currentPath.includes('/pages/') ? '../..' : '.';
+    const normalizeRole = (value) => String(value || '').trim().toLowerCase();
 
     // 🌟 1. ແກ້ບັກ: ດຶງຂໍ້ມູນຈາກ localStorage ແທນການລໍຖ້າ Firebase Auth (ເຮັດໃຫ້ເວັບໂຫຼດໄວຂຶ້ນ 100%)
-    const userDataStr = localStorage.getItem('wm_user_data');
-    if (!userDataStr) {
-        return; // ຖ້າບໍ່ມີ Session, auth-guard ຈະເຕະໄປໜ້າ login ອັດຕະໂນມັດ ບໍ່ຕ້ອງແຕ້ມ Sidebar
-    }
+    let userData = null;
+    try {
+        const userDataStr = localStorage.getItem('wm_user_data');
+        if (!userDataStr) {
+            return; // ຖ້າບໍ່ມີ Session, auth-guard ຈະເຕະໄປໜ້າ login ອັດຕະໂນມັດ ບໍ່ຕ້ອງແຕ້ມ Sidebar
+        }
 
-    let userData = JSON.parse(userDataStr);
+        userData = JSON.parse(userDataStr);
+        if (!userData || typeof userData !== 'object') {
+            throw new Error('Stored user data is not an object');
+        }
+    } catch (error) {
+        console.warn('User session from storage is invalid. Clearing it.', error);
+        localStorage.removeItem('wm_user_data');
+        return;
+    }
     
     // ຈັດກຽມຂໍ້ມູນຜູ້ໃຊ້
-    const userName = userData.fullName || userData.email.split('@')[0] || 'ພະນັກງານ';
+    const userName = userData.fullName || (userData.email ? userData.email.split('@')[0] : 'ພະນັກງານ');
     const userEmail = (userData.email || '').toLowerCase();
-    const role = String(userData.role || 'viewer').trim();
-    const perms = userData.permissions || {};
+    const role = normalizeRole(userData.role || 'viewer');
+    const perms = userData.permissions && typeof userData.permissions === 'object' ? userData.permissions : {};
 
     const isAdmin = role === 'system_manager' || role === 'super_admin';
     const isWarehouse = role.includes('warehouse') || role.includes('head');

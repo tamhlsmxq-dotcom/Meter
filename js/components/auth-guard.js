@@ -37,10 +37,29 @@ function safeRedirect(targetPage) {
 }
 
 const currentPath = window.location.pathname.toLowerCase();
-const localUserStr = localStorage.getItem('wm_user_data');
+
+function getStoredUser() {
+    try {
+        const localUserStr = localStorage.getItem('wm_user_data');
+        if (!localUserStr) return null;
+
+        const parsed = JSON.parse(localUserStr);
+        if (!parsed || typeof parsed !== 'object') {
+            throw new Error('Stored user data is not an object');
+        }
+
+        return parsed;
+    } catch (error) {
+        console.warn('Stored user data was invalid or corrupted. Clearing session.', error);
+        localStorage.removeItem('wm_user_data');
+        return null;
+    }
+}
+
+const localUser = getStoredUser();
 
 // 🌟 3. Fast Check: ຖ້າບໍ່ມີ Session ໃນເຄື່ອງ ໃຫ້ເຕະໄປ Login ທັນທີ (ບໍ່ໃຫ້ຈໍກະຕຸກ)
-if (!localUserStr && !currentPath.includes('login.html')) {
+if (!localUser && !currentPath.includes('login.html')) {
     safeRedirect('login.html');
 }
 
@@ -102,20 +121,22 @@ onAuthStateChanged(auth, async (user) => {
         }
 
         // ຖ້າຢູ່ໜ້າອື່ນ, ກວດສອບສິດທິການເຂົ້າເຖິງໜ້ານັ້ນໆ
-        const role = String(freshUserData.role || '').trim();
+        const role = String(freshUserData.role || '').trim().toLowerCase();
         const allowedAdminRoles = new Set(['system_manager', 'super_admin']);
 
-        if (allowedAdminRoles.has(role)) return; 
+        if (allowedAdminRoles.has(role)) return;
 
-        const perms = freshUserData.permissions || {};
+        const perms = freshUserData.permissions && typeof freshUserData.permissions === 'object'
+            ? freshUserData.permissions
+            : {};
         let hasAccess = true;
 
-        if (currentPath.includes('index.html') && !perms.dashboard) hasAccess = false;
-        if (currentPath.includes('inventory.html') && !perms.inventory) hasAccess = false; // ໜ້າສະຕັອກ
-        if (currentPath.includes('receive-items.html') && !perms.receive) hasAccess = false; // ໜ້າຮັບເຄື່ອງ
-        if (currentPath.includes('create-issue.html') && !perms.issue) hasAccess = false; // ໜ້າສ້າງໃບເບີກ
-        if (currentPath.includes('issue-items.html') && !(perms.issue || perms.field)) hasAccess = false; // ໜ້າສົມທຽບ (ສາງ) ຫຼື ລາຍງານ (ຊ່າງ)
-        if (currentPath.includes('manage-users.html') && !perms.manageUsers) hasAccess = false;
+        if (currentPath.includes('index.html') && perms.dashboard !== true) hasAccess = false;
+        if (currentPath.includes('inventory.html') && perms.inventory !== true) hasAccess = false; // ໜ້າສະຕັອກ
+        if (currentPath.includes('receive-items.html') && perms.receive !== true) hasAccess = false; // ໜ້າຮັບເຄື່ອງ
+        if (currentPath.includes('create-issue.html') && perms.issue !== true) hasAccess = false; // ໜ້າສ້າງໃບເບີກ
+        if (currentPath.includes('issue-items.html') && !(perms.issue === true || perms.field === true)) hasAccess = false; // ໜ້າສົມທຽບ (ສາງ) ຫຼື ລາຍງານ (ຊ່າງ)
+        if (currentPath.includes('manage-users.html') && perms.manageUsers !== true) hasAccess = false;
 
         if (!hasAccess) {
             alert('🚫 ຂໍອະໄພ! ບັນຊີຂອງທ່ານບໍ່ມີສິດເຂົ້າເຖິງໜ້າວຽກນີ້.');

@@ -8,19 +8,23 @@ const ALLOWED_USER_ROLES = new Set([
     'super_admin',
 ]);
 
+function normalizeRole(role) {
+    if (typeof role !== 'string') return '';
+    return role.trim().toLowerCase();
+}
+
 function isAdminRole(role) {
-    if (typeof role !== 'string') return false;
-    return ADMIN_ROLES.has(role.trim());
+    return ADMIN_ROLES.has(normalizeRole(role));
 }
 
 function isAllowedUserRole(role) {
-    if (typeof role !== 'string') return false;
-    return ALLOWED_USER_ROLES.has(role.trim());
+    return ALLOWED_USER_ROLES.has(normalizeRole(role));
 }
 
 module.exports = {
     ADMIN_ROLES,
     ALLOWED_USER_ROLES,
+    normalizeRole,
     isAdminRole,
     isAllowedUserRole,
 };
