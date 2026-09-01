@@ -127,7 +127,7 @@
     <script type="module">
         import { auth, db } from './firebase-config.js';
         import { signInWithEmailAndPassword, setPersistence, browserLocalPersistence, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const getDeviceFingerprint = () => {
             const parts = [
@@ -248,33 +248,62 @@
                     const userRef = doc(db, 'users', currentUser.uid);
                     const userSnap = await getDoc(userRef);
                     const userData = userSnap.exists() ? userSnap.data() : {};
-                    const trustedDevice = userData?.security?.deviceFingerprint || null;
                     const currentDevice = getDeviceFingerprint();
 
-                    if (trustedDevice && trustedDevice !== currentDevice) {
+                    if (!userSnap.exists()) {
+                        await setDoc(userRef, {
+                            authUid: currentUser.uid,
+                            email: currentUser.email,
+                            fullName: currentUser.displayName || currentUser.email?.split('@')[0] || 'User',
+                            role: 'technical_staff',
+                            status: 'active',
+                            permissions: {
+                                dashboard: true,
+                                inventory: true,
+                                receive: true,
+                                issue: true,
+                                field: true,
+                                manageUsers: false
+                            },
+                            createdAt: serverTimestamp(),
+                            updatedAt: serverTimestamp(),
+                            security: {
+                                deviceFingerprint: currentDevice,
+                                lastKnownUserAgent: navigator.userAgent,
+                                lastLoginAt: serverTimestamp(),
+                                loginCount: 1,
+                                lastUpdatedAt: serverTimestamp()
+                            }
+                        }, { merge: true });
+                    } else {
+                        const trustedDevice = userData?.security?.deviceFingerprint || null;
+
+                        if (trustedDevice && trustedDevice !== currentDevice) {
+                            await updateDoc(userRef, {
+                                'security.lastSuspiciousAt': serverTimestamp(),
+                                'security.suspiciousDeviceFingerprint': currentDevice,
+                                'security.alerts': (userData?.security?.alerts || []).concat([
+                                    {
+                                        type: 'untrusted_device',
+                                        message: 'Detected login from a different browser/device than the trusted fingerprint.',
+                                        ts: serverTimestamp()
+                                    }
+                                ])
+                            });
+
+                            await signOut(auth);
+                            throw new Error('Untrusted device detected. Access blocked for security reasons.');
+                        }
+
                         await updateDoc(userRef, {
-                            'security.lastSuspiciousAt': serverTimestamp(),
-                            'security.suspiciousDeviceFingerprint': currentDevice,
-                            'security.alerts': (userData?.security?.alerts || []).concat([
-                                {
-                                    type: 'untrusted_device',
-                                    message: 'Detected login from a different browser/device than the trusted fingerprint.',
-                                    ts: serverTimestamp()
-                                }
-                            ])
-                        });
-
-                        await signOut(auth);
-                        throw new Error('Untrusted device detected. Access blocked for security reasons.');
+                            'security.deviceFingerprint': currentDevice,
+                            'security.lastKnownUserAgent': navigator.userAgent,
+                            'security.lastLoginAt': serverTimestamp(),
+                            'security.loginCount': (userData?.security?.loginCount || 0) + 1,
+                            'security.lastUpdatedAt': serverTimestamp(),
+                            updatedAt: serverTimestamp()
+                        }, { merge: true });
                     }
-
-                    await updateDoc(userRef, {
-                        'security.deviceFingerprint': currentDevice,
-                        'security.lastKnownUserAgent': navigator.userAgent,
-                        'security.lastLoginAt': serverTimestamp(),
-                        'security.loginCount': (userData?.security?.loginCount || 0) + 1,
-                        'security.lastUpdatedAt': serverTimestamp()
-                    }, { merge: true });
                 }
 
                 if(rememberMe) { 
@@ -282,6 +311,8 @@
                 } else { 
                     localStorage.removeItem('wm_user_email'); 
                 }
+
+                window.location.replace('./index.html');
 
             } catch (error) {
                 console.error("Login Error:", error);

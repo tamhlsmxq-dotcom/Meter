@@ -3,7 +3,7 @@
 // =========================================================================
 
 import { auth, db } from '../../firebase-config.js';
-import { doc, getDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
 const getDeviceFingerprint = () => {
@@ -100,19 +100,38 @@ onAuthStateChanged(auth, async (user) => {
         let freshUserData;
 
         if (!serverUserSnap.exists()) {
-            // ⚠️ ຊ່ອງທາງພິເສດສຳລັບ Admin ເພື່ອປ້ອງກັນການລັອກໂຕເອງອອກ
-            if (user.email.toLowerCase() === 'admin@watermeter.com') {
-                freshUserData = {
-                    uid: user.uid,
-                    email: user.email,
-                    fullName: 'ຜູ້ບໍລິຫານລະບົບ',
-                    role: 'super_admin',
-                    permissions: { dashboard: true, inventory: true, receive: true, issue: true, field: true, manageUsers: true }
-                };
-            } else {
-                // ຖ້າ User ທົ່ວໄປບໍ່ມີ Profile ໃນ Firestore, ຖືວ່າບໍ່ hợp lệ
-                throw new Error(`User profile not found for UID: ${user.uid}`);
-            }
+            // Create a minimal default profile for valid Firebase users so logins do not fail when the Firestore profile has not been created yet.
+            const defaultUserProfile = {
+                authUid: user.uid,
+                email: user.email,
+                fullName: user.displayName || user.email.split('@')[0],
+                role: 'technical_staff',
+                status: 'active',
+                permissions: { dashboard: true, inventory: true, receive: true, issue: true, field: true, manageUsers: false },
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+                security: {
+                    deviceFingerprint: getDeviceFingerprint(),
+                    lastKnownUserAgent: navigator.userAgent,
+                    lastLoginAt: serverTimestamp(),
+                    loginCount: 1,
+                    lastUpdatedAt: serverTimestamp()
+                }
+            };
+
+            await setDoc(serverUserRef, defaultUserProfile, { merge: true });
+            freshUserData = {
+                uid: user.uid,
+                email: user.email,
+                fullName: defaultUserProfile.fullName,
+                role: defaultUserProfile.role,
+                permissions: defaultUserProfile.permissions,
+                security: {
+                    deviceFingerprint: defaultUserProfile.security.deviceFingerprint,
+                    lastKnownUserAgent: navigator.userAgent,
+                    lastLoginAt: null
+                }
+            };
         } else {
             const serverUser = serverUserSnap.data();
             const currentDeviceFingerprint = getDeviceFingerprint();
