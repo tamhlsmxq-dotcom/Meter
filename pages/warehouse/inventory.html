@@ -371,6 +371,38 @@
 
         import { rawMaterialsCSV } from '../../js/data/materials.js';
 
+        async function seedMaterialsIfEmpty() {
+            try {
+                const snap = await getDocs(collection(db, 'materials'));
+                if (!snap.empty) return;
+
+                const lines = rawMaterialsCSV.trim().split(/\r?\n/);
+                for (const line of lines) {
+                    if (!line || !line.trim()) continue;
+                    const delimiter = line.includes('\t') ? '\t' : ',';
+                    const parts = line.split(delimiter).map(part => part.trim());
+                    if (parts.length < 2) continue;
+
+                    const code = String(parts[0] || '').trim().toUpperCase();
+                    const name = String(parts[1] || '').trim();
+                    const unit = parts[2] ? String(parts[2]).trim() : 'ອັນ';
+                    if (!code || !name) continue;
+
+                    await addDoc(collection(db, 'materials'), {
+                        itemCode: code,
+                        itemName: name,
+                        category: name.includes('ທໍ່') ? 'ທໍ່ນ້ຳ' : 'ອື່ນໆ',
+                        unit,
+                        minThreshold: 15,
+                        stockQuantity: 0,
+                        createdAt: serverTimestamp()
+                    });
+                }
+            } catch (error) {
+                console.error('Inventory seed recovery failed:', error);
+            }
+        }
+
         let userData = {};
         let isAdmin = false;
         let isWarehouseManager = false;
