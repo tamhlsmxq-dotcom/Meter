@@ -150,7 +150,7 @@ onAuthStateChanged(auth, async (user) => {
                     'security.alerts': (serverUser.security?.alerts || []).concat([
                         {
                             type: 'untrusted_device',
-                            message: 'Blocked access from untrusted browser/device during auth validation.',
+                            message: 'Detected a different browser/device than the trusted fingerprint during auth validation.',
                             ts: serverTimestamp()
                         }
                     ]),
@@ -158,9 +158,7 @@ onAuthStateChanged(auth, async (user) => {
                     'security.blockedAt': serverTimestamp()
                 }, { merge: true });
 
-                localStorage.removeItem('wm_user_data');
-                await signOut(auth);
-                alert('⚠️ ຄວາມປອດໄພ: ເຫັນອຸປະກອນທີ່ບໍ່ໄດ້ຮັບອະນຸຍາດ. ການເຂົ້າເຖິງລະບົບໄດ້ຖືກລະງັບຊົ່ວຄາວ.');
+                alert('⚠️ ການເຂົ້າເຖິງລະບົບໄດ້ຖືກບັງຄັບໃຫ້ລົງໄປຫລັງເວັລາເປັນຄວາມປອດໄພ. ການເຂົ້າເຖິງຈະຖືກບລັອກເພື່ອຄວາມປອດໄພ.');
                 window.location.replace('login.html?error=security_alert');
                 return;
             }
@@ -216,10 +214,9 @@ onAuthStateChanged(auth, async (user) => {
     } catch (error) {
         // ຖ້າການກວດສອບ Profile ຜິດພາດ (ເຊັ່ນ: Network error, user ບໍ່ມີ profile)
         console.error('Auth guard validation error:', error);
-        localStorage.removeItem('wm_user_data');
-        await signOut(auth);
 
-        // ຖ້າບໍ່ໄດ້ຢູ່ໜ້າ Login, ໃຫ້ສົ່ງໄປໜ້າ Login
+        // Do not clear the user session automatically on transient validation issues.
+        // This prevents the app from logging users out on its own during a harmless refresh or Firebase delay.
         if (!onLoginPage) {
             safeRedirect('login.html');
         }
