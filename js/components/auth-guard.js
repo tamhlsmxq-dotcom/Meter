@@ -5,6 +5,7 @@
 import { auth, db } from '../../firebase-config.js';
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import { isSamePage, resolveTargetUrl, normalizeUrlForComparison } from '../utils/route-utils.mjs';
 
 const getDeviceFingerprint = () => {
     const parts = [
@@ -24,28 +25,19 @@ const getDeviceFingerprint = () => {
 // 🌟 1. ຟັງຊັນຄຳນວນ Path ທີ່ໃຊ້ໄດ້ທັງ Web App ແລະ App 🌟
 // (ໃຊ້ການຖອຍຫຼັງໂຟນເດີ ../ ແທນການອ້າງອີງຈາກ Root / )
 function getCorrectPath(targetPage) {
-    const path = window.location.pathname.toLowerCase();
-    let base = '.';
-    
-    // ກວດສອບວ່າໄຟລ໌ປັດຈຸບັນຢູ່ເລິກຊ່ຳໃດ ເພື່ອຖອຍຫຼັງໃຫ້ຖືກຕ້ອງ
-    if (path.includes('/pages/warehouse/') || path.includes('/pages/admin/')) {
-        base = '../..';
-    } else if (path.includes('/pages/')) {
-        base = '..';
-    }
-    return `${base}/${targetPage}`;
+    return resolveTargetUrl(targetPage, window.location.href);
 }
 
 // 🌟 2. ຟັງຊັນ Redirect ທີ່ປ້ອງກັນການຄ້າງ (Loop) ໃນ App 🌟
 let isRedirecting = false;
 function safeRedirect(targetPage) {
     if (isRedirecting) return;
-    
-    // ກວດສອບວ່າປັດຈຸບັນຢູ່ໜ້າດຽວກັນແລ້ວຫຼືບໍ່ ເພື່ອປ້ອງກັນບໍ່ໃຫ້ມັນໂຫຼດໜ້າເກົ່າຊໍ້າໆ
-    const currentFullUrl = window.location.href.toLowerCase();
-    const targetFullUrl = new URL(getCorrectPath(targetPage), window.location.href).href.toLowerCase();
 
-    if (currentFullUrl !== targetFullUrl) { // ປັບປຸງການກວດສອບໃຫ້ຮອບຄອບຂຶ້ນ, ລວມທັງ Query Parameters
+    const targetFullUrl = getCorrectPath(targetPage);
+    const currentFullUrl = window.location.href;
+    const samePage = isSamePage(targetFullUrl, currentFullUrl);
+
+    if (!samePage) {
         isRedirecting = true;
         window.location.replace(targetFullUrl);
     }
@@ -81,10 +73,14 @@ function getStoredUser() {
     }
 }
 
+function shouldAllowAnonymousAccess() {
+    return isLoginPagePath() || window.location.pathname.toLowerCase().endsWith('/404.html');
+}
+
 const localUser = getStoredUser();
 
-// 🌟 3. Fast Check: ຖ້າບໍ່ມີ Session ໃນເຄື່ອງ ໃຫ້ເຕະໄປ Login ທັນທີ (ບໍ່ໃຫ້ຈໍກະຕຸກ)
-if (!localUser && !isLoginPagePath()) {
+// 🌟 3. Fast Check: ຖ້າບໍ່ມີ Session ໃນເຄື່ອງ ໃຫ່າເຕະໄປ Login ທັນທີ (ບໍ່ໃຫ້ຈໍກະຕຸກ)
+if (!localUser && !shouldAllowAnonymousAccess()) {
     safeRedirect('login.html');
 }
 

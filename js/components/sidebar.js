@@ -343,16 +343,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Timeout (Lock screen ຖ້າບໍ່ມີການເຄື່ອນໄຫວ)
     (function() {
         let idleTimer;
-        const idleTimeLimit = 5 * 60 * 1000; 
-        
+        const idleTimeLimit = 30 * 60 * 1000;
+
         function resetIdleTimer() {
             clearTimeout(idleTimer);
             idleTimer = setTimeout(async () => {
-                await updateStatusToOffline(); 
+                await updateStatusToOffline();
                 localStorage.removeItem('wm_user_data');
-                alert("🔒 ໝົດເວລາການໃຊ້ງານ 5 ນາທີ! ລະບົບໄດ້ລັອກເອົາອັດຕະໂນມັດເພື່ອຄວາມປອດໄພ.");
-                window.location.replace(`${base}/login.html`);
-            }, idleTimeLimit);
+                alert("🔒 ໝົດເວລາການໃຊ້ງານ 30 ນາທີ! ລະບົບໄດ້ລັອກເອົາອັດຕະໂນມັດເພື່ອຄວາມປອດໄພ.");
         }
 
         const events = ['mousemove', 'keydown', 'mousedown', 'touchstart', 'scroll'];
